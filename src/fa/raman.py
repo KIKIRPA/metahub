@@ -1,5 +1,7 @@
 from pydantic import BaseModel
 
+from measurement import Measurement
+
 
 class Grating(BaseModel):
     grating_type: str
@@ -21,7 +23,7 @@ class SpectralRange(BaseModel):
     spectral_range_high: float
 
 
-class Raman(BaseModel):
+class Raman(Measurement):
     instrument: str
     software: str
     detector_type: str
