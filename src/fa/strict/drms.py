@@ -1,4 +1,4 @@
-from measurement import Measurement
+from .measurement import Measurement
 
 
 class DRMS(Measurement):
