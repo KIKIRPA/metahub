@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from measurement import Measurement
+from .measurement import Measurement
 
 
 class Grating(BaseModel):
