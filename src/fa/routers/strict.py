@@ -114,6 +114,19 @@ async def read_measurements():
     return measurements
 
 
+@router.post("/add", response_model=Measurement)
+async def add_measurement(m: Measurement = Body(...)):
+    json_data = jsonable_encoder(m)
+    new_measurement = await db["measurements"].insert_one(json_data)
+    created_measurement = await db["measurements"].find_one(
+        {"_id": new_measurement.inserted_id}
+    )
+    return JSONResponse(
+        status_code=status.HTTP_201_CREATED,
+        content=created_measurement
+    )
+
+
 @router.get("/add_them_all", response_model=List[Measurement])
 async def add_measurements():
     """Populate the MongoDB database with some examples.
