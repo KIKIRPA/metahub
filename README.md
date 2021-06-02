@@ -7,10 +7,12 @@ Learning to use Flama and FastAPI in the context of our metadata blocks
 ## Installing the requirements
 
 To install the requirements for this API, you need to execute the following 
-command, at the root of this repository: 
+commands, at the root of this repository: 
 
 ```shell
-pip install -r requirements.txt
+python -m venv venv   # Creating a virtual environment for our application
+source venv/bin/activate  # Activating the virtual environment
+pip install -r requirements.txt  # Installing requirements
 ```
 
 ## Starting the API
