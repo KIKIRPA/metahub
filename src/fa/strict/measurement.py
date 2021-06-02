@@ -1,7 +1,7 @@
 from datetime import date
 from typing import List
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from bson import ObjectId
 
 
@@ -33,7 +33,11 @@ class Sample(BaseModel):
 
 
 class Measurement(BaseModel):
+    oid: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
     id: MeasurementId
     sample: List[Sample]
     characteristic: str
     material: List[str]
+
+    class Config:
+        json_encoders = {ObjectId: str}
