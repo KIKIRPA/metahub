@@ -2,7 +2,9 @@ from datetime import date
 import os
 from typing import List
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Body, status
+from fastapi.encoders import jsonable_encoder
+from fastapi.responses import JSONResponse
 import motor.motor_asyncio
 
 from ..strict.measurement import Measurement, MeasurementId, Sample
@@ -110,6 +112,28 @@ db_drms = [
 async def read_measurements():
     measurements = await db["measurements"].find().to_list(1000)
     return measurements
+
+
+@router.get("/add_them_all", response_model=List[Measurement])
+async def add_measurements():
+    """Populate the MongoDB database with some examples.
+
+    :return: The list of created measurements
+    :rtype: List[Measurement]
+    """
+    created_measurements = []
+    for d in db_measurements:
+        m = jsonable_encoder(d)
+        new_measurement = await db["measurements"].insert_one(m)
+        created_measurement = await db["measurements"].find_one(
+            {"_id": new_measurement.inserted_id}
+        )
+        created_measurements.append(created_measurement)
+
+    return JSONResponse(
+        status_code=status.HTTP_201_CREATED,
+        content=created_measurements
+    )
 
 
 @router.get("/drms/", response_model=List[DRMS])
