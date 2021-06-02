@@ -118,6 +118,8 @@ async def read_measurements():
 
 @router.post("/add", response_model=Measurement)
 async def add_measurement(m: Measurement = Body(...)):
+    """Adding a Measurement in the database.
+    """
     json_data = jsonable_encoder(m)
     new_measurement = await db["measurements"].insert_one(json_data)
     created_measurement = await db["measurements"].find_one(
