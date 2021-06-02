@@ -1,7 +1,9 @@
 from datetime import date
+import os
 from typing import List
 
 from fastapi import APIRouter
+import motor.motor_asyncio
 
 from ..strict.measurement import Measurement, MeasurementId, Sample
 from ..strict.drms import DRMS
@@ -12,6 +14,14 @@ router = APIRouter(
     prefix="/measurements",
     tags=["strict", "measurements"]
 )
+
+# Creating a MongoDB client by using the environment variable MONGODB_URL and
+# defaulting to the MongoDB instance created with docker in the 'mongo_container'
+client = motor.motor_asyncio.AsyncIOMotorClient(
+    os.getenv("MONGODB_URL", "mongodb://kikirpa:hescida@localhost:27017/")
+)
+# Connecting to the 'strict' database in MongoDB, which was created by hand
+db = client.strict
 
 db_measurements = [
     Measurement(
