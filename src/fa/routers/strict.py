@@ -6,6 +6,8 @@ from fastapi import APIRouter
 from ..strict.measurement import Measurement, MeasurementId, Sample
 from ..strict.drms import DRMS
 
+# Creating a FastAPI router, meaning a set of routes that can be included later
+# in the FastAPI application
 router = APIRouter(
     prefix="/measurements",
     tags=["strict", "measurements"]
