@@ -93,7 +93,6 @@ db_drms = [
         rotation_speed=100,
         penetration_rate=50,
     )
-
 ]
 
 
