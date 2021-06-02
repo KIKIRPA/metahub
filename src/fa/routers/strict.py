@@ -108,7 +108,8 @@ db_drms = [
 
 @router.get("/", response_model=List[Measurement])
 async def read_measurements():
-    return db_measurements
+    measurements = await db["measurements"].find().to_list(1000)
+    return measurements
 
 
 @router.get("/drms/", response_model=List[DRMS])
