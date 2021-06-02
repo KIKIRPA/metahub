@@ -134,9 +134,6 @@ async def add_measurement(m: Measurement = Body(...)):
 @router.get("/add_them_all", response_model=List[Measurement])
 async def add_measurements():
     """Populate the MongoDB database with some examples.
-
-    :return: The list of created measurements
-    :rtype: List[Measurement]
     """
     created_measurements = []
     for d in db_measurements:
@@ -155,4 +152,6 @@ async def add_measurements():
 
 @router.get("/drms/", response_model=List[DRMS])
 async def read_drms():
+    """Displaying the DRMS records in the database.
+    """
     return db_drms
