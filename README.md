@@ -31,7 +31,7 @@ mongo_container_mongo_mbapi_1     docker-entrypoint.sh mongod      Up      0.0.0
 You can then go to the `src` directory and run the following command from there: 
 
 ```shell
-uvicorn fa.main:app --reload
+uvicorn main:app --reload
 ```
 
 and visit the following URL: <http://127.0.0.1:8000/measurements/>. The 
