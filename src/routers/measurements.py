@@ -7,14 +7,14 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 import motor.motor_asyncio
 
-from ..strict.measurement import Measurement, MeasurementId, Sample
-from ..strict.drms import DRMS
+from models.measurement import Measurement, MeasurementId, Sample
+from models.drms import DRMS
 
 # Creating a FastAPI router, meaning a set of routes that can be included later
 # in the FastAPI application
 router = APIRouter(
     prefix="/measurements",
-    tags=["strict", "measurements"]
+    tags=["measurements"]
 )
 
 # Creating a MongoDB client by using the environment variable MONGODB_URL and
