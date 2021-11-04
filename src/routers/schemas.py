@@ -22,5 +22,5 @@ router = APIRouter(
 async def read_measurement_schema():
     """Displaying json-schema.
     """
-    return Measurement.schema_json()
+    return Measurement.schema()
 
