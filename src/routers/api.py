@@ -13,8 +13,8 @@ from models.drms import DRMS
 # Creating a FastAPI router, meaning a set of routes that can be included later
 # in the FastAPI application
 router = APIRouter(
-    prefix="/measurements",
-    tags=["measurements"]
+    prefix="/api",
+    tags=["api"]
 )
 
 # Creating a MongoDB client by using the environment variable MONGODB_URL and
@@ -108,7 +108,7 @@ db_drms = [
 ]
 
 
-@router.get("/", response_model=List[Measurement])
+@router.get("/measurements", response_model=List[Measurement])
 async def read_measurements():
     """Displaying all measurements in the database.
     """
@@ -116,7 +116,7 @@ async def read_measurements():
     return measurements
 
 
-@router.post("/add", response_model=Measurement)
+@router.post("/measurements/add", response_model=Measurement)
 async def add_measurement(m: Measurement = Body(...)):
     """Adding a Measurement in the database.
     """
@@ -131,7 +131,7 @@ async def add_measurement(m: Measurement = Body(...)):
     )
 
 
-@router.get("/add_them_all", response_model=List[Measurement])
+@router.get("/measurements/add_them_all", response_model=List[Measurement])
 async def add_measurements():
     """Populate the MongoDB database with some examples.
     """
