@@ -1,11 +1,4 @@
-from datetime import date
-import os
-from typing import List
-
-from fastapi import APIRouter, Body, status
-from fastapi.encoders import jsonable_encoder
-from fastapi.responses import JSONResponse
-import motor.motor_asyncio
+from fastapi import APIRouter
 
 from models.measurement import Measurement
 from models.drms import DRMS
