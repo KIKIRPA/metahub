@@ -20,13 +20,15 @@ templates = Jinja2Templates(directory="templates")
 
 @router.get("/alpaca", response_class=HTMLResponse)
 async def show_measurements_form_alpaca(request: Request):
-    """Displaying json-schema.
+    """Displaying form using alpaca.
     """
-    return templates.TemplateResponse("alpaca.html", {"request": request})
+    schema = Measurement.schema_json(indent=4)
+    return templates.TemplateResponse("alpaca.html", {"request": request, "schema": schema})
 
 
 @router.get("/jsoneditor", response_class=HTMLResponse)
 async def show_measurements_form_jsoneditor(request: Request):
-    """Displaying json-schema.
+    """Displaying form using json-editor.
     """
-    return templates.TemplateResponse("jsoneditor.html", {"request": request})
+    schema = Measurement.schema_json(indent=4)
+    return templates.TemplateResponse("jsoneditor.html", {"request": request, "schema": schema})

@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-    <title>Getting Started Sample</title>
+    <title>ALPACA</title>
     <meta charset="UTF-8">
 
 	<link type="text/css" rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
@@ -26,23 +26,8 @@
 <script type="text/javascript">
 $(document).ready(function() {
     $("#field1").alpaca({
-        "schema": {
-            "type": "object",
-            "properties": {
-                "name": {
-                    "type": "string",
-                    "title": "Name"
-                },
-                "age": {
-                    "type": "number",
-                    "title": "Age"
-                }                
-            }
-        },
-        "data": {
-            "name": "Joe Smith",
-            "age": 35
-        }
+        "schema": {{ schema|safe }},
+        "data": {}
 
         /** add in this section to experiment with a form button */
         /*
