@@ -10,23 +10,48 @@
     <script src="https://cdn.jsdelivr.net/npm/@json-editor/json-editor@latest/dist/jsoneditor.min.js"></script>
   </head>
   <body>
-    <div id='editor_holder'></div>
-    <button id='submit'>Submit (console.log)</button>
+    <div class='container grid-xl'>
+      <div id='editor_holder'></div>
+
+      <br/><br/>
+      <button id='submit'>Check</button>
+      <br/><br/>
+      
+      <h6>JSON Output:</h6>
+      <textarea id='output-textarea' readonly disabled rows="15" style="width: 100%; font-family: monospace;" class='form-control'></textarea>
+
+      <h6>Validation:</h6>
+      <textarea id='validate-textarea' readonly disabled class='form-control'></textarea>
+    </div>
 
     <script>
+      var outputTextarea = document.querySelector('#output-textarea')
+      var validateTextarea = document.querySelector('#validate-textarea')
+
       // Initialize the editor with a JSON schema
       var editor = new JSONEditor(document.getElementById('editor_holder'),{
         iconlib: 'fontawesome5',
         object_layout: 'normal',
-        show_errors: 'interaction',
+        show_errors: 'always',  //interaction, change, always, never
+        disable_properties: true,
+        disable_edit_json: true,
         theme: 'bootstrap4',
         schema: {{ schema|safe }}
       });
 
       // Hook up the submit button to log to the console
       document.getElementById('submit').addEventListener('click',function() {
-        // Get the value from the editor
-        console.log(editor.getValue());
+        // output
+        var json = editor.getValue()
+        outputTextarea.value = JSON.stringify(json, null, 2)
+
+        // validate
+        var validationErrors = editor.validate()
+        if (validationErrors.length) {
+          validateTextarea.value = JSON.stringify(validationErrors, null, 2)
+        } else {
+          validateTextarea.value = 'valid'
+        }
       });
     </script>
   </body>
