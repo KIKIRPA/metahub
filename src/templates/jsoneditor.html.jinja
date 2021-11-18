@@ -11,6 +11,23 @@
   </head>
   <body>
     <div class='container grid-xl'>
+      <br/>
+      <div class="card border-danger mb-3">  
+        <div class="card-header text-white bg-danger">JSON-EDITOR</div>
+          <div class="card-body">
+            <ul>
+                <li><a href="https://github.com/json-editor/json-editor">github.com/json-editor/json-editor</a></li>
+                <li>No dependencies, multiple mappings for css-frameworks (here: Bootstrap 4.x)</li>
+                <li>Last release: Nov 2021 (under active development)</li>
+                <li>Renders ok</li>
+                <li>Validation fails on required fields in subschemas</li>
+                <li>Numbers cannot be null, requires AnyOf, but renders ugly</li>
+                <li>Fields that are not filled in are empty strings in json, requires show_opt_in option, but renders ugly</li>
+            </ul>
+        </div>
+      </div>
+      <br/>
+
       <div id='editor_holder'></div>
 
       <br/><br/>
