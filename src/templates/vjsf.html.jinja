@@ -1,0 +1,69 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>VJSF</title>
+    <meta charset="UTF-8">
+
+    <!-- https://koumoul-dev.github.io/vuetify-jsonschema-form/latest/ -->
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@0.19.2/dist/axios.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@koumoul/vjsf@latest/dist/main.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@koumoul/vjsf@latest/dist/third-party.js"></script>
+
+    <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.x/css/materialdesignicons.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@koumoul/vjsf@latest/dist/main.css">
+
+</head>
+<body>
+    
+    <v-app id="app">
+        <v-container>  
+            <v-form ref="form" v-model="valid">
+                <v-jsf v-model="model" :schema="schema" :options="options" @input="logEvent('input', $event)" @change="logEvent('change', $event)" @input-child="logEvent('input-child', $event)" @change-child="logEvent('change-child', $event)" />
+            </v-form>
+            <v-layout row class="mt-2">
+                <v-spacer></v-spacer>
+                <p>valid={{ '{{valid}}' }}</p>
+                <v-btn color="primary" @click="$refs.form.validate()">Validate</v-btn>
+            </v-layout>
+            <br/><br/>
+            <h5>Model:</h5>
+            <pre>{{ '{{model}}' }}</pre>
+        </v-container>
+    </v-app>
+
+<script type="text/javascript">
+    const model = {}
+    const options =  { 
+        "editMode": "inline",
+        "rootDisplay": "expansion-panels" 
+    }
+    const schema = {{ schema|safe }}
+
+    Vue.component('VJsf', VJsf.default)
+
+    new Vue({
+        el: '#app',
+        vuetify: new Vuetify(),
+        data: {
+            model,
+            options,
+            schema,
+            valid: null
+        },
+        methods: {
+            logEvent(key, $event) {
+                console.log('vjsf event', key, $event)
+            }
+        }
+    })
+</script>
+	
+</body>
+</html>

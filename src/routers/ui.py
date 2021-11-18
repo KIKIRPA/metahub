@@ -25,7 +25,7 @@ async def show_form(request: Request, layout: Optional[str] = "jsoneditor"):
     """Displaying document input form
     """
     
-    if layout not in ["jsoneditor", "alpaca"]:
+    if layout not in ["jsoneditor", "alpaca", "vjsf"]:
         raise HTTPException(status_code=404, detail="Layout does not exist")
     
     schema = Measurement.schema_json(indent=4)
