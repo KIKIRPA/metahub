@@ -21,10 +21,9 @@ templates = Jinja2Templates(directory="templates")
 
 @router.get("/{document_type}", response_class=HTMLResponse)
 async def show_form(
-    request: Request, 
-    document_type: str = Path(None, description="The type of report or measurement"),
-    layout: Optional[str] = "jsoneditor"
-    ):
+        request: Request, 
+        document_type: str = Path(None, description="The type of report or measurement"),
+        layout: Optional[str] = "jsoneditor"):
     """Displaying document input form
     """
     
