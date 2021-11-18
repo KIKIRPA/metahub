@@ -9,6 +9,7 @@ from enum import Enum
 from typing import List, Optional
 
 from pydantic import BaseModel, Field
+from .measurement import Measurement
 
 
 class General(BaseModel):
@@ -191,7 +192,7 @@ class Results(BaseModel):
     )
 
 
-class DendrochronologyMeasurementScheme(BaseModel):
+class Dendro(Measurement):
     general: Optional[General] = Field(None, title='General')
     samples: Optional[List[Sample]] = Field(None, title='Samples')
     measurement_parameters: Optional[MeasurementParameters] = Field(None, title='Measurement parameters')
