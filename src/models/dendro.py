@@ -24,7 +24,7 @@ class Sample(BaseModel):
     material: Optional[str] = Field(None, title='Material')
 
 
-class Taxon(Enum):
+class Taxon(str, Enum):
     Abies_alba_Mill_ = 'Abies alba Mill.'
     Acer_campestre_L_ = 'Acer campestre L.'
     Acer_platanoides_L_ = 'Acer platanoides L.'
@@ -162,7 +162,7 @@ class Taxon(Enum):
     Vitis_vinifera_L_ = 'Vitis vinifera L.'
 
 
-class Software(Enum):
+class Software(str, Enum):
     Dendron_IV = 'Dendron IV'
     CooRecorder = 'CooRecorder'
 

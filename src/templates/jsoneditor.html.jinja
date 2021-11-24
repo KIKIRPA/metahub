@@ -20,9 +20,8 @@
                 <li>No dependencies, multiple mappings for css-frameworks (here: Bootstrap 4.x)</li>
                 <li>Last release: Nov 2021 (under active development)</li>
                 <li>Renders ok</li>
-                <li>Validation fails on required fields in subschemas</li>
-                <li>Numbers cannot be null, requires AnyOf, but renders ugly</li>
-                <li>Fields that are not filled in are empty strings in json, requires show_opt_in option, but renders ugly</li>
+                <li>With or without "default": null, it always fills each field with something ("", 0...), which is unacceptible. Omitting keys with no values can only be done with the show_opt_in option, but destroys user-friendlyness</li>
+                <li>Validation fails on date fields; "" is accepted as valid date</li>
             </ul>
         </div>
       </div>
