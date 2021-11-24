@@ -25,7 +25,7 @@
     <v-app id="app">
         <v-container>
             <br/>
-            <v-card class="error white--text">
+            <v-card class="primary white--text">
                 <v-card-title>
                     <span class="text-h6">VUETIFY-JSONSCHEMA-FORM</span>
                 </v-card-title>
@@ -40,6 +40,7 @@
                         <li>Single properties are rendered first, subschemas last. Not really a bug, as json-schema does not enforce an order, but nevertheless annoying... The <a href="https://github.com/koumoul-dev/vuetify-jsonschema-form/issues/293">issue</a> is being worked on.</li>
                         <li>Keys in resulting json are not ordered as in the schema. Not really a bug, as json-schema does not enforce an order, but nevertheless annoying...</li>
                         <li>Validation ok</li>
+                        <li><a href="https://koumoul-dev.github.io/vuetify-jsonschema-form/latest/examples#combobox">Combobox</a> mogelijk: "niet limitatieve enum" - heel interessant</li>
                     </ul>
                 </v-card-text>
             </v-card>
@@ -71,7 +72,15 @@
 
     new Vue({
         el: '#app',
-        vuetify: new Vuetify(),
+        vuetify: new Vuetify({
+            theme: {
+                themes: {
+                    light: {
+                        primary: '#af8d55'
+                    },
+                },
+            },
+        }),
         data: {
             model,
             options,
