@@ -176,11 +176,9 @@ class MeasurementParameters(BaseModel):
         description='This is generated automatically from the previous two fields',
         title='Measurement Id',
     )
-    taxon: Optional[Taxon] = Field(None, description='Taxonomy', title='Taxon')
+    taxon: Optional[Taxon] = Field(None, alias='Taxon')
     unit: Optional[str] = Field(None, title='Unit')
-    software: Optional[Software] = Field(
-        None, description='Datation software used', title='Software'
-    )
+    software: Optional[Software] = Field(None, alias='Software')
     format: Optional[str] = Field(None, description='Data format', title='Format')
 
 
@@ -195,5 +193,5 @@ class Results(BaseModel):
 class Dendro(Document):
     general: Optional[General] = Field(None, title='General')
     samples: Optional[List[Sample]] = Field(None, title='Samples')
-    measurement_parameters: Optional[MeasurementParameters] = Field(None, title='Measurement parameters')
+    measurement_parameters: MeasurementParameters = Field(None, title='Measurement parameters')
     results: Optional[Results] = Field(None, title='Results')
