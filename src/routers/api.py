@@ -7,7 +7,7 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 import motor.motor_asyncio
 
-from models.measurement import Measurement, MeasurementId, Sample
+from models.measurement import Measurement
 from models.drms import DRMS
 
 # Creating a FastAPI router, meaning a set of routes that can be included later
@@ -25,6 +25,7 @@ client = motor.motor_asyncio.AsyncIOMotorClient(
 # Connecting to the 'strict' database in MongoDB, which was created by hand
 db = client.strict
 
+""" 
 db_measurements = [
     Measurement(
         id=MeasurementId(
@@ -105,7 +106,7 @@ db_drms = [
         rotation_speed=100,
         penetration_rate=50,
     )
-]
+] """
 
 
 @router.get("/measurements", response_model=List[Measurement])
