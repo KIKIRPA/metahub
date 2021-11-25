@@ -5,13 +5,19 @@ from pydantic import BaseModel, Field
 from .document import Document
 
 
+class MeasurementId(BaseModel):
+    measurement_technique: Optional[str] = Field(None, title='Analytical technique code')
+    measurement_date: Optional[date] = Field(None, title='Measurement date')
+    measurement_index: Optional[str] = Field(None, title='Measurement index')
+
+    class Config:
+        title = "Measurement Identifier"
+
 class Sample(BaseModel):
     sample_id: str
 
 
 class Measurement(Document):
-    analytical_technique: str = Field(..., title='Analytical technique')
-    measurement_date: Optional[date] = Field(None, title='Measurement date')
-    measurement_index: Optional[str] = Field(None, title='Measurement index')
+    measurement_id: MeasurementId = Field(...)
     samples: Set[Sample] = Field(..., title='Samples')
 

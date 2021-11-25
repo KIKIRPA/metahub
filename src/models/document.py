@@ -38,6 +38,7 @@ class File(BaseModel):
 
 class Document(BaseModel):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id", title="Document Id")
+    document_type: str = Field(..., title='Document type')
     dossier_id: str = Field(..., title='Dossier/project Id')
     contributors: Set[Contributor] = Field(...)
     files: Set[File] = Field(...)

@@ -163,6 +163,6 @@ class DendroResults(BaseModel):
 
 
 class Dendro(Measurement):
-    analytical_technique: str = Field("Dendrochronology (DENDRO)", title='Analytical technique')  #OVERRIDE FROM MEASUREMENT, todo: should move to template!!
+    document_type: str = Field("Dendrochronology", title='Document type', const=True) #OVERRIDE FROM DOCUMENT
     measurement_parameters: Optional[DendroParameters] = Field(None)
     results: Optional[DendroResults] = Field(None)
