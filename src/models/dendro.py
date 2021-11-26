@@ -148,7 +148,7 @@ class DendroParameters(BaseModel):
     dendrochronology_dating_software: Set[str] = Field(..., title='', description='Dendrochronology dating software packages used')
 
     class Config:
-        title = "Measurement Parameters"
+        title = "Measurement parameters"
 
 
 class DendroResults(BaseModel):
@@ -158,10 +158,10 @@ class DendroResults(BaseModel):
     comments: Optional[str] = Field(None, title='Comments', description='Comments with regards to generated research data')
 
     class Config:
-        title = "Measurement Results"
+        title = "Measurement results"
 
 
 class Dendro(Measurement):
     document_type: str = Field("Dendrochronology", title='Document type', const=True) #OVERRIDE FROM DOCUMENT
     measurement_parameters: Optional[DendroParameters] = Field(None)
-    results: Optional[DendroResults] = Field(None)
+    measurement_results: Optional[DendroResults] = Field(None)

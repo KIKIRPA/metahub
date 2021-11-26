@@ -60,7 +60,7 @@ class RamanParameters(BaseModel):
     data_processing: Set[str]
 
     class Config:
-        title = "Measurement Parameters"
+        title = "Measurement parameters"
 
 
 class RamanResults(BaseModel):
@@ -68,11 +68,11 @@ class RamanResults(BaseModel):
     comments: Optional[str] = Field(None, title='Comments', description='Comments with regards to generated research data')
 
     class Config:
-        title = "Measurement Results"
+        title = "Measurement results"
 
 
 class Raman(Measurement):
     document_type: str = Field("Micro-Raman Spectrometry", title='Document type', const=True) #OVERRIDE FROM DOCUMENT
     measurement_parameters: Optional[RamanParameters] = Field(None)
-    results: Optional[RamanResults] = Field(None)
+    measurement_results: Optional[RamanResults] = Field(None)
 
