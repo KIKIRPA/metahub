@@ -146,7 +146,6 @@ class DendroParameters(BaseModel):
     image_scale_calibration: Optional[str] = Field(None, title='Image scale calibration', description='Smallest distance on scale card')
     image_processing_software: Set[str] = Field(..., title='', description='Image processing software packages used')
     dendrochronology_dating_software: Set[str] = Field(..., title='', description='Dendrochronology dating software packages used')
-    format: Optional[str] = Field(None, description='Data format', title='Format')
 
     class Config:
         title = "Measurement Parameters"
