@@ -23,7 +23,7 @@ templates = Jinja2Templates(directory="templates")
 async def show_form(
         request: Request, 
         document_type: str = Path(None, description="The type of report or measurement"),
-        layout: Optional[str] = "jsoneditor"):
+        layout: Optional[str] = "vjsf"):
     """Displaying document input form
     """
     
