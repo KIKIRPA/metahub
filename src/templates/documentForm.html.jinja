@@ -1,14 +1,14 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-    <title>VJSF</title>
+    <title>Document form</title>
     <meta charset="UTF-8">
 
     <!-- https://koumoul-dev.github.io/vuetify-jsonschema-form/latest/ -->
 
     <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/axios@0.19.2/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/@koumoul/vjsf@2.7.3/dist/main.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@koumoul/vjsf@2.7.3/dist/third-party.js"></script>
@@ -18,7 +18,6 @@
     <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@koumoul/vjsf@2.7.3/dist/main.css">
-
 </head>
 <body>
     
@@ -47,53 +46,71 @@
             <br/>
 
             <v-form ref="form" v-model="valid">
-                <v-jsf v-model="model" :schema="schema" :options="options" @input="logEvent('input', $event)" @change="logEvent('change', $event)" @input-child="logEvent('input-child', $event)" @change-child="logEvent('change-child', $event)" />
+                <v-jsf v-model="model" :schema="schema" :options="options" />
             </v-form>
+
             <v-layout row class="mt-2">
                 <v-spacer></v-spacer>
                 <p>valid={{ '{{valid}}' }}</p>
-                <v-btn color="primary" @click="$refs.form.validate()">Validate</v-btn>
+                <v-btn class="mx-2" color="primary" @click="$refs.form.validate()">Validate</v-btn>
+                <v-btn class="mx-2" @click="getSchema('raman')">Update schema</v-btn> 
             </v-layout>
+
             <br/><br/>
             <h5>Model:</h5>
             <pre>{{ '{{model}}' }}</pre>
         </v-container>
     </v-app>
 
-<script type="text/javascript">
-    const model = {}
-    const options =  { 
-        "editMode": "inline",
-        //"rootDisplay": "expansion-panels" 
-    }
-    const schema = {{ schema|safe }}
+    <script type="text/javascript">
+        let initialSchema = "{{ schema }}"
+        let schema = {}
+        let model = {}
+        const options =  { 
+            "editMode": "inline",
+            //"rootDisplay": "expansion-panels" 
+        }
 
-    Vue.component('VJsf', VJsf.default)
+        Vue.component('VJsf', VJsf.default)
 
-    new Vue({
-        el: '#app',
-        vuetify: new Vuetify({
-            theme: {
-                themes: {
-                    light: {
-                        primary: '#af8d55'
+        new Vue({
+            el: '#app',
+
+            vuetify: new Vuetify({
+                theme: {
+                    themes: {
+                        light: {
+                            primary: '#af8d55'
+                        },
                     },
                 },
+            }),
+
+            data: {
+                model,
+                options,
+                schema,
+                valid: null
             },
-        }),
-        data: {
-            model,
-            options,
-            schema,
-            valid: null
-        },
-        methods: {
-            logEvent(key, $event) {
-                console.log('vjsf event', key, $event)
+
+            mounted() {
+                this.getSchema(initialSchema)
+            },
+
+            methods: {
+                getSchema(schemaURL) {
+                    axios.get('/schemas/' + schemaURL)
+                        .then(response => {
+                            this.schema = response.data;
+                            window.history.replaceState({}, this.schema.title, "/raman")
+                        })
+                        .catch(error => {
+                            console.log(error)
+                        })
+                },
             }
-        }
-    })
-</script>
+        })
+    </script>
 	
 </body>
 </html>
