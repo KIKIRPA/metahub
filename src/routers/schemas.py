@@ -27,7 +27,7 @@ def merge(source, destination):
 
 @router.get("/{document_type}")
 async def read_measurement_schema(
-    document_type: str = Path(None, description="The type of report or measurement")):
+        document_type: str = Path(None, description="The type of report or measurement")):
     """
     Displaying json-schema.
     """
@@ -40,9 +40,8 @@ async def read_measurement_schema(
 
 @router.get("/{document_type}/{template}")
 async def read_measurement_schema(
-    document_type: str = Path(None, description="The type of report or measurement"),
-    template: str = Path(None, description="Schema template to be applied")
-):
+        document_type: str = Path(None, description="The type of report or measurement"),
+        template: str = Path(None, description="Schema template to be applied")):
     """
     Displaying json-schema with an applied schema template.
     """

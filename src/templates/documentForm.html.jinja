@@ -63,7 +63,7 @@
     </v-app>
 
     <script type="text/javascript">
-        let initialSchema = "{{ schema }}"
+        let initialSchema = "{{ schema | safe }}"
         let schema = {}
         let model = {}
         const options =  { 
@@ -102,7 +102,7 @@
                     axios.get('/schemas/' + schemaURL)
                         .then(response => {
                             this.schema = response.data;
-                            window.history.replaceState({}, this.schema.title, "/raman")
+                            window.history.replaceState({}, this.schema.title, '/' + schemaURL)
                         })
                         .catch(error => {
                             console.log(error)
