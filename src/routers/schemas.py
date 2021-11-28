@@ -1,4 +1,5 @@
 from functools import lru_cache
+from copy import deepcopy
 from config import Settings
 
 from fastapi import APIRouter, HTTPException, Path, Depends
@@ -55,9 +56,9 @@ async def read_measurement_schema(
     Displaying json-schema with an applied schema template.
     """
 
-
     if document_type not in document_types:
         raise HTTPException(status_code=404, detail="Document type does not exist")
+    schema = deepcopy(document_types[document_type]["model"].schema())
 
     client = motor.motor_asyncio.AsyncIOMotorClient(config.mongo_conn_str)
     db = client[config.mongo_db]
@@ -65,6 +66,4 @@ async def read_measurement_schema(
     if (response := await db[config.templates_collection].find_one({"alias": template, "schemas": document_type})) is None:
         raise HTTPException(status_code=404, detail="Template type does not exist (for the given document type)")
 
-    schema = merge(document_types[document_type]["model"].schema(), response["template"])
-
-    return schema
+    return merge(schema, response["template"])
