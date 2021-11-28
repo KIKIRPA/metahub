@@ -26,7 +26,7 @@ test_document_templates = {
         "_id": "1",
         "alias": "invia_785",
         "title": "Renishaw inVia, microscope, 785nm",
-        "for": "raman",
+        "schemas": ["raman"],
         "template": {
             "definitions": {
                 "MeasurementId": {

@@ -1,4 +1,5 @@
 from pydantic import BaseModel, Field
+from typing import Set
 from bson import ObjectId
 
 
@@ -18,12 +19,12 @@ class PyObjectId(ObjectId):
         field_schema.update(type="string")
 
 
-class Document(BaseModel):
+class DocumentTemplate(BaseModel):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id", title="Document Id")
     alias: str = Field(..., description='Short and unique name for the template')
     title: str = Field(..., description='Descriptive name for the template')
-    schema: str = Field(..., description='Base schema on which this template must be applied')
-    template: str = Field(..., description='JSON')
+    schemas: Set[str] = Field(..., description='Base schemas on which this template can be applied')
+    template: dict = Field(..., description='JSON')
 
     class Config:
         json_encoders = {ObjectId: str}
