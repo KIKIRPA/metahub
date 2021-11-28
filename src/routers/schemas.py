@@ -1,11 +1,11 @@
 from functools import lru_cache
 from copy import deepcopy
-from config import Settings
 
 from fastapi import APIRouter, HTTPException, Path, Depends
 import motor.motor_asyncio
 
-from models.document_types import document_types, test_document_templates
+from config import Settings
+from models.document_types import document_types
 
 # Creating a FastAPI router, meaning a set of routes that can be included later
 # in the FastAPI application

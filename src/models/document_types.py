@@ -20,31 +20,3 @@ document_types = {
         "model": Raman
     }
 }
-
-test_document_templates = {
-    "invia_785": {
-        "_id": "1",
-        "alias": "invia_785",
-        "title": "Renishaw inVia, microscope, 785nm",
-        "schemas": ["raman"],
-        "template": {
-            "definitions": {
-                "MeasurementId": {
-                    "properties": {
-                        "measurement_technique": {
-                            "default": "MRS"
-                        }
-                    }
-                },
-                "LaserPower": {
-                    "properties": {
-                        "neutral_density_filtering": {
-                            "default": 0.1,
-                            "enum": [100, 50, 10, 5, 1, 0.5, 0.1, 0.05, 0.01]
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
