@@ -144,8 +144,8 @@ class Taxon(str, Enum):
 class DendroParameters(BaseModel):
     taxon: Optional[Taxon] = Field(None)
     image_scale_calibration: Optional[str] = Field(None, title='Image scale calibration', description='Smallest distance on scale card')
-    image_processing_software: Set[str] = Field(..., title='', description='Image processing software packages used')
-    dendrochronology_dating_software: Set[str] = Field(..., title='', description='Dendrochronology dating software packages used')
+    image_processing_software: Optional[Set[str]] = Field(..., title='', description='Image processing software packages used')
+    dendrochronology_dating_software: Optional[Set[str]] = Field(..., title='', description='Dendrochronology dating software packages used')
 
     class Config:
         title = "Measurement parameters"

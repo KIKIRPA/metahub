@@ -7,7 +7,7 @@ from .measurement import Measurement
 
 class DRMSParameters(BaseModel):
     instrument: Optional[str]
-    software: Set[str]
+    software: Optional[Set[str]]
     drill_type: Optional[str]
     radius: Optional[float]
     rotation_speed: Optional[int]

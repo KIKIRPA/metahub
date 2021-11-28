@@ -39,15 +39,15 @@ class SpectralRange(BaseModel):
 
 class RamanParameters(BaseModel):
     instrument: Optional[str]
-    software: Set[str]
+    software: Optional[Set[str]]
     detector_type: Optional[str]
     instrument_class: Optional[str]
     accessory: Optional[str]
     excitation_source: Optional[float]
-    laser_power: LaserPower
-    spectral_range: SpectralRange
-    filters: RejectionFilters
-    grating: Grating
+    laser_power: Optional[LaserPower]
+    spectral_range: Optional[SpectralRange]
+    filters: Optional[RejectionFilters]
+    grating: Optional[Grating]
     resolution: Optional[float]
     laser_defocus: Optional[bool]
     data_collection: Optional[str]
@@ -57,7 +57,7 @@ class RamanParameters(BaseModel):
     spot_size: Optional[float]
     confocality: Optional[bool]
     polarization: Optional[str]
-    data_processing: Set[str]
+    data_processing: Optional[Set[str]]
 
     class Config:
         title = "Measurement parameters"
