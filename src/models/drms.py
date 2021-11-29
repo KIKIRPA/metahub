@@ -6,12 +6,12 @@ from .measurement import Measurement
 
 
 class DRMSParameters(BaseModel):
-    instrument: Optional[str]
-    software: Optional[Set[str]]
-    drill_type: Optional[str]
-    radius: Optional[float]
-    rotation_speed: Optional[int]
-    penetration_rate: Optional[int]
+    instrument: Optional[str] = Field(None, description="Name and specifications of the instrument used")
+    software: Optional[Set[str]] = Field(None, description="Acquisition and data treatment software used")
+    drill_type: Optional[str] = Field(None, description="Type of drill used")
+    radius: Optional[float] = Field(None, description="Radius of the drilled hole in mm")
+    rotation_speed: Optional[int] = Field(None, description="Constant rotation speed of the drilling motor in rpm")
+    penetration_rate: Optional[int] = Field(None, description="Penetration rate in mm/min ")
 
     class Config:
         title = "Measurement parameters"
@@ -25,6 +25,9 @@ class DRMSResults(BaseModel):
 
 
 class DRMS(Measurement):
-    document_type: str = Field("Drilling resistance measurement system", title='Document type', const=True) #OVERRIDE FROM DOCUMENT
+    document_type: str = Field("drms", const=True) #OVERRIDE FROM DOCUMENT
     measurement_parameters: Optional[DRMSParameters] = Field(None)
     measurement_results: Optional[DRMSResults] = Field(None)
+
+    class Config:
+        title = "Drilling resistance measurement"
