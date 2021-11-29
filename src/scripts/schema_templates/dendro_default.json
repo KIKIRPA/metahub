@@ -1,0 +1,29 @@
+{
+    "alias": "default",
+    "title": "Default dendrochronology analysis",
+    "schemas": ["dendro"],
+    "template": {
+        "definitions": {
+            "DendroParameters": {
+                "properties": {
+                    "image_scale_calibration": {
+                        "default": 0.01
+                    },
+                    "image_processing_software": {
+                        "examples": [
+                            "Photoshop CC",
+                            "Illustrator CC",
+                            "Inkscape"
+                        ]
+                    },
+                    "dendrochronology_dating_software": {
+                        "examples": [
+                            "CooRecorder",
+                            "Dendron IV"
+                        ]
+                    }
+                }
+            }
+        }
+    }
+}
