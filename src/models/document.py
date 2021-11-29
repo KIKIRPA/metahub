@@ -40,7 +40,7 @@ class Document(BaseModel):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id", title="Document Id")
     document_type: str = Field(...)
     dossier_id: str = Field(..., title='Dossier/project Id')
-    object_id: Optional[int] = Field(..., description="Object number to which this document belongs")
+    object_id: Optional[int] = Field(None, description="Object number to which this document belongs")
     contributors: Optional[Set[Contributor]] = Field(...)
     files: Optional[Set[File]] = Field(...)
 

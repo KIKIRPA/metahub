@@ -15,7 +15,8 @@
                 "properties": {
                     "filter_type": {
                         "enum": ["dielectric edge", "holographic notch"],
-                        "default": "dielectric edge"
+                        "default": "dielectric edge",
+                        "x-display": "radio"
                     }
                 }
             },
@@ -26,7 +27,8 @@
                     },
                     "grating_density": {
                         "enum": [600, 1200, 1800],
-                        "default": 1200
+                        "default": 1200,
+                        "x-display": "radio"
                     }
                 }
             },
@@ -36,11 +38,13 @@
                         "default": "Renishaw InVia"
                     },
                     "software": {
-                        "examples": [
-                            "Renishaw WiRE 2.0",
-                            "Renishaw WiRE 3.4",
-                            "Renishaw WiRE 5.4"
-                        ],
+                        "items": {
+                            "examples": [
+                                "Renishaw WiRE 2.0",
+                                "Renishaw WiRE 3.4",
+                                "Renishaw WiRE 5.4"
+                            ]
+                        },
                         "default": ["Renishaw WiRE 3.4"]
                     },
                     "detector_type": {
@@ -51,11 +55,13 @@
                     },
                     "accessory": {
                         "enum": ["microscope", "fibre optical probe"],
-                        "default": "microscope"
+                        "default": "microscope",
+                        "x-display": "radio"
                     },
                     "excitation_source_wavelength": {
                         "enum": [785, 514],
-                        "default": 785
+                        "default": 785,
+                        "x-display": "radio"
                     },
                     "data_collection": {
                         "enum": ["static", "scanned"]
@@ -67,7 +73,8 @@
                             "50x / NA 0.75 / WD 0.5 mm (Leica N PLAN)",
                             "100x / NA 0.90 / WD 0.33 mm (Leica N PLAN)",
                             "L50x / NA 0.50 / WD 8.2 mm (Leica N PLAN)"
-                        ]
+                        ],
+                        "x-display": "radio"
                     },
                     "confocality": {
                         "default": false
@@ -79,12 +86,14 @@
                         "default": "No"
                     },
                     "data_processing": {
-                        "examples": [
-                            "baseline correction",
-                            "fluorescence correction",
-                            "cosmic ray removal",
-                            "detector binning"
-                        ]
+                        "items": {
+                            "examples": [
+                                "baseline correction",
+                                "fluorescence correction",
+                                "cosmic ray removal",
+                                "detector binning"
+                            ]
+                        }
                     }
                 }
             }

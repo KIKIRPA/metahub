@@ -10,17 +10,21 @@
                         "default": 0.01
                     },
                     "image_processing_software": {
-                        "examples": [
-                            "Photoshop CC",
-                            "Illustrator CC",
-                            "Inkscape"
-                        ]
+                        "items": {
+                            "examples": [
+                                "Photoshop CC",
+                                "Illustrator CC",
+                                "Inkscape"
+                            ]
+                        }
                     },
                     "dendrochronology_dating_software": {
-                        "examples": [
-                            "CooRecorder",
-                            "Dendron IV"
-                        ]
+                        "items": {
+                            "examples": [
+                                "CooRecorder",
+                                "Dendron IV"
+                            ]
+                        }
                     }
                 }
             }
