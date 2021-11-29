@@ -81,8 +81,9 @@ async def main():
         template = jsonable_encoder(template)
         inserted = await db[config.templates_collection].insert_one(template)
         template = await db[config.templates_collection].find_one({"_id": inserted.inserted_id})
-        print(" - " + template["title"] + "\n")
+        print(" - " + template["title"])
 
+    print('\n')
 
 if __name__ == '__main__' and __package__ is None:
     import_parents(level=2)
