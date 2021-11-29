@@ -6,58 +6,58 @@ from .measurement import Measurement
 
 
 class Grating(BaseModel):
-    grating_type: Optional[str]
-    grating_density: Optional[int]
+    grating_type: Optional[str] = Field(None, description="Type of grating")
+    grating_density: Optional[int] = Field(None, description="Line density of grating in dispersive Raman instrument in lines/mm")
 
     class Config:
         title = "Grating"
 
 
 class LaserPower(BaseModel):
-    laser_power_at_sample: Optional[float]
-    neutral_density_filtering: Optional[float]
+    laser_power_at_sample: Optional[float] = Field(None, description="Laser power at sample in mW")
+    neutral_density_filtering: Optional[float] = Field(None, description="Laser power reduction by neutral density filters expressed in %")
 
     class Config:
         title = "Laser power"
 
 
 class RejectionFilters(BaseModel):
-    filter_type:  Optional[str]
-    cutoff_frequency: Optional[float]
+    filter_type:  Optional[str] = Field(None, description="Optical filters used to prevent stray light from reaching spectrometer/detector")
+    cutoff_frequency: Optional[float] = Field(None, description="Low frequency cut-off in 1/cm")
 
     class Config:
         title = "Rejection filters"
 
 
 class SpectralRange(BaseModel):
-    spectral_range_low: Optional[float]
-    spectral_range_high: Optional[float]
+    spectral_range_low: Optional[float] = Field(None, description="Lowest value of the spectral range expressed in Raman shift (1/cm)")
+    spectral_range_high: Optional[float] = Field(None, description="Highest value of the spectral range expressed in Raman shift (1/cm)")
 
     class Config:
         title = "Spectral range"
 
 
 class RamanParameters(BaseModel):
-    instrument: Optional[str]
-    software: Optional[Set[str]]
-    detector_type: Optional[str]
-    instrument_class: Optional[str]
-    accessory: Optional[str]
-    excitation_source: Optional[float]
-    laser_power: Optional[LaserPower]
-    spectral_range: Optional[SpectralRange]
-    filters: Optional[RejectionFilters]
-    grating: Optional[Grating]
-    resolution: Optional[float]
-    laser_defocus: Optional[bool]
-    data_collection: Optional[str]
-    integration_time: Optional[float]
-    accumulations: Optional[int]
-    objective: Optional[str]
-    spot_size: Optional[float]
-    confocality: Optional[bool]
-    polarization: Optional[str]
-    data_processing: Optional[Set[str]]
+    instrument: Optional[str] = Field(None, description="Spectrometer manufacturer and model")
+    software: Optional[Set[str]] = Field(None, description="Acquisition and data treatment software used")
+    detector_type: Optional[str] = Field(None, description="Type of detector")
+    instrument_class: Optional[str] = Field(None, description="Instrument Class (dispersive, Fourier transform)")
+    accessory: Optional[str] = Field(None, description="Name and model of accessories")
+    excitation_source_wavelength: Optional[float] = Field(None, description="Laser line wavelength in nanometers (nm)")
+    laser_power: Optional[LaserPower] = Field(None)
+    spectral_range: Optional[SpectralRange] = Field(None)
+    filters: Optional[RejectionFilters] = Field(None)
+    grating: Optional[Grating] = Field(None)
+    resolution: Optional[float] = Field(None, description="Resolution of spectrum as measured in wavenumbers (1/cm)")
+    data_collection: Optional[str] = Field(None, description="Raman acquisition mode, static or scanned")
+    integration_time: Optional[float] = Field(None, description="Integration or dwell time in seconds")
+    accumulations: Optional[int] = Field(None, description="Number of accumulations used (co-added) to produce spectrum")
+    objective: Optional[str] = Field(None, description="Objective lens magnification, numerical aperture, working distance and series")
+    spot_size: Optional[float] = Field(None, description="Laser spot diameter (nm) as determined by laser wavelength and microscope objective. Laser spot diameter = 1.22 (λ)/NA, where λ=wavelength, NA= numerical aperture.")
+    confocality: Optional[bool] = Field(None, description="Use of confocal optical arrangement")
+    laser_defocus: Optional[bool] = Field(None, description="Defocusing of laser")
+    polarization: Optional[str] = Field(None, description="Y or N for polarization of excitation radiation with degrees and orientation followed by Y or N for polarization of scattered radiation with degrees and orientation (Example: incident, Y, 45 degrees CCW, scattered, N)")
+    data_processing: Optional[Set[str]] = Field(None, description="Data manipulation")
 
     class Config:
         title = "Measurement parameters"
@@ -72,7 +72,10 @@ class RamanResults(BaseModel):
 
 
 class Raman(Measurement):
-    document_type: str = Field("Micro-Raman Spectrometry", title='Document type', const=True) #OVERRIDE FROM DOCUMENT
+    document_type: str = Field("raman", const=True) #OVERRIDE FROM DOCUMENT
     measurement_parameters: Optional[RamanParameters] = Field(None)
     measurement_results: Optional[RamanResults] = Field(None)
+
+    class Config:
+        title = "Micro-Raman Spectrometry"
 

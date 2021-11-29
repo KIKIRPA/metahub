@@ -1,0 +1,93 @@
+{
+    "alias": "invia_785",
+    "title": "Renishaw inVia, microscope, 785nm",
+    "schemas": ["raman"],
+    "template": {
+        "definitions": {
+            "LaserPower": {
+                "properties": {
+                    "neutral_density_filtering": {
+                        "enum": [100, 50, 10, 5, 1, 0.5, 0.1, 0.05, 0.0001, 0.00005, 0.00001, 0.000005, 0.000001, 0.0000005, 0.0000001, 0.00000005]
+                    }
+                }
+            },
+            "RejectionFilters": {
+                "properties": {
+                    "filter_type": {
+                        "enum": ["dielectric edge", "holographic notch"],
+                        "default": "dielectric edge"
+                    }
+                }
+            },
+            "Grating": {
+                "properties": {
+                    "grating_type": {
+                        "const": "reflection, holographic"
+                    },
+                    "grating_density": {
+                        "enum": [600, 1200, 1800],
+                        "default": 1200
+                    }
+                }
+            },
+            "RamanParameters": {
+                "properties": {
+                    "instrument": {
+                        "default": "Renishaw InVia"
+                    },
+                    "software": {
+                        "examples": [
+                            "Renishaw WiRE 2.0",
+                            "Renishaw WiRE 3.4",
+                            "Renishaw WiRE 5.4"
+                        ],
+                        "default": ["Renishaw WiRE 3.4"]
+                    },
+                    "detector_type": {
+                        "const": "CCD"
+                    },
+                    "instrument_class": {
+                        "const": "dispersive"
+                    },
+                    "accessory": {
+                        "enum": ["microscope", "fibre optical probe"],
+                        "default": "microscope"
+                    },
+                    "excitation_source_wavelength": {
+                        "enum": [785, 514],
+                        "default": 785
+                    },
+                    "data_collection": {
+                        "enum": ["static", "scanned"]
+                    },
+                    "objective": {
+                        "enum": [
+                            "L5x / NA 0.12 / WD 14 mm (Leica N PLAN)",
+                            "20x / NA 0.40 / WD 1.15 mm (Leica N PLAN)",
+                            "50x / NA 0.75 / WD 0.5 mm (Leica N PLAN)",
+                            "100x / NA 0.90 / WD 0.33 mm (Leica N PLAN)",
+                            "L50x / NA 0.50 / WD 8.2 mm (Leica N PLAN)"
+                        ]
+                    },
+                    "confocality": {
+                        "default": false
+                    },
+                    "laser_defocus": {
+                        "default": false
+                    },
+                    "polarization": {
+                        "default": "No"
+                    },
+                    "data_processing": {
+                        "examples": [
+                            "baseline correction",
+                            "fluorescence correction",
+                            "cosmic ray removal",
+                            "detector binning"
+                        ]
+                    }
+                }
+            }
+        }
+    }
+}
