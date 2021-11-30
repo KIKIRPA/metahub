@@ -2,7 +2,6 @@ from functools import lru_cache
 
 from fastapi import APIRouter, Request, HTTPException, Path, Depends
 from fastapi.responses import HTMLResponse
-from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import motor.motor_asyncio
 
@@ -16,9 +15,8 @@ router = APIRouter(
     tags=["ui"]
 )
 
-router.mount("/static", StaticFiles(directory="static"), name="static")
-
 templates = Jinja2Templates(directory="templates")
+
 
 @lru_cache()
 def get_settings():

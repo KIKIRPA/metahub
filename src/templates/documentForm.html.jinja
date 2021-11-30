@@ -3,6 +3,7 @@
 <head>
     <title>Document form</title>
     <meta charset="UTF-8">
+    <link rel="shortcut icon" href="/static/images/favicon.ico">
 
     <!-- https://koumoul-dev.github.io/vuetify-jsonschema-form/latest/ -->
 
@@ -22,8 +23,14 @@
 <body>
     
     <v-app id="app">
+
+        <v-app-bar color="white" >
+            <img height="45" src="/static/images/logo.svg"/>
+            <v-spacer></v-spacer>
+            <v-app-bar-nav-icon></v-app-bar-nav-icon>
+        </v-app-bar>
+
         <v-container>
-            <br/>
             <v-card class="primary white--text">
                 <v-card-title>
                     <span class="text-h6">VUETIFY-JSONSCHEMA-FORM</span>
