@@ -33,39 +33,34 @@
         <v-container>
             <v-card class="primary white--text">
                 <v-card-title>
-                    <span class="text-h6">VUETIFY-JSONSCHEMA-FORM</span>
+                    <v-row>
+                        <v-col cols="8">
+                            <span class="text-h6">{{ '{{schema.title}}' }}</span>
+                        </v-col>
+                        <v-col cols="4">
+                            <v-select dense color="white"
+                                :items="templates"
+                                label="Template"
+                                v-model="template"
+                                v-on:change="getSchema"/>
+                        </v-col>
                 </v-card-title>
                 <v-card-text class="white">
-                    <br/>
-                     <ul>
-                        <li><a href="https://koumoul-dev.github.io/vuetify-jsonschema-form/latest/">koumoul-dev.github.io/vuetify-jsonschema-form</a></li>
-                        <li>Based on Vue 2.x and Vuetify 2.x</li>
-                        <li>Last release: Nov 2021 (under active development)</li>
-                        <li>Some issues with selects; reverted to version 2.7.3 and removed description from pydantic Field()</li>
-                        <li>A few spacing issues</li>
-                        <li>Single properties are rendered first, subschemas last. Not really a bug, as json-schema does not enforce an order, but nevertheless annoying... The <a href="https://github.com/koumoul-dev/vuetify-jsonschema-form/issues/293">issue</a> is being worked on.</li>
-                        <li>Keys in resulting json are not ordered as in the schema. Not really a bug, as json-schema does not enforce an order, but nevertheless annoying...</li>
-                        <li>Validation ok</li>
-                        <li><a href="https://koumoul-dev.github.io/vuetify-jsonschema-form/latest/examples#combobox">Combobox</a> mogelijk: "niet limitatieve enum" - heel interessant</li>
-                    </ul>
+                    <v-form ref="form" v-model="valid">
+                        <v-jsf v-model="model" :schema="schema" :options="options" />
+                    </v-form>
                 </v-card-text>
+                <v-card-actions class="white">
+                    <v-spacer></v-spacer>
+                    <v-btn class="mx-2" color="primary" @click="$refs.form.validate()">Validate</v-btn>
+                </v-card-actions>
             </v-card>
             <br/>
 
-            <v-form ref="form" v-model="valid">
-                <v-jsf v-model="model" :schema="schema" :options="options" />
-            </v-form>
-
-            <v-layout row class="mt-2">
-                <v-spacer></v-spacer>
-                <p>valid={{ '{{valid}}' }}</p>
-                <v-btn class="mx-2" color="primary" @click="$refs.form.validate()">Validate</v-btn>
-                <v-btn class="mx-2" @click="getSchema('raman/invia_785')">Apply template</v-btn> 
-            </v-layout>
-
-            <br/><br/>
+            <h5>Valid: {{ '{{valid}}' }}</h5>            
             <h5>Model:</h5>
-            <pre>{{ '{{model}}' }}</pre>
+            <pre>{{ '{{model}}' }}</pre>      
+
         </v-container>
     </v-app>
 
@@ -97,6 +92,8 @@
                 model,
                 options,
                 schema,
+                templates: ["raman", "raman/invia_785"],
+                template: initialSchema,
                 valid: null
             },
 
