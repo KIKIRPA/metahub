@@ -96,6 +96,13 @@
                         }
                     }
                 }
+            },
+            "RamanResults": {
+                "properties": {
+                    "comments": {
+                        "x-display": "textarea"
+                    }
+                }
             }
         }
     }

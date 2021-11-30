@@ -31,20 +31,28 @@
         </v-app-bar>
 
         <v-container>
-            <v-card class="primary white--text">
-                <v-card-title>
+            <v-card>
+                <v-card-title class="primary">
                     <v-row>
                         <v-col cols="8">
-                            <span class="text-h6">{{ '{{schema.title}}' }}</span>
+                            <span class="white--text text-h4">{{ '{{schema.title}}' }}</span>
                         </v-col>
                         <v-col cols="4">
-                            <v-select dense color="white"
+                            <v-select dense dark
                                 :items="templates"
                                 label="Template"
                                 v-model="template"
                                 v-on:change="getSchema"/>
                         </v-col>
                 </v-card-title>
+
+                <v-tabs background-color="primary" dark grow>
+                    <v-tab>Metadata</v-tab>
+                    <v-tab>Related samples</v-tab>
+                    <v-tab>Files</v-tab>
+                    <v-tab>Annotations</v-tab>
+                </v-tabs>
+
                 <v-card-text class="white">
                     <v-form ref="form" v-model="valid">
                         <v-jsf v-model="model" :schema="schema" :options="options" />
@@ -92,7 +100,7 @@
                 model,
                 options,
                 schema,
-                templates: ["raman", "raman/invia_785"],
+                templates: ["raman", "raman/invia_785", "dendro", "dendro/default", "drms"],
                 template: initialSchema,
                 valid: null
             },
