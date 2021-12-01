@@ -38,10 +38,12 @@ class File(BaseModel):
 
 class Document(BaseModel):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id", title="Document Id")
-    document_type: str = Field(..., title='Document type')
+    document_type: str = Field(...)
     dossier_id: str = Field(..., title='Dossier/project Id')
-    contributors: Set[Contributor] = Field(...)
-    files: Set[File] = Field(...)
+    object_id: Optional[int] = Field(None, description="Object number to which this document belongs")
+    contributors: Optional[Set[Contributor]] = Field(...)
+    files: Optional[Set[File]] = Field(...)
 
     class Config:
         json_encoders = {ObjectId: str}
+        title = "Document"

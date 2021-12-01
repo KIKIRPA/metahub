@@ -143,9 +143,9 @@ class Taxon(str, Enum):
 
 class DendroParameters(BaseModel):
     taxon: Optional[Taxon] = Field(None)
-    image_scale_calibration: Optional[str] = Field(None, title='Image scale calibration', description='Smallest distance on scale card')
-    image_processing_software: Set[str] = Field(..., title='', description='Image processing software packages used')
-    dendrochronology_dating_software: Set[str] = Field(..., title='', description='Dendrochronology dating software packages used')
+    image_scale_calibration: Optional[float] = Field(None, title='Image scale calibration', description='Smallest distance on scale card in mm')
+    image_processing_software: Optional[Set[str]] = Field(..., title='', description='Image processing software packages used')
+    dendrochronology_dating_software: Optional[Set[str]] = Field(..., title='', description='Dendrochronology dating software packages used')
 
     class Config:
         title = "Measurement parameters"
@@ -162,6 +162,9 @@ class DendroResults(BaseModel):
 
 
 class Dendro(Measurement):
-    document_type: str = Field("Dendrochronology", title='Document type', const=True) #OVERRIDE FROM DOCUMENT
+    document_type: str = Field("dendro", const=True) #OVERRIDE FROM DOCUMENT
     measurement_parameters: Optional[DendroParameters] = Field(None)
     measurement_results: Optional[DendroResults] = Field(None)
+
+    class Config:
+        title = "Dendrochronology analysis"

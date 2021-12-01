@@ -19,5 +19,7 @@ class Sample(BaseModel):
 
 class Measurement(Document):
     measurement_id: MeasurementId = Field(...)
-    samples: Set[Sample] = Field(..., title='Samples')
+    samples: Optional[Set[Sample]] = Field(..., title='Samples')
 
+    class Config:
+        title = "Measurement"
