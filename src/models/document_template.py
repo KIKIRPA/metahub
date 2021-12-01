@@ -28,3 +28,9 @@ class DocumentTemplate(BaseModel):
 
     class Config:
         json_encoders = {ObjectId: str}
+
+
+class DocumentTemplateReduced(BaseModel):
+    alias: str
+    title: str
+    schemas: Set[str]

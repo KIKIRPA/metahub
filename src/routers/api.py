@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse
 import motor.motor_asyncio
 
 from config import Settings
-from models.document_template import DocumentTemplate
+from models.document_template import DocumentTemplateReduced
 from models.measurement import Measurement
 from models.drms import DRMS
 
@@ -168,7 +168,7 @@ async def read_drms():
     return db_drms
 
 
-@router.get("/template/{document_type}", response_model=List[DocumentTemplate])
+@router.get("/template/{document_type}", response_model=List[DocumentTemplateReduced])
 async def read_templates(document_type: str = Path(None, description="The type of report or measurement")):
     """
     Return the JSON schema templates in the db for a given document type.
