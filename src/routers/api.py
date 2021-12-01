@@ -1,12 +1,15 @@
+from functools import lru_cache
 from datetime import date
 import os
 from typing import List
 
-from fastapi import APIRouter, Body, status
+from fastapi import APIRouter, HTTPException, status, Body, Path
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 import motor.motor_asyncio
 
+from config import Settings
+from models.document_template import DocumentTemplate
 from models.measurement import Measurement
 from models.drms import DRMS
 
@@ -17,13 +20,20 @@ router = APIRouter(
     tags=["api"]
 )
 
-# Creating a MongoDB client by using the environment variable MONGODB_URL and
-# defaulting to the MongoDB instance created with docker in the 'mongo_container'
-client = motor.motor_asyncio.AsyncIOMotorClient(
-    os.getenv("MONGODB_URL", "mongodb://kikirpa:hescida@localhost:27017/")
-)
+# Get config settings
+@lru_cache()
+def get_settings():
+    return Settings()
+
+config = get_settings()
+
+# Creating a MongoDB client and connect to the relevant collections
+client = motor.motor_asyncio.AsyncIOMotorClient(config.mongo_conn_str)
+db = client[config.mongo_db]
+
+    
 # Connecting to the 'strict' database in MongoDB, which was created by hand
-db = client.strict
+#db = client.strict
 
 """ 
 db_measurements = [
@@ -156,3 +166,14 @@ async def read_drms():
     """Displaying the DRMS records in the database.
     """
     return db_drms
+
+
+@router.get("/template/{document_type}", response_model=List[DocumentTemplate])
+async def read_templates(document_type: str = Path(None, description="The type of report or measurement")):
+    """
+    Return the JSON schema templates in the db for a given document type.
+    """
+
+    response = await db[config.templates_collection].find({"schemas": document_type}).to_list(20)
+
+    return response
