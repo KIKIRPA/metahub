@@ -1,4 +1,5 @@
 from functools import lru_cache
+import json
 
 from fastapi import APIRouter, Request, HTTPException, Path, Depends
 from fastapi.responses import HTMLResponse
@@ -16,7 +17,7 @@ router = APIRouter(
 )
 
 templates = Jinja2Templates(directory="templates")
-
+schema_list = json.dumps([{"alias": k, "short": v["short"]} for k, v in document_types.items()])
 
 @lru_cache()
 def get_settings():
@@ -35,7 +36,12 @@ async def show_form(
         raise HTTPException(status_code=404, detail="Document type does not exist")
     
     #schema = document_types[document_type]["model"].schema_json(indent=4)
-    return templates.TemplateResponse("documentForm.html.jinja", {"request": request, "schema": document_type})
+    return templates.TemplateResponse("documentForm.html.jinja", {
+        "request": request, 
+        "schema_alias": document_type, 
+        "template_alias": "",
+        "schema_list": schema_list
+    })
 
 
 @router.get("/{document_type}/{template}", response_class=HTMLResponse)
@@ -57,5 +63,9 @@ async def show_form(
     if (response := await db[config.templates_collection].find_one({"alias": template, "schemas": document_type})) is None:
         raise HTTPException(status_code=404, detail="Template type does not exist (for the given document type)")
     
-    schema = document_type + '/' + response["alias"]
-    return templates.TemplateResponse("documentForm.html.jinja", {"request": request, "schema": schema})
+    return templates.TemplateResponse("documentForm.html.jinja", {
+        "request": request, 
+        "schema_alias": document_type, 
+        "template_alias": response["alias"],
+        "schema_list": schema_list
+    })
