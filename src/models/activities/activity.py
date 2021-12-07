@@ -14,9 +14,9 @@ class Unit(str, Enum):
     dendro_lab = 'Dendrochrology Lab'
 
 class Role(str, Enum):
-    analyst = 'Analyst'
-    author = 'Author'
-    operator = 'Operator'
+    coordinator = 'Coordinator'
+    co_coordinator = 'Co-coordinator'
+    collaborator = 'Collaborator'
 
 
 class State(str, Enum):
