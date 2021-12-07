@@ -127,8 +127,8 @@
 
             methods: {
                 getSchema() {
-                    let url = '/' + this.schemaAlias + (this.templateAlias !== '' ? '/' + this.templateAlias : '')
-                    axios.get('/schemas' + url)
+                    let url = '/document/' + this.schemaAlias + (this.templateAlias !== '' ? '/' + this.templateAlias : '')
+                    axios.get('/schema' + url)
                         .then(response => {
                             this.schema = response.data;
                             window.history.replaceState({}, this.schema.title, url)

@@ -24,7 +24,7 @@ def get_settings():
     return Settings()
 
 
-@router.get("/{document_type}", response_class=HTMLResponse)
+@router.get("/document/{document_type}", response_class=HTMLResponse)
 async def show_form(
         request: Request, 
         document_type: str = Path(None, description="The type of report or measurement")):
@@ -44,7 +44,7 @@ async def show_form(
     })
 
 
-@router.get("/{document_type}/{template}", response_class=HTMLResponse)
+@router.get("/document/{document_type}/{template}", response_class=HTMLResponse)
 async def show_form(
         request: Request, 
         document_type: str = Path(None, description="The type of report or measurement"),

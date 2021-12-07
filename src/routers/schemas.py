@@ -10,8 +10,8 @@ from models.document_types import document_types
 # Creating a FastAPI router, meaning a set of routes that can be included later
 # in the FastAPI application
 router = APIRouter(
-    prefix="/schemas",
-    tags=["schemas"]
+    prefix="/schema",
+    tags=["schema"]
 )
 
 @lru_cache()
@@ -19,7 +19,7 @@ def get_settings():
     return Settings()
 
 
-@router.get("/{document_type}")
+@router.get("/document/{document_type}")
 async def read_measurement_schema(
         document_type: str = Path(None, description="The type of report or measurement")):
     """
@@ -32,7 +32,7 @@ async def read_measurement_schema(
     return document_types[document_type]["model"].schema()
 
 
-@router.get("/{document_type}/{template}")
+@router.get("/document/{document_type}/{template}")
 async def read_measurement_schema(
         document_type: str = Path(None, description="The type of report or measurement"),
         template: str = Path(None, description="Schema template to be applied"),
