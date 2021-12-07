@@ -4,6 +4,11 @@ from pydantic import BaseModel, Field
 from bson import ObjectId
 
 
+class ActivityType(str, Enum):
+    intervention_file = 'Intervention file'
+    project = 'Project'
+
+
 class Role(str, Enum):
     analyst = 'Analyst'
     author = 'Author'
@@ -31,18 +36,10 @@ class Contributor(BaseModel):
     roles: Set[Role] = Field(None, title="Roles")
 
 
-class File(BaseModel):
-    path: str = Field(..., title='Path', description='Path to a file or a directory')
-    format: Optional[str] = Field(None, title="File format")
-
-
-class Document(BaseModel):
+class Activity(BaseModel):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id", title="Document Id")
-    document_type: str = Field(...)
-    dossier_id: str = Field(..., title='Dossier/project Id')
-    object_id: Optional[int] = Field(None, description="Object number to which this document belongs")
+    activity_type: ActivityType = Field(...)
     contributors: Optional[Set[Contributor]] = Field(...)
-    files: Optional[Set[File]] = Field(...)
 
     class Config:
         json_encoders = {ObjectId: str}
