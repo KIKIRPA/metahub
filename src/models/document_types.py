@@ -1,6 +1,6 @@
-from .dendro import Dendro
-from .drms import DRMS
-from .raman import Raman
+from .documents.dendro import Dendro
+from .documents.drms import DRMS
+from .documents.raman import Raman
 
 
 document_types = {

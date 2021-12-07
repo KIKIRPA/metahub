@@ -88,7 +88,7 @@ async def main():
 if __name__ == '__main__' and __package__ is None:
     import_parents(level=2)
     from ..config import Settings
-    from ..models.document_template import DocumentTemplate
+    from ..models.document_templates.document_template import DocumentTemplate
 
     loop = asyncio.get_event_loop()
     loop.run_until_complete(main())
