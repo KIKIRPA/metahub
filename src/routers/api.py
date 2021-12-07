@@ -9,9 +9,9 @@ from fastapi.responses import JSONResponse
 import motor.motor_asyncio
 
 from config import Settings
-from src.models.document_templates.document_template import DocumentTemplateReduced
-from src.models.documents.measurement import Measurement
-from src.models.documents.drms import DRMS
+from models.document_templates.document_template import DocumentTemplateReduced
+from models.documents.measurement import Measurement
+from models.documents.drms import DRMS
 
 # Creating a FastAPI router, meaning a set of routes that can be included later
 # in the FastAPI application
