@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     mongo_conn_str: str = "mongodb://kikirpa:hescida@localhost:27017/"
     mongo_db: str = "meta"
     documents_collection: str = "documents"
+    activities_collection: str = "activities"
     templates_collection: str = "templates"
 
     class Config:
