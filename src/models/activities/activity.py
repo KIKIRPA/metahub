@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Optional, List
+from typing import Optional, Set
 from pydantic import BaseModel, Field
 from bson import ObjectId
 
@@ -12,11 +12,6 @@ class ActivityType(str, Enum):
 class Unit(str, Enum):
     painting_lab = 'Painting Lab'
     dendro_lab = 'Dendrochrology Lab'
-
-class Role(str, Enum):
-    coordinator = 'Coordinator'
-    co_coordinator = 'Co-coordinator'
-    collaborator = 'Collaborator'
 
 
 class State(str, Enum):
@@ -40,16 +35,11 @@ class PyObjectId(ObjectId):
         field_schema.update(type="string")
 
 
-class Contributor(BaseModel):
-    contributor_id: str = Field(..., title='Contributor Id')
-    role: Optional[Role] = Field(None, title="Roles")
-
-
 class Activity(BaseModel):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id", title="Document Id")
     activity_type: ActivityType = Field(...)
     unit: Unit = Field(...)
-    contributors: Optional[List[Contributor]] = Field(None)
+    contributors: Optional[Set[str]] = Field(None)
     subject: Optional[str] = Field(None, description='Subject of the activity (e.g. project name or object title)')
     state: State = Field(State.open)
 
