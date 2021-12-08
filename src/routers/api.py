@@ -9,14 +9,15 @@ from fastapi.responses import JSONResponse
 import motor.motor_asyncio
 
 from config import Settings
+from models.activities.activity import Activity
 from models.document_templates.document_template import DocumentTemplateReduced
-from models.documents.measurement import Measurement
-from models.documents.drms import DRMS
+
+import crud
 
 # Creating a FastAPI router, meaning a set of routes that can be included later
 # in the FastAPI application
 router = APIRouter(
-    prefix="/api",
+    prefix="/api/v1",
     tags=["api"]
 )
 
@@ -31,91 +32,83 @@ config = get_settings()
 client = motor.motor_asyncio.AsyncIOMotorClient(config.mongo_conn_str)
 db = client[config.mongo_db]
 
-    
-# # Connecting to the 'strict' database in MongoDB, which was created by hand
-# db = client.strict
 
-# db_measurements = [
-#     Measurement(
-#         id=MeasurementId(
-#             technique="technique",
-#             date=date.today(),
-#             index=1
-#         ),
-#         sample=[
-#             Sample(id="1", collection="HESCIDA"),
-#             Sample(id="2", collection="HESCIDA")
-#         ],
-#         characteristic="Blah",
-#         material=[
-#             "Bois",
-#             "Fer"
-#         ]
-#     ),
-#     Measurement(
-#         id=MeasurementId(
-#             technique="technique",
-#             date=date.today(),
-#             index=2
-#         ),
-#         sample=[
-#             Sample(id="3", collection="HESCIDA"),
-#             Sample(id="4", collection="HESCIDA")
-#         ],
-#         characteristic="Blah blah",
-#         material=[
-#             "Aluminium",
-#             "Pierre"
-#         ]
-#     )
-# ]
+@router.get("/activity", response_model=List[Activity])
+async def get_all_activities(skip: int = 0, limit: int = 10):
+    """
+    Return all activities.
+    """
+    response = await crud.activity.get_all(
+        collection=db[config.activities_collection],
+        skip=skip,
+        limit=limit)
+    return response
 
-# db_drms = [
-#     DRMS(
-#         id=MeasurementId(
-#             technique="technique",
-#             date=date.today(),
-#             index=2
-#         ),
-#         sample=[
-#             Sample(id="3", collection="HESCIDA"),
-#             Sample(id="4", collection="HESCIDA")
-#         ],
-#         characteristic="Blah blah",
-#         material=[
-#             "Aluminium",
-#             "Pierre"
-#         ],
-#         instrument="instrument",
-#         software="software",
-#         drill_type="type",
-#         radius=0.8,
-#         rotation_speed=200,
-#         penetration_rate=100,
-#     ),
-#     DRMS(
-#         id=MeasurementId(
-#             technique="technique",
-#             date=date.today(),
-#             index=2
-#         ),
-#         sample=[
-#             Sample(id="3", collection="HESCIDA"),
-#             Sample(id="4", collection="HESCIDA")
-#         ],
-#         characteristic="Blah blah",
-#         material=[
-#             "Aluminium",
-#             "Pierre"
-#         ],
-#         instrument="instrument",
-#         software="software",
-#         drill_type="type",
-#         radius=0.75,
-#         rotation_speed=100,
-#         penetration_rate=50,
-#     )
-# ] 
+
+@router.get("/activity/{id}", response_model=Activity)
+async def get_activity_by_id(
+        id: str = Path(None, description="The id of the activity")):
+    """
+    Return a single activity by its id.
+    """
+    response = await crud.activity.get(
+        collection=db[config.activities_collection], 
+        id=id)
+    if response is None:
+        raise HTTPException(status_code=404, detail="Activity not found")
+    return response
+
+
+@router.post("/activity", response_model=Activity)
+async def create_activity(activity: Activity):
+    """
+    Create a new activity.
+    """
+    response = await crud.activity.create(
+        collection=db[config.activities_collection],
+        data=activity)
+    return response
+
+
+@router.put("/activity/{id}", response_model=Activity)
+async def update_activity(
+        activity: Activity,
+        id: str = Path(None, description="The id of the activity")):
+    """
+    Update an activity.
+    """
+    activity_from_db = await crud.activity.get(
+        collection=db[config.activities_collection], 
+        id=id)
+    if activity_from_db is None:
+        raise HTTPException(status_code=404, detail="Activity not found")
+    updated = await crud.activity.update(
+        collection=db[config.activities_collection], 
+        id=id,
+        data=activity)
+    if not updated:
+        raise HTTPException(status_code=400, detail="Bad request")
+    return activity
+
+
+@router.delete("/activity/{id}", response_model=Activity)
+async def delete_activity(
+        id: str = Path(None, description="The id of the activity")):
+    """
+    Update an activity.
+    """
+    activity = await crud.activity.get(
+        collection=db[config.activities_collection], 
+        id=id)
+    if activity is None:
+        raise HTTPException(status_code=404, detail="Activity not found")
+    deleted = await crud.activity.remove(
+        collection=db[config.activities_collection], 
+        id=id)
+    if not deleted:
+        raise HTTPException(status_code=400, detail="Bad request")
+    return activity
+
 
 # @router.get("/measurements", response_model=List[Measurement])
 # async def read_measurements():
