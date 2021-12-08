@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Set, Optional
+from typing import Optional, List
 from pydantic import BaseModel, Field
 from bson import ObjectId
 
@@ -42,14 +42,14 @@ class PyObjectId(ObjectId):
 
 class Contributor(BaseModel):
     contributor_id: str = Field(..., title='Contributor Id')
-    roles: Set[Role] = Field(None, title="Roles")
+    role: Optional[Role] = Field(None, title="Roles")
 
 
 class Activity(BaseModel):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id", title="Document Id")
     activity_type: ActivityType = Field(...)
     unit: Unit = Field(...)
-    contributors: Optional[Set[Contributor]] = Field(...)
+    contributors: Optional[List[Contributor]] = Field(None)
     subject: Optional[str] = Field(None, description='Subject of the activity (e.g. project name or object title)')
     state: State = Field(State.open)
 
