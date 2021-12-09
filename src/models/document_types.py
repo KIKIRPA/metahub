@@ -1,6 +1,4 @@
-from .documents.dendro import Dendro
-from .documents.drms import DRMS
-from .documents.raman import Raman
+import models.documents
 
 
 document_types = {
@@ -8,18 +6,18 @@ document_types = {
         "alias": "dendro",
         "name": "Dendrochronology measurement",
         "short": "DENDRO",
-        "model": Dendro
+        "model": models.documents.Dendro
     },
     "drms": {
         "alias": "drms",
         "name": "Drilling resistance measurement",
         "short": "DRMS",
-        "model": DRMS
+        "model": models.documents.DRMS
     },
     "raman": {
         "alias": "raman",
         "name": "Micro-Raman spectroscopy measurement",
         "short": "MRS",
-        "model": Raman
+        "model": models.documents.Raman
     }
 }

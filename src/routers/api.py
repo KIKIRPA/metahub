@@ -9,8 +9,8 @@ from fastapi.responses import JSONResponse
 import motor.motor_asyncio
 
 from config import Settings
-from models.activities.activity import Activity
-from models.document_templates.document_template import DocumentTemplateReduced
+import models.activities
+import models.document_templates
 
 import crud
 
@@ -33,7 +33,7 @@ client = motor.motor_asyncio.AsyncIOMotorClient(config.mongo_conn_str)
 db = client[config.mongo_db]
 
 
-@router.get("/activity", response_model=List[Activity])
+@router.get("/activity", response_model=List[models.activities.Activity])
 async def get_all_activities(skip: int = 0, limit: int = 10):
     """
     Return all activities.
@@ -45,7 +45,7 @@ async def get_all_activities(skip: int = 0, limit: int = 10):
     return response
 
 
-@router.get("/activity/{id}", response_model=Activity)
+@router.get("/activity/{id}", response_model=models.activities.Activity)
 async def get_activity_by_id(
         id: str = Path(None, description="The id of the activity")):
     """
@@ -59,8 +59,8 @@ async def get_activity_by_id(
     return response
 
 
-@router.post("/activity", response_model=Activity)
-async def create_activity(activity: Activity):
+@router.post("/activity", response_model=models.activities.Activity)
+async def create_activity(activity: models.activities.Activity):
     """
     Create a new activity.
     """
@@ -70,9 +70,9 @@ async def create_activity(activity: Activity):
     return response
 
 
-@router.put("/activity/{id}", response_model=Activity)
+@router.put("/activity/{id}", response_model=models.activities.Activity)
 async def update_activity(
-        activity: Activity,
+        activity: models.activities.Activity,
         id: str = Path(None, description="The id of the activity")):
     """
     Update an activity.
@@ -91,7 +91,7 @@ async def update_activity(
     return activity
 
 
-@router.delete("/activity/{id}", response_model=Activity)
+@router.delete("/activity/{id}", response_model=models.activities.Activity)
 async def delete_activity(
         id: str = Path(None, description="The id of the activity")):
     """
@@ -159,7 +159,7 @@ async def delete_activity(
 #     return db_drms
 
 
-@router.get("/template/{document_type}", response_model=List[DocumentTemplateReduced])
+@router.get("/template/{document_type}", response_model=List[models.document_templates.DocumentTemplateReduced])
 async def read_templates(document_type: str = Path(None, description="The type of report or measurement")):
     """
     Return the JSON schema templates in the db for a given document type.
