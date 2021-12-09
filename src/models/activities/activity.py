@@ -1,22 +1,27 @@
 from enum import Enum
-from typing import Optional, Set
+from typing import Optional, List, Set
 from pydantic import BaseModel, Field
 from bson import ObjectId
 
 
 class ActivityType(str, Enum):
-    intervention_file = 'Intervention file'
-    project = 'Project'
+    INTERVENTION_FILE = 'Intervention file'
+    PROJECT = 'Project'
 
 
 class Unit(str, Enum):
-    painting_lab = 'Painting Lab'
-    dendro_lab = 'Dendrochrology Lab'
+    PAINTING_LAB = 'Painting Lab'
+    DENDRO_LAB = 'Dendrochrology Lab'
+
+class Role(str, Enum):
+    COORDINATOR = 'Coordinator'
+    CO_COORDINATOR = 'Co-coordinator'
+    COLLABORATOR = 'Collaborator'
 
 
 class State(str, Enum):
-    open = 'Open'
-    archived = 'Archived'
+    OPEN = 'Open'
+    ARCHIVED = 'Archived'
 
 
 class PyObjectId(ObjectId):
@@ -35,13 +40,18 @@ class PyObjectId(ObjectId):
         field_schema.update(type="string")
 
 
+class Contributor(BaseModel):
+    contributor_id: str = Field(..., title='Contributor Id')
+    roles: Set[Role] = Field(Role.COLLABORATOR, title="Roles")
+
+
 class Activity(BaseModel):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id", title="Document Id")
     activity_type: ActivityType = Field(...)
     unit: Unit = Field(...)
-    contributors: Optional[Set[str]] = Field(None)
+    contributors: Optional[List[Contributor]] = Field(None, unique=True)
     subject: Optional[str] = Field(None, description='Subject of the activity (e.g. project name or object title)')
-    state: State = Field(State.open)
+    state: State = Field(State.OPEN)
 
     class Config:
         json_encoders = {ObjectId: str}
