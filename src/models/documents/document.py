@@ -1,4 +1,4 @@
-FROM enum import Enum
+from enum import Enum
 from typing import Set, Optional
 from pydantic import BaseModel, Field
 from bson import ObjectId
