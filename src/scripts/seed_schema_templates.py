@@ -5,7 +5,7 @@ import os
 from optparse import OptionParser
 
 import asyncio
-import motor.motor_asyncio
+from motor.motor_asyncio import AsyncIOMotorClient
 from fastapi.encoders import jsonable_encoder
 
 
@@ -31,7 +31,7 @@ async def main():
     (options, args) = parser.parse_args()
     
     # MONGO CONNECTION
-    client = motor.motor_asyncio.AsyncIOMotorClient(config.settings.mongo_conn_str)
+    client = AsyncIOMotorClient(config.settings.mongo_conn_str)
     db = client[config.settings.mongo_db]
 
     collections = await db.list_collection_names()

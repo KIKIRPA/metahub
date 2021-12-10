@@ -5,7 +5,7 @@ from typing import List
 from fastapi import APIRouter, HTTPException, status, Body, Path
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
-import motor.motor_asyncio
+from motor.motor_asyncio import AsyncIOMotorClient
 
 import config
 import models.activities
@@ -21,7 +21,7 @@ router = APIRouter(
 )
 
 # Creating a MongoDB client and connect to the relevant collections
-client = motor.motor_asyncio.AsyncIOMotorClient(config.settings.mongo_conn_str)
+client = AsyncIOMotorClient(config.settings.mongo_conn_str)
 db = client[config.settings.mongo_db]
 
 

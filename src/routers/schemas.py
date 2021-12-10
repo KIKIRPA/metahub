@@ -1,7 +1,7 @@
 from mergedeep import merge
 
 from fastapi import APIRouter, HTTPException, Path
-import motor.motor_asyncio
+from motor.motor_asyncio import AsyncIOMotorClient
 
 import config
 
@@ -38,7 +38,7 @@ async def read_measurement_schema(
         raise HTTPException(status_code=404, detail="Document type does not exist")
     schema = config.document_types[document_type]["model"].schema()
 
-    client = motor.motor_asyncio.AsyncIOMotorClient(config.settings.mongo_conn_str)
+    client = AsyncIOMotorClient(config.settings.mongo_conn_str)
     db = client[config.settings.mongo_db]
 
     if (response := await db[config.settings.templates_collection].find_one({"alias": template, "schemas": document_type})) is None:

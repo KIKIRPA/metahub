@@ -3,7 +3,7 @@ import json
 from fastapi import APIRouter, Request, HTTPException, Path
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-import motor.motor_asyncio
+from motor.motor_asyncio import AsyncIOMotorClient
 
 import config
 
@@ -49,7 +49,7 @@ async def show_form(
     if document_type not in config.document_types:
         raise HTTPException(status_code=404, detail="Document type does not exist")
     
-    client = motor.motor_asyncio.AsyncIOMotorClient(config.settings.mongo_conn_str)
+    client = AsyncIOMotorClient(config.settings.mongo_conn_str)
     db = client[config.settings.mongo_db]
 
     if (response := await db[config.settings.templates_collection].find_one({"alias": template, "schemas": document_type})) is None:

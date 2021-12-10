@@ -2,7 +2,7 @@ import sys, importlib
 from pathlib import Path
 
 import asyncio
-import motor.motor_asyncio
+from motor.motor_asyncio import AsyncIOMotorClient
 
 
 def import_parents(level=1):
@@ -22,7 +22,7 @@ def import_parents(level=1):
 
 async def main():   
     # MONGO CONNECTION
-    client = motor.motor_asyncio.AsyncIOMotorClient(config.settings.mongo_conn_str)
+    client = AsyncIOMotorClient(config.settings.mongo_conn_str)
     db = client[config.settings.mongo_db]
 
     await db.drop_collection(config.settings.activities_collection)
