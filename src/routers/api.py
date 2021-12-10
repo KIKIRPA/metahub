@@ -1,4 +1,3 @@
-from functools import lru_cache
 from datetime import date
 import os
 from typing import List
@@ -8,7 +7,7 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 import motor.motor_asyncio
 
-from config import Settings
+import config
 import models.activities
 import models.document_templates
 
@@ -21,16 +20,9 @@ router = APIRouter(
     tags=["api"]
 )
 
-# Get config settings
-@lru_cache()
-def get_settings():
-    return Settings()
-
-config = get_settings()
-
 # Creating a MongoDB client and connect to the relevant collections
-client = motor.motor_asyncio.AsyncIOMotorClient(config.mongo_conn_str)
-db = client[config.mongo_db]
+client = motor.motor_asyncio.AsyncIOMotorClient(config.settings.mongo_conn_str)
+db = client[config.settings.mongo_db]
 
 
 @router.get("/activity", response_model=List[models.activities.Activity])
@@ -39,7 +31,7 @@ async def get_all_activities(skip: int = 0, limit: int = 10):
     Return all activities.
     """
     response = await crud.activity.get_all(
-        collection=db[config.activities_collection],
+        collection=db[config.settings.activities_collection],
         skip=skip,
         limit=limit)
     return response
@@ -52,7 +44,7 @@ async def get_activity_by_id(
     Return a single activity by its id.
     """
     response = await crud.activity.get(
-        collection=db[config.activities_collection], 
+        collection=db[config.settings.activities_collection], 
         id=id)
     if response is None:
         raise HTTPException(status_code=404, detail="Activity not found")
@@ -65,7 +57,7 @@ async def create_activity(activity: models.activities.Activity):
     Create a new activity.
     """
     response = await crud.activity.create(
-        collection=db[config.activities_collection],
+        collection=db[config.settings.activities_collection],
         data=activity)
     return response
 
@@ -78,12 +70,12 @@ async def update_activity(
     Update an activity.
     """
     activity_from_db = await crud.activity.get(
-        collection=db[config.activities_collection], 
+        collection=db[config.settings.activities_collection], 
         id=id)
     if activity_from_db is None:
         raise HTTPException(status_code=404, detail="Activity not found")
     updated = await crud.activity.update(
-        collection=db[config.activities_collection], 
+        collection=db[config.settings.activities_collection], 
         id=id,
         data=activity)
     if not updated:
@@ -98,12 +90,12 @@ async def delete_activity(
     Update an activity.
     """
     activity = await crud.activity.get(
-        collection=db[config.activities_collection], 
+        collection=db[config.settings.activities_collection], 
         id=id)
     if activity is None:
         raise HTTPException(status_code=404, detail="Activity not found")
     deleted = await crud.activity.remove(
-        collection=db[config.activities_collection], 
+        collection=db[config.settings.activities_collection], 
         id=id)
     if not deleted:
         raise HTTPException(status_code=400, detail="Bad request")
@@ -165,6 +157,6 @@ async def read_templates(document_type: str = Path(None, description="The type o
     Return the JSON schema templates in the db for a given document type.
     """
 
-    response = await db[config.templates_collection].find({"schemas": document_type}).to_list(20)
+    response = await db[config.settings.templates_collection].find({"schemas": document_type}).to_list(20)
 
     return response
