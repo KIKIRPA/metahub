@@ -1,0 +1,95 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>Activity list</title>
+    <meta charset="UTF-8">
+    <link rel="shortcut icon" href="/static/images/favicon.ico">
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.x/css/materialdesignicons.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@koumoul/vjsf@2.7.3/dist/main.css">
+</head>
+<body>
+    
+    <v-app id="app">
+
+        <v-app-bar color="white" >
+            <img height="45" src="/static/images/logo.svg"/>
+            <v-spacer></v-spacer>
+            <v-app-bar-nav-icon></v-app-bar-nav-icon>
+        </v-app-bar>
+
+        <v-container>
+            <v-card>
+                <v-card-title>
+                    <v-text-field
+                        v-model="search"
+                        append-icon="mdi-magnify"
+                        label="Search"
+                        single-line
+                        hide-details />
+                </v-card-title>
+                <v-data-table
+                    :headers="headers"
+                    :items="activities"
+                    :search="search" />
+            </v-card>
+        </v-container>
+
+    </v-app>
+
+    <script type="text/javascript">
+        
+        new Vue({
+            el: '#app',
+
+            vuetify: new Vuetify({
+                theme: {
+                    themes: {
+                        light: {
+                            primary: '#af8d55'
+                        },
+                    },
+                },
+            }),
+
+            data: {
+                search: '',
+                headers: [
+                    {text: 'id', value:'_id'},
+                    {text: 'Activity type', value: 'activity_type'},
+                    {text: 'Intervention File/Project', value: 'activity_id'},
+                    {text: 'Unit', value: 'unit'},
+                    {text: 'Subject', value: 'subject'},
+                    {text: 'activity type', value: 'activity_type'},
+                    {text: 'state', value: 'state'},
+                ],
+                activities: [],
+            },
+
+            mounted() {
+                this.getActivities()
+            },
+
+            methods: {
+                getActivities() {
+                    axios.get('/api/v1/activity/')
+                        .then(response => {
+                            this.activities = response.data;
+                        })
+                        .catch(error => {
+                            console.log(error)
+                        })
+                },
+            }
+        })
+    </script>
+	
+</body>
+</html>

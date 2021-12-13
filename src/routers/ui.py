@@ -18,6 +18,11 @@ templates = Jinja2Templates(directory="templates")
 schema_list = json.dumps([{"alias": k, "short": v["short"]} for k, v in config.document_types.items()])
 
 
+@router.get("/activity", response_class=HTMLResponse)
+def show_activity_list(request: Request,):
+    return templates.TemplateResponse("activity_list.html.jinja", {"request": request})
+
+
 @router.get("/document/{document_type}", response_class=HTMLResponse)
 async def show_form(
         request: Request, 
@@ -29,7 +34,7 @@ async def show_form(
     if document_type not in config.document_types:
         raise HTTPException(status_code=404, detail="Document type does not exist")
     
-    return templates.TemplateResponse("documentForm.html.jinja", {
+    return templates.TemplateResponse("document_form.html.jinja", {
         "request": request, 
         "schema_alias": document_type, 
         "template_alias": "",
@@ -55,7 +60,7 @@ async def show_form(
     if (response := await db[config.settings.templates_collection].find_one({"alias": template, "schemas": document_type})) is None:
         raise HTTPException(status_code=404, detail="Template type does not exist (for the given document type)")
     
-    return templates.TemplateResponse("documentForm.html.jinja", {
+    return templates.TemplateResponse("document_form.html.jinja", {
         "request": request, 
         "schema_alias": document_type, 
         "template_alias": response["alias"],

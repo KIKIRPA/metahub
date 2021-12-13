@@ -42,7 +42,7 @@ class PyObjectId(ObjectId):
 
 class Contributor(BaseModel):
     contributor_id: str = Field(..., title='Contributor Id')
-    roles: Set[Role] = Field(Role.COLLABORATOR, title="Roles")
+    role: Role = Field(Role.COLLABORATOR, title="Roles", unique=True)
 
 
 class Activity(BaseModel):
@@ -51,7 +51,7 @@ class Activity(BaseModel):
     activity_id: str = Field(...)
     unit: Unit = Field(...)
     subject: Optional[str] = Field(None, description='Subject of the activity (e.g. project name or object title)')
-    related_objects: Optional[Set[int]]
+    related_objects: Optional[List[int]]
     contributors: Optional[List[Contributor]] = Field(None, unique=True)
     state: State = Field(State.OPEN)
 
