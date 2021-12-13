@@ -12,14 +12,12 @@
     <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.x/css/materialdesignicons.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
-
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@koumoul/vjsf@2.7.3/dist/main.css">
 </head>
 <body>
     
     <v-app id="app">
 
-        <v-app-bar color="white" >
+        <v-app-bar color="white">
             <img height="45" src="/static/images/logo.svg"/>
             <v-spacer></v-spacer>
             <v-app-bar-nav-icon></v-app-bar-nav-icon>
@@ -41,6 +39,8 @@
                     :search="search" />
             </v-card>
         </v-container>
+
+        <v-container fill-height /> <!-- fills remaining horizontal space, if necessary -->
 
     </v-app>
 
