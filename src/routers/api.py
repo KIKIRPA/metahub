@@ -1,10 +1,6 @@
-from datetime import date
-import os
-from typing import List
+from typing import Optional, List
 
-from fastapi import APIRouter, HTTPException, status, Body, Path
-from fastapi.encoders import jsonable_encoder
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, HTTPException, status, Query, Path
 from motor.motor_asyncio import AsyncIOMotorClient
 
 import config
@@ -26,14 +22,21 @@ db = client[config.settings.mongo_db]
 
 
 @router.get("/activity")
-async def get_all_activities(skip: int = 0, limit: int = 10):
+async def get_all_activities(
+    skip: Optional[int] = Query(0),
+    limit: Optional[int] = Query(10), 
+    sort_by: Optional[List[str]] = Query(["activity_id", "unit"]),
+    sort_desc: Optional[List[bool]] = Query([])):
     """
     Return all activities.
     """
+    if len(sort_desc) > 0 and len(sort_desc) != len(sort_by):
+        raise HTTPException(status_code=422, detail="Unequal number of items in sort_by and sort_desc")
     response = await crud.activity.get_all(
         collection=db[config.settings.activities_collection],
         skip=skip,
-        limit=limit)
+        limit=limit,
+        sort_by=sort_by)
     return response
 
 

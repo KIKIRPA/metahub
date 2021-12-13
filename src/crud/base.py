@@ -1,4 +1,4 @@
-from typing import Generic, List, Dict, Optional, TypeVar
+from typing import Generic, Union, List, Dict, Optional, TypeVar
 
 from pydantic import BaseModel
 from fastapi.encoders import jsonable_encoder
@@ -26,8 +26,8 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     async def get_all(
             self, 
             collection: AsyncIOMotorCollection, 
-            sort: str = "",
-            sort_order: int = 1,
+            sort_by: List[str] = [],
+            sort_desc: List[bool] = [],
             skip: int = 0, 
             limit: int = 10) -> List[ModelType]:
         pagination = {
@@ -35,12 +35,19 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             "limit": limit,
             "total": await collection.count_documents({})
         }
-        if str is not None and sort_order not in [-1,1]:
-            data = await collection.find({}).sort({sort: sort_order}).skip(skip).limit(limit).to_list(None)
+        if len(sort_by) > 0:
+            sort = []
+            for i in range(len(sort_by)):
+                if len(sort_desc) == len(sort_by):
+                    sort.append((sort_by[i], -1 if sort_desc[i] == True else 1))
+                else:
+                    sort.append((sort_by[i], 1))
+            data = await collection.find({}).sort(sort).skip(skip).limit(limit).to_list(None)
+            pagination["sort_by"] = sort_by
+            if len(sort_desc) > 0 and len(sort_desc) == len(sort_by) :
+                pagination["sort_desc"] = sort_desc
         else:
             data = await collection.find({}).skip(skip).limit(limit).to_list(None)
-            pagination["sort"] = sort
-            pagination["sort_order"] = sort_order
         return {"pagination": pagination, "data": data}
 
 
