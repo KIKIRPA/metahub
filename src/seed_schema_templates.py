@@ -8,6 +8,9 @@ import asyncio
 from motor.motor_asyncio import AsyncIOMotorClient
 from fastapi.encoders import jsonable_encoder
 
+import config
+from models.document_templates import DocumentTemplate
+
 
 def import_parents(level=1):
     global __package__
@@ -75,9 +78,5 @@ async def main():
     print('\n')
 
 if __name__ == '__main__' and __package__ is None:
-    import_parents(level=2)
-    from .. import config
-    from ..models.document_templates.document_template import DocumentTemplate
-
     loop = asyncio.get_event_loop()
     loop.run_until_complete(main())

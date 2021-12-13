@@ -4,6 +4,7 @@ from pathlib import Path
 import asyncio
 from motor.motor_asyncio import AsyncIOMotorClient
 
+import config
 
 def import_parents(level=1):
     global __package__
@@ -26,14 +27,11 @@ async def main():
     db = client[config.settings.mongo_db]
 
     await db.drop_collection(config.settings.activities_collection)
-    print("Dropped collection '" + config.settings.templates_collection + "'\n")
+    print("Dropped collection '" + config.settings.activities_collection + "'\n")
 
     collections = await db.list_collection_names()
     print("\nCollections: " + str(collections) + "\n")
 
 if __name__ == '__main__' and __package__ is None:
-    import_parents(level=2)
-    from .. import config
-
     loop = asyncio.get_event_loop()
     loop.run_until_complete(main())
