@@ -48,9 +48,11 @@ class Contributor(BaseModel):
 class Activity(BaseModel):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id", title="Document Id")
     activity_type: ActivityType = Field(...)
+    activity_id: str = Field(...)
     unit: Unit = Field(...)
-    contributors: Optional[List[Contributor]] = Field(None, unique=True)
     subject: Optional[str] = Field(None, description='Subject of the activity (e.g. project name or object title)')
+    related_objects: Optional[Set[int]]
+    contributors: Optional[List[Contributor]] = Field(None, unique=True)
     state: State = Field(State.OPEN)
 
     class Config:
