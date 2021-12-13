@@ -25,6 +25,7 @@
 
         <v-container>
             <v-card>
+                
                 <v-card-title>
                     <v-text-field
                         v-model="search"
@@ -33,12 +34,15 @@
                         single-line
                         hide-details />
                 </v-card-title>
+
                 <v-data-table
                     :headers="headers"
                     :items="activities"
-                    :search="search" 
-                    :page.sync="page"
-                    :items-per-page="itemsPerPage" />
+                    :server-items-length="totalActivities"
+                    :options.sync="options"
+                    :loading="loading">
+                </v-data-table>
+
             </v-card>
         </v-container>
 
@@ -62,28 +66,51 @@
             }),
 
             data: {
-                search: '',
                 headers: [
                     {text: 'id', value:'_id'},
                     {text: 'Activity type', value: 'activity_type'},
                     {text: 'Intervention File/Project', value: 'activity_id'},
                     {text: 'Unit', value: 'unit'},
                     {text: 'Subject', value: 'subject'},
-                    {text: 'activity type', value: 'activity_type'},
                     {text: 'state', value: 'state'},
                 ],
                 activities: [],
+                totalActivities: 0,
+                options: {
+                    multiSort: true},
+                search: '',
+                loading: true,
             },
 
-            mounted() {
-                this.getActivities()
+            watch: {
+                options: {
+                    handler () {
+                        this.getDataFromApi()
+                        },
+                    deep: true,
+                },
             },
 
             methods: {
-                getActivities() {
-                    axios.get('/api/v1/activity/')
+                getDataFromApi () {
+                    this.loading = true
+                    
+                    // query parameters
+                    console.log(JSON.stringify(this.options, null, 2)) // DEBUG
+                    parameters = {
+                        skip: (this.options.page - 1) * this.options.itemsPerPage,
+                        limit: this.options.itemsPerPage,
+                        sort_by: this.options.sortBy,
+                        sort_desc: this.options.sortDesc
+                    }
+                 
+                    // api call
+                    url = '/api/v1/activity'
+                    return axios.get(url, {params: parameters})
                         .then(response => {
-                            this.activities = response.data.data;
+                            this.activities = response.data.data
+                            this.totalActivities = response.data.pagination.total
+                            this.loading = false
                         })
                         .catch(error => {
                             console.log(error)
