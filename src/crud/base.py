@@ -35,6 +35,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             "limit": limit,
             "total": await collection.count_documents({})
         }
+        if limit < 0: limit = 0
         if len(sort_by) > 0:
             sort = []
             for i in range(len(sort_by)):
