@@ -25,7 +25,7 @@ client = AsyncIOMotorClient(config.settings.mongo_conn_str)
 db = client[config.settings.mongo_db]
 
 
-@router.get("/activity", response_model=List[models.activities.Activity])
+@router.get("/activity")
 async def get_all_activities(skip: int = 0, limit: int = 10):
     """
     Return all activities.

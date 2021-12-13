@@ -36,7 +36,9 @@
                 <v-data-table
                     :headers="headers"
                     :items="activities"
-                    :search="search" />
+                    :search="search" 
+                    :page.sync="page"
+                    :items-per-page="itemsPerPage" />
             </v-card>
         </v-container>
 
@@ -81,7 +83,7 @@
                 getActivities() {
                     axios.get('/api/v1/activity/')
                         .then(response => {
-                            this.activities = response.data;
+                            this.activities = response.data.data;
                         })
                         .catch(error => {
                             console.log(error)

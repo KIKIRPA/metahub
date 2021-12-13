@@ -1,4 +1,4 @@
-from typing import Generic, List, Optional, TypeVar
+from typing import Generic, List, Dict, Optional, TypeVar
 
 from pydantic import BaseModel
 from fastapi.encoders import jsonable_encoder
@@ -26,9 +26,23 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     async def get_all(
             self, 
             collection: AsyncIOMotorCollection, 
+            sort: str = "",
+            sort_order: int = 1,
             skip: int = 0, 
             limit: int = 10) -> List[ModelType]:
-        return await collection.find({}).skip(skip).limit(limit).to_list(None)
+        pagination = {
+            "skip": skip,
+            "limit": limit,
+            "total": await collection.count_documents({})
+        }
+        if str is not None and sort_order not in [-1,1]:
+            data = await collection.find({}).sort({sort: sort_order}).skip(skip).limit(limit).to_list(None)
+        else:
+            data = await collection.find({}).skip(skip).limit(limit).to_list(None)
+            pagination["sort"] = sort
+            pagination["sort_order"] = sort_order
+        return {"pagination": pagination, "data": data}
+
 
     async def create(
             self, 
