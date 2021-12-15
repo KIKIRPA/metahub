@@ -5,9 +5,9 @@ from bson import ObjectId
 
 
 class Role(str, Enum):
-    analyst = 'Analyst'
-    author = 'Author'
-    operator = 'Operator'
+    ANALYST = 'Analyst'
+    AUTHOR = 'Author'
+    OPERATOR = 'Operator'
 
 
 class PyObjectId(ObjectId):

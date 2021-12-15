@@ -1,5 +1,6 @@
-from pydantic import BaseSettings
+from functools import lru_cache
 
+from pydantic import BaseSettings
 
 class Settings(BaseSettings):
     app_name: str = "Meta"
@@ -7,7 +8,17 @@ class Settings(BaseSettings):
     mongo_conn_str: str = "mongodb://kikirpa:hescida@localhost:27017/"
     mongo_db: str = "meta"
     documents_collection: str = "documents"
+    activities_collection: str = "activities"
     templates_collection: str = "templates"
 
     class Config:
         env_file = ".env"
+
+
+# Get config settings
+@lru_cache()
+def get_settings():
+    return Settings()
+
+
+settings = get_settings()
