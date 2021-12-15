@@ -13,11 +13,24 @@ router = APIRouter(
 )
 
 
+@router.get("/activity/{activity_type}")
+async def read_measurement_schema(
+        activity_type: str = Path(None, description="The type of activity")):
+    """
+    Returning a json-schema for the activity.
+    """
+
+    if activity_type not in config.activity_types:
+        raise HTTPException(status_code=404, detail="Activity type does not exist")
+
+    return config.activity_types[activity_type]["model"].schema()
+
+
 @router.get("/document/{document_type}")
 async def read_measurement_schema(
         document_type: str = Path(None, description="The type of report or measurement")):
     """
-    Displaying json-schema.
+    Returning the json-schema for the document.
     """
 
     if document_type not in config.document_types:
@@ -31,7 +44,7 @@ async def read_measurement_schema(
         document_type: str = Path(None, description="The type of report or measurement"),
         template: str = Path(None, description="Schema template to be applied")):
     """
-    Displaying json-schema with an applied schema template.
+    Returning the json-schema for the document with an applied schema template.
     """
 
     if document_type not in config.document_types:

@@ -5,11 +5,11 @@ activity_types = {
     "intervention_file": {
         "alias": "intervention_file",
         "name": "Intervention file",
-        "model": models.activities.intervention_file
+        "model": models.activities.InterventionFile
     },
     "project": {
         "alias": "project",
         "name": "¨Project",
-        "model": models.activities.project
+        "model": models.activities.Project
     }
 }
