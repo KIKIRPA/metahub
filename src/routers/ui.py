@@ -1,6 +1,8 @@
 import json
+from typing import Optional
 
 from fastapi import APIRouter, Request, HTTPException, Path
+from fastapi.param_functions import Query
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -30,7 +32,8 @@ def show_activity_list(request: Request):
 @router.get("/activity/{activity_type}", response_class=HTMLResponse)
 def show_activity_list(
         request: Request, 
-        activity_type: str = Path(None, description="The type of activity")):
+        activity_type: str = Path(None, description="The type of activity"),
+        id: Optional[str] = Query(None, description="The activity id")):
     """
     Displaying the activity input form
     """
@@ -42,7 +45,8 @@ def show_activity_list(
         "request": request, 
         "schema_alias": activity_type, 
         "template_alias": "",
-        "schema_list": activity_types_list
+        "schema_list": activity_types_list,
+        "id": id 
     })
 
 

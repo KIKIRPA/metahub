@@ -137,7 +137,7 @@
                         })
                 },
                 getTemplateList() {
-                    axios.get('/api/template/' + this.schemaAlias)
+                    axios.get('/api/v1/template/' + this.schemaAlias)
                         .then(response => {
                             this.templateList = response.data;
                         })
