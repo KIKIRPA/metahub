@@ -8,6 +8,7 @@ from fastapi.templating import Jinja2Templates
 from motor.motor_asyncio import AsyncIOMotorClient
 
 import config
+import models
 
 # Creating a FastAPI router, meaning a set of routes that can be included later
 # in the FastAPI application
@@ -93,3 +94,13 @@ async def show_form(
         "template_alias": response["alias"],
         "schema_list": document_types_list
     })
+
+
+@router.get("/config/schema_editor", response_class=HTMLResponse)
+def show_activity_list(request: Request):
+    """
+    Displaying schema editor
+    """
+    return templates.TemplateResponse("schema_editor.html.jinja", {
+        "request": request,
+        "schema": models.Template.schema_json()})

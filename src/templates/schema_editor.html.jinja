@@ -1,0 +1,115 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>Document form</title>
+    <meta charset="UTF-8">
+    <link rel="shortcut icon" href="/static/images/favicon.ico">
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@koumoul/vjsf@2.7.3/dist/main.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@koumoul/vjsf@2.7.3/dist/third-party.js"></script>
+
+    <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.x/css/materialdesignicons.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@koumoul/vjsf@2.7.3/dist/main.css">
+</head>
+<body>
+
+    <v-app id="app">
+
+        <v-app-bar color="white" class="px-10">
+            <img height="45" src="/static/images/logo.svg"/>
+            <v-spacer></v-spacer>
+            <v-app-bar-nav-icon></v-app-bar-nav-icon>
+        </v-app-bar>
+
+        <v-banner color="primary" class="elevation-5">
+            <span class="white--text text-h2 px-10">Schema editor</div>
+        </v-banner>
+
+        <v-container>
+            <v-row>
+                <v-col>
+                    <v-card>
+                        <v-card-title class="primary--text text-h5">Schema/template form</v-card-title>
+                        <v-card-text>
+                            <v-form ref="form" v-model="valid">
+                                <v-jsf v-model="model" :schema="schema" :options="options" />
+                            </v-form>
+                        </v-card-text>
+                        <v-card-actions class="white">
+                            <v-spacer></v-spacer>
+                            <v-btn class="mx-2" color="primary" @click="$refs.form.validate()">Validate</v-btn>
+                        </v-card-actions>
+                    </v-card>
+                </v-col>
+                <v-col>{{'{{ schema }}'}}
+                </v-col>
+            </v-row>
+        </v-container>
+
+        <v-container fill-height /> <!-- fills remaining horizontal space, if necessary -->
+    </v-app>
+
+    <script type="text/javascript">
+
+        // initial settings and data from jinja
+        const initialSchema = '{{ schema |safe }}'
+        const options =  { 
+            "editMode": "inline",
+            "textareaProps": {
+                "filled": true,
+                "auto-grow": true
+            }
+        }
+        
+        Vue.component('VJsf', VJsf.default)
+
+        new Vue({
+            el: '#app',
+
+            vuetify: new Vuetify({
+                theme: {
+                    themes: {
+                        light: {
+                            primary: '#af8d55'
+                        },
+                    },
+                },
+            }),
+
+            created() {
+                this.transformSchema()
+            },
+
+            data: {
+                options,
+                model: {},
+                schema: {},
+                valid: null
+            },
+
+            methods: {
+                transformSchema() {
+                    schema = JSON.parse(initialSchema)
+                    //schema.properties._id["x-display"] = "hidden"
+                    schema.properties._id["readOnly"] = true
+                    schema.properties.json_schema["x-display"] = "textarea"
+                    schema.properties.created_timestamp["readOnly"] = true
+                    schema.properties.created_by_user["readOnly"] = true
+                    schema.properties.modified_timestamp["readOnly"] = true
+                    schema.properties.modified_by_user["readOnly"] = true
+
+                    this.schema = schema
+                },
+            },
+        })
+    </script>
+	
+</body>
+</html>
