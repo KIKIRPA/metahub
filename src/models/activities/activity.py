@@ -42,7 +42,7 @@ class PyObjectId(ObjectId):
 
 class Contributor(BaseModel):
     contributor_id: str = Field(..., title='Contributor Id')
-    role: Role = Field(Role.COLLABORATOR, title="Roles", unique=True)
+    role: Role = Field(...)
 
 
 class Activity(BaseModel):
@@ -53,7 +53,7 @@ class Activity(BaseModel):
     subject: Optional[str] = Field(None, description='Subject of the activity (e.g. project name or object title)')
     related_objects: Optional[List[int]]
     contributors: Optional[List[Contributor]] = Field(None, unique=True)
-    state: State = Field(State.OPEN)
+    state: State = Field(...)
 
     class Config:
         json_encoders = {ObjectId: str}

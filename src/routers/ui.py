@@ -15,12 +15,35 @@ router = APIRouter(
 )
 
 templates = Jinja2Templates(directory="templates")
-schema_list = json.dumps([{"alias": k, "short": v["short"]} for k, v in config.document_types.items()])
+document_types_list = json.dumps([{"alias": k, "short": v["short"]} for k, v in config.document_types.items()])
+activity_types_list = json.dumps([{"alias": k, "name": v["name"]} for k, v in config.activity_types.items()])
 
 
 @router.get("/activity", response_class=HTMLResponse)
-def show_activity_list(request: Request,):
+def show_activity_list(request: Request):
+    """
+    Displaying the activity list
+    """
     return templates.TemplateResponse("activity_list.html.jinja", {"request": request})
+
+
+@router.get("/activity/{activity_type}", response_class=HTMLResponse)
+def show_activity_list(
+        request: Request, 
+        activity_type: str = Path(None, description="The type of activity")):
+    """
+    Displaying the activity input form
+    """
+    
+    if activity_type not in config.activity_types:
+        raise HTTPException(status_code=404, detail="Activity type does not exist")
+    
+    return templates.TemplateResponse("activity_form.html.jinja", {
+        "request": request, 
+        "schema_alias": activity_type, 
+        "template_alias": "",
+        "schema_list": activity_types_list
+    })
 
 
 @router.get("/document/{document_type}", response_class=HTMLResponse)
@@ -28,7 +51,7 @@ async def show_form(
         request: Request, 
         document_type: str = Path(None, description="The type of report or measurement")):
     """
-    Displaying document input form
+    Displaying the document input form
     """
     
     if document_type not in config.document_types:
@@ -38,7 +61,7 @@ async def show_form(
         "request": request, 
         "schema_alias": document_type, 
         "template_alias": "",
-        "schema_list": schema_list
+        "schema_list": document_types_list
     })
 
 
@@ -48,7 +71,7 @@ async def show_form(
         document_type: str = Path(None, description="The type of report or measurement"),
         template: str = Path(None, description="Schema template to be applied")):
     """
-    Displaying document input form
+    Displaying the document input form
     """
     
     if document_type not in config.document_types:
@@ -64,5 +87,5 @@ async def show_form(
         "request": request, 
         "schema_alias": document_type, 
         "template_alias": response["alias"],
-        "schema_list": schema_list
+        "schema_list": document_types_list
     })
