@@ -42,6 +42,17 @@
                     :options.sync="options"
                     :loading="loading"
                     :footer-props="{'items-per-page-options':[10, 50, 100, -1]}">
+
+                    <template v-slot:item._id="{ item }">
+                        <v-icon
+                            small
+                            class="mr-2"
+                            color="primary"
+                            @click="openForm(item)">
+                                mdi-file-eye-outline
+                        </v-icon>
+                    </template>
+
                 </v-data-table>
 
             </v-card>
@@ -68,12 +79,12 @@
 
             data: {
                 headers: [
-                    {text: 'id', value:'_id'},
-                    {text: 'Activity type', value: 'activity_type'},
+                    {text: ' ', value:'_id', sortable: false},
                     {text: 'Intervention File/Project', value: 'activity_id'},
                     {text: 'Unit', value: 'unit'},
                     {text: 'Subject', value: 'subject'},
-                    {text: 'state', value: 'state'},
+                    {text: 'Activity type', value: 'activity_type'},
+                    {text: 'State', value: 'state'},
                 ],
                 activities: [],
                 totalActivities: 0,
@@ -87,14 +98,14 @@
             watch: {
                 options: {
                     handler () {
-                        this.getDataFromApi()
+                        this.getActivities()
                         },
                     deep: true,
                 },
             },
 
             methods: {
-                getDataFromApi () {
+                getActivities() {
                     this.loading = true
                     
                     // query parameters
@@ -118,6 +129,10 @@
                             console.log(error)
                         })
                 },
+
+                openForm(item) {
+                    window.open("/activity/intervention_file?id=" + item._id, "_self")
+                }
             }
         })
     </script>
