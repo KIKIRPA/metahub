@@ -52,9 +52,9 @@ class Template(BaseModel): # unique index on (category, schema_id and template_i
         min_length=1,
         max_length=100)
     selectable: bool = Field(False, description="Allow users to select this template")
-    json_schema: str = Field(..., description="JSON schema text")
-    created_timestamp: datetime = Field(...)
-    created_by_user: str = Field(...)
+    json_schema: dict = Field(..., description="JSON schema overlay")
+    created_timestamp: Optional[datetime] = Field(None)
+    created_by_user: Optional[str] = Field(None)
     modified_timestamp: Optional[datetime] = Field(None)
     modified_by_user: Optional[str] = Field(None)
 

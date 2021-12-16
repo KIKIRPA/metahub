@@ -1,8 +1,11 @@
 {
-    "alias": "invia_785",
-    "title": "Renishaw inVia, microscope, 785nm",
-    "schemas": ["raman"],
-    "template": {
+    "category": "Document",
+    "schema_id": "raman",
+    "template_id": "invia_785",
+    "short_name": "INVIA 785",
+    "long_name": "Renishaw inVia, microscope, 785nm",
+    "selectable": true,
+    "json_schema": {
         "definitions": {
             "LaserPower": {
                 "properties": {
