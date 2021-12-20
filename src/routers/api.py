@@ -7,8 +7,8 @@ import config
 import models
 import models.activities
 import models.document_templates
-
 import crud
+
 
 # Creating a FastAPI router, meaning a set of routes that can be included later
 # in the FastAPI application
@@ -25,7 +25,7 @@ db = client[config.settings.mongo_db]
 #   TEMPLATES
 #
 
-@router.get("/template", response_model=dict)
+@router.get("/template", response_model=models.TemplateList)
 async def get_all_templates(
     skip: Optional[int] = Query(0),
     limit: Optional[int] = Query(10), 
@@ -36,11 +36,14 @@ async def get_all_templates(
     """
     if len(sort_desc) > 0 and len(sort_desc) != len(sort_by):
         raise HTTPException(status_code=422, detail="Unequal number of items in sort_by and sort_desc")
-    response = await crud.template.get_all(
-        collection=db[config.settings.templates_collection],
-        skip=skip,
-        limit=limit,
-        sort_by=sort_by)
+    try: 
+        response = await crud.template.get_all(
+            collection=db[config.settings.templates_collection],
+            skip=skip,
+            limit=limit,
+            sort_by=sort_by)
+    except BaseException as err:
+        raise HTTPException(status_code=400, detail=err)
     return response
 
 
@@ -50,44 +53,56 @@ async def get_template_by_id(
     """
     Return a single template by its id.
     """
-    response = await crud.template.get(
-        collection=db[config.settings.templates_collection], 
-        id=id)
-    if response is None:
+    try:
+        response = await crud.template.get(
+            collection=db[config.settings.templates_collection], 
+            id=id)
+    except crud.NoResultsError:
         raise HTTPException(status_code=404, detail="template not found")
+    except BaseException as err:
+        raise HTTPException(status_code=400, detail=err)
     return response
 
 
 @router.post("/template", response_model=models.Template)
-async def create_template(template: models.Template):
+async def create_template(template: models.TemplateUpdate):
     """
     Create a new template.
     """
-    response = await crud.template.create(
-        collection=db[config.settings.templates_collection],
-        data=template)
+    try:
+        response = await crud.template.create(
+            collection=db[config.settings.templates_collection],
+            data=template)
+    except crud.DuplicateKeyError:
+        raise HTTPException(status_code=422, detail="duplicate key (category, schema_id, template_id)")
+    except crud.NotCreatedError:
+        raise HTTPException(status_code=400, detail="template was not created")
+    except BaseException as err:
+        raise HTTPException(status_code=400, detail=err)
     return response
 
 
 @router.put("/template/{id}", response_model=models.Template)
 async def update_template(
-        template: models.Template,
+        template: models.TemplateUpdate,
         id: str = Path(None, description="The id of the template")):
     """
     Update a template.
     """
-    template_from_db = await crud.template.get(
-        collection=db[config.settings.templates_collection], 
-        id=id)
-    if template_from_db is None:
-        raise HTTPException(status_code=404, detail="Activity not found")
-    updated = await crud.template.update(
-        collection=db[config.settings.templates_collection], 
-        id=id,
-        data=template)
-    if not updated:
-        raise HTTPException(status_code=400, detail="Bad request")
-    return template
+    try:
+        updated = await crud.template.update(
+            collection=db[config.settings.templates_collection], 
+            id=id,
+            data=template)
+    except crud.NoResultsError:
+        raise HTTPException(status_code=404, detail="template not found")
+    except crud.DuplicateKeyError:
+        raise HTTPException(status_code=422, detail="duplicate key (category, schema_id, template_id)")
+    except crud.NotUpdatedError:
+        raise HTTPException(status_code=400, detail="template was not updated")
+    except BaseException as err:
+        raise HTTPException(status_code=400, detail=err)
+    return updated
 
 
 @router.delete("/template/{id}", response_model=models.Template)
@@ -96,17 +111,17 @@ async def delete_template(
     """
     Delete a template.
     """
-    template = await crud.template.get(
-        collection=db[config.settings.templates_collection], 
-        id=id)
-    if template is None:
-        raise HTTPException(status_code=404, detail="Template not found")
-    deleted = await crud.template.remove(
-        collection=db[config.settings.templates_collection], 
-        id=id)
-    if not deleted:
-        raise HTTPException(status_code=400, detail="Bad request")
-    return template
+    try:
+        deleted = await crud.template.remove(
+            collection=db[config.settings.templates_collection], 
+            id=id)
+    except crud.NoResultsError:
+        HTTPException(status_code=404, detail="template not found")
+    except crud.NotDeletedError:
+        raise HTTPException(status_code=400, detail="template was not deleted")
+    except BaseException as err:
+        raise HTTPException(status_code=400, detail=err)
+    return deleted
 
 
 # OLD ENDPOINT

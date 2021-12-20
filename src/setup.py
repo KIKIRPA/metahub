@@ -71,7 +71,7 @@ async def main():
         print(f" ! Error in creating collection '{collection}' and an index with a unique restraint")
 
     if len(options.seed_templates) > 0:
-        await seed(db, collection, options.seed_templates, models.Template)
+        await seed(db, collection, options.seed_templates, models.TemplateCreate)
 
     print("\n")
 
