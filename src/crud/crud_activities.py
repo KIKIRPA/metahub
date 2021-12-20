@@ -1,18 +1,8 @@
 from crud.base import CRUDBase
-import models.activities
 
 
-activity = CRUDBase[
-    models.activities.Activity, 
-    models.activities.Activity, 
-    models.activities.Activity]()
+activity = CRUDBase()
 
-intervention_file = CRUDBase[
-    models.activities.InterventionFile, 
-    models.activities.InterventionFile, 
-    models.activities.InterventionFile]()
+intervention_file = CRUDBase()
 
-project = CRUDBase[
-    models.activities.Project, 
-    models.activities.Project, 
-    models.activities.Project]()
+project = CRUDBase()

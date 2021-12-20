@@ -1,16 +1,42 @@
-from typing import Generic, Union, List, Dict, Optional, TypeVar
+from typing import List
+from datetime import datetime
 
-from pydantic import BaseModel
 from fastapi.encoders import jsonable_encoder
 from motor.motor_asyncio import AsyncIOMotorCollection
+from bson import ObjectId
+import pymongo.errors
 
 
-ModelType = TypeVar("ModelType", bound=BaseModel)
-CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)
-UpdateSchemaType = TypeVar("UpdateSchemaType", bound=BaseModel)
+def translate_id(obj: dict):
+    if obj is not None:
+        id = obj.pop("_id")
+        obj["id"] = str(id)
+        return obj
+    else:
+        return None
 
 
-class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
+class NoResultsError(Exception):
+    pass
+
+
+class NotCreatedError(Exception):
+    pass
+
+
+class NotUpdatedError(Exception):
+    pass
+
+
+class NotDeletedError(Exception):
+    pass
+
+
+class DuplicateKeyError(Exception):
+    pass
+
+
+class CRUDBase():
     def __init__(self):
         """
         CRUD object with default methods to Create, Read, Update, Delete (CRUD).
@@ -20,8 +46,11 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             self, 
             collection: AsyncIOMotorCollection, 
             *,
-            id: str) -> Optional[ModelType]:
-        return await collection.find_one({"_id": id})
+            id: str) -> dict:
+        result = await collection.find_one({"_id": ObjectId(id)})
+        if result is None: raise NoResultsError
+        return translate_id(result)
+
 
     async def get_all(
             self, 
@@ -29,7 +58,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             sort_by: List[str] = [],
             sort_desc: List[bool] = [],
             skip: int = 0, 
-            limit: int = 10) -> List[ModelType]:
+            limit: int = 10) -> dict:
         pagination = {
             "skip": skip,
             "limit": limit,
@@ -49,32 +78,53 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
                 pagination["sort_desc"] = sort_desc
         else:
             data = await collection.find({}).skip(skip).limit(limit).to_list(None)
-        return {"pagination": pagination, "data": data}
+        for doc in data:
+            doc = translate_id(doc)
+        result = {"pagination": pagination, "data": data}
+        return result
 
 
     async def create(
             self, 
             collection: AsyncIOMotorCollection, 
             *, 
-            data: CreateSchemaType) -> ModelType:
+            data: dict) -> dict:
         data = jsonable_encoder(data)
-        result = await collection.insert_one(data)
-        return await collection.find_one({"_id": result.inserted_id})
+        try: 
+            insert = await collection.insert_one(data)
+        except pymongo.errors.DuplicateKeyError:
+            raise DuplicateKeyError
+        result = await collection.find_one({"_id": insert.inserted_id})
+        if result is None: raise NotCreatedError
+        return translate_id(result)
+
 
     async def update(
             self,
             collection: AsyncIOMotorCollection,
             id: str,
             *,
-            data: UpdateSchemaType) -> bool:
+            data: dict) -> dict:
+        result = await collection.find_one({"_id": ObjectId(id)})
+        if result is None: raise NoResultsError
         data = jsonable_encoder(data)
-        result = await collection.update_one({"_id": id}, {"$set": data})
-        return (result.modified_count == 1)
+        try:
+            update = await collection.update_one({"_id": ObjectId(id)}, {"$set": data})
+        except pymongo.errors.DuplicateKeyError:
+            raise DuplicateKeyError
+        if update.modified_count != 1: raise NotUpdatedError
+        result = await collection.find_one({"_id": ObjectId(id)})
+        if result is None: raise NoResultsError
+        return translate_id(result)
     
+
     async def remove(
             self,
             collection: AsyncIOMotorCollection,
             *,
-            id: str)-> ModelType:
-        result = await collection.delete_one({"_id": id})
-        return (result.deleted_count == 1)
+            id: str)-> dict:
+        result = await collection.find_one({"_id": ObjectId(id)})
+        if result is None: raise NoResultsError
+        delete = await collection.delete_one({"_id": ObjectId(id)})
+        if delete.deleted_count != 1: raise NotDeletedError
+        return translate_id(result)
