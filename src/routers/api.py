@@ -116,7 +116,7 @@ async def delete_template(
             collection=db[config.settings.templates_collection], 
             id=id)
     except crud.NoResultsError:
-        HTTPException(status_code=404, detail="template not found")
+        raise HTTPException(status_code=404, detail="template not found")
     except crud.NotDeletedError:
         raise HTTPException(status_code=400, detail="template was not deleted")
     except BaseException as err:
