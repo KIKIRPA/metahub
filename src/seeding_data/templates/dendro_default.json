@@ -1,7 +1,7 @@
 {
-    "category": "Document",
-    "schema_id": "dendro",
-    "template_id": "_default",
+    "resource": "document",
+    "category": "dendro",
+    "template": "_default",
     "short_name": "DENDRO",
     "long_name": "Dendrochronology analysis",
     "selectable": true,

@@ -29,7 +29,7 @@ db = client[config.settings.mongo_db]
 async def get_all_templates(
     skip: Optional[int] = Query(0),
     limit: Optional[int] = Query(10), 
-    sort_by: Optional[List[str]] = Query(["category", "schema_id", "template_id"]),
+    sort_by: Optional[List[str]] = Query(["resource", "category", "template"]),
     sort_desc: Optional[List[bool]] = Query([])):
     """
     Return all templates.
@@ -74,7 +74,7 @@ async def create_template(template: models.TemplateUpdate):
             collection=db[config.settings.templates_collection],
             data=template)
     except crud.DuplicateKeyError:
-        raise HTTPException(status_code=422, detail="duplicate key (category, schema_id, template_id)")
+        raise HTTPException(status_code=422, detail="duplicate key (resource, category, template)")
     except crud.NotCreatedError:
         raise HTTPException(status_code=400, detail="template was not created")
     except BaseException as err:
@@ -97,7 +97,7 @@ async def update_template(
     except crud.NoResultsError:
         raise HTTPException(status_code=404, detail="template not found")
     except crud.DuplicateKeyError:
-        raise HTTPException(status_code=422, detail="duplicate key (category, schema_id, template_id)")
+        raise HTTPException(status_code=422, detail="duplicate key (resource, category, template)")
     except crud.NotUpdatedError:
         raise HTTPException(status_code=400, detail="template was not updated")
     except BaseException as err:

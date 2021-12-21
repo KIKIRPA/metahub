@@ -63,9 +63,9 @@ async def main():
 
     try:
         await db[collection].create_index([
+            ('resource', pymongo.ASCENDING),
             ('category', pymongo.ASCENDING),
-            ('schema_id', pymongo.ASCENDING),
-            ('template_id', pymongo.ASCENDING)], unique=True)
+            ('template', pymongo.ASCENDING)], unique=True)
         print(f" - Created collection '{collection}' and an index with a unique restraint")
     except:
         print(f" ! Error in creating collection '{collection}' and an index with a unique restraint")

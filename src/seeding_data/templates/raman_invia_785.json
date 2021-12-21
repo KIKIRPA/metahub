@@ -1,7 +1,7 @@
 {
-    "category": "Document",
-    "schema_id": "raman",
-    "template_id": "invia_785",
+    "resource": "document",
+    "category": "raman",
+    "template": "invia_785",
     "short_name": "INVIA 785",
     "long_name": "Renishaw inVia, microscope, 785nm",
     "selectable": true,
