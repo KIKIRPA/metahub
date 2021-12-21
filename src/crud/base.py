@@ -1,5 +1,5 @@
 from typing import List
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi.encoders import jsonable_encoder
 from motor.motor_asyncio import AsyncIOMotorCollection
@@ -59,12 +59,14 @@ class CRUDBase():
             sort_desc: List[bool] = [],
             skip: int = 0, 
             limit: int = 10) -> dict:
+        
         pagination = {
             "skip": skip,
             "limit": limit,
             "total": await collection.count_documents({})
         }
         if limit < 0: limit = 0
+        
         if len(sort_by) > 0:
             sort = []
             for i in range(len(sort_by)):
@@ -78,8 +80,10 @@ class CRUDBase():
                 pagination["sort_desc"] = sort_desc
         else:
             data = await collection.find({}).skip(skip).limit(limit).to_list(None)
+        
         for doc in data:
             doc = translate_id(doc)
+        
         result = {"pagination": pagination, "data": data}
         return result
 
@@ -89,13 +93,19 @@ class CRUDBase():
             collection: AsyncIOMotorCollection, 
             *, 
             data: dict) -> dict:
+        # first encode for json, than include a datetime (to be converted to mongo date object)
+        data = data.dict()
         data = jsonable_encoder(data)
+        data["created_timestamp"] = datetime.now(timezone.utc)
+        
         try: 
             insert = await collection.insert_one(data)
         except pymongo.errors.DuplicateKeyError:
             raise DuplicateKeyError
+
         result = await collection.find_one({"_id": insert.inserted_id})
         if result is None: raise NotCreatedError
+        
         return translate_id(result)
 
 
@@ -107,14 +117,21 @@ class CRUDBase():
             data: dict) -> dict:
         result = await collection.find_one({"_id": ObjectId(id)})
         if result is None: raise NoResultsError
+
+        # first encode for json, than include a datetime (to be converted to mongo date object)
+        data = data.dict()
         data = jsonable_encoder(data)
+        data["modified_timestamp"] = datetime.now(timezone.utc)
+        
         try:
             update = await collection.update_one({"_id": ObjectId(id)}, {"$set": data})
         except pymongo.errors.DuplicateKeyError:
             raise DuplicateKeyError
+        
         if update.modified_count != 1: raise NotUpdatedError
         result = await collection.find_one({"_id": ObjectId(id)})
         if result is None: raise NoResultsError
+        
         return translate_id(result)
     
 
@@ -125,6 +142,8 @@ class CRUDBase():
             id: str)-> dict:
         result = await collection.find_one({"_id": ObjectId(id)})
         if result is None: raise NoResultsError
+        
         delete = await collection.delete_one({"_id": ObjectId(id)})
         if delete.deleted_count != 1: raise NotDeletedError
+        
         return translate_id(result)

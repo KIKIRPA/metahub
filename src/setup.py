@@ -1,5 +1,4 @@
-import sys, importlib
-from pathlib import Path
+from datetime import datetime, timezone
 from glob import glob
 import os
 from optparse import OptionParser
@@ -11,7 +10,6 @@ from fastapi.encoders import jsonable_encoder
 
 import config
 import models
-from models.document_templates import DocumentTemplate
 
 
 async def drop(db: AsyncIOMotorDatabase, collection: str):
@@ -36,7 +34,10 @@ async def seed(db: AsyncIOMotorDatabase, collection: str, list_of_files: list, m
     for file in files:
         try: 
             item = model.parse_file(file)
+            # first encode for json, than include a datetime (to be converted to mongo date object)
+            item = item.dict()
             item = jsonable_encoder(item)
+            item["created_timestamp"] = datetime.now(timezone.utc)
             inserted = await db[collection].insert_one(item)
             item = await db[collection].find_one({"_id": inserted.inserted_id})
             print(f" - Seeded file: {os.path.basename(file)}")
@@ -71,7 +72,7 @@ async def main():
         print(f" ! Error in creating collection '{collection}' and an index with a unique restraint")
 
     if len(options.seed_templates) > 0:
-        await seed(db, collection, options.seed_templates, models.TemplateCreate)
+        await seed(db, collection, options.seed_templates, models.TemplateUpdate)
 
     print("\n")
 
