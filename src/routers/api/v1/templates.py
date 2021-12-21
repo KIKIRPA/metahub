@@ -24,22 +24,32 @@ db = client[config.settings.mongo_db]
 #
 
 @router.get("/", response_model=models.TemplateList)
-async def get_all_templates(
-    skip: Optional[int] = Query(0),
-    limit: Optional[int] = Query(10), 
-    sort_by: Optional[List[str]] = Query(["resource", "category", "template"]),
-    sort_desc: Optional[List[bool]] = Query([])):
+async def search_templates(
+        skip: Optional[int] = Query(0, description="Skip the x first results"),
+        limit: Optional[int] = Query(10, description="Return x results"), 
+        sort_by: Optional[List[str]] = Query(["resource", "category", "template"], description="Sorting options (array of strings)"),
+        sort_desc: Optional[List[bool]] = Query([], description="Sort descending (arry of booleans)"),
+        resource: Optional[models.Resource] = Query(None, description="Filter on resource type"),
+        category: Optional[str] = Query(None, description="Filter on category identifier (partial match)"),
+        template: Optional[str] = Query(None, description="Filter on template identifier (partial match)")):
     """
     Return all templates.
     """
+    find = {}
+    if resource is not None: find['resource'] = resource
+    if category is not None: find['category'] = {'$regex': f'.*{category.lower()}.*'}
+    if template is not None: find['template'] = {'$regex': f'.*{template.lower()}.*'}
+ 
     if len(sort_desc) > 0 and len(sort_desc) != len(sort_by):
         raise HTTPException(status_code=422, detail="Unequal number of items in sort_by and sort_desc")
     try: 
-        response = await crud.template.get_all(
+        response = await crud.template.search(
             collection=db[config.settings.templates_collection],
+            find=find,
             skip=skip,
             limit=limit,
-            sort_by=sort_by)
+            sort_by=sort_by,
+            sort_desc=sort_desc)
     except BaseException as err:
         raise HTTPException(status_code=400, detail=err)
     return response

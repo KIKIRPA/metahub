@@ -1,1 +1,1 @@
-from .template import Template, TemplateUpdate, TemplateList
+from .template import Template, TemplateUpdate, TemplateList, Resource
