@@ -52,6 +52,44 @@ class CRUDBase():
         return translate_id(result)
 
 
+    async def search(
+            self, 
+            collection: AsyncIOMotorCollection,
+            find: dict = {},
+            sort_by: List[str] = [],
+            sort_desc: List[bool] = [],
+            skip: int = 0, 
+            limit: int = 10) -> dict:
+        
+        if limit < 0: limit = 0
+        query_parameters = {
+            "skip": skip,
+            "limit": limit,
+            "total": await collection.count_documents(find)
+        }
+
+        if len(find) > 0: 
+            query_parameters["find"] = find
+
+        sort = []
+        if len(sort_by) > 0:
+            for i in range(len(sort_by)):
+                if len(sort_desc) == len(sort_by):
+                    sort.append((sort_by[i], -1 if sort_desc[i] == True else 1))
+                else:
+                    sort.append((sort_by[i], 1))
+            query_parameters["sort_by"] = sort_by
+            if len(sort_desc) > 0 and len(sort_desc) == len(sort_by) :
+                query_parameters["sort_desc"] = sort_desc
+
+        data = await collection.find(find).sort(sort).skip(skip).limit(limit).to_list(None)
+
+        for doc in data:
+            doc = translate_id(doc)
+        
+        return {"query_parameters": query_parameters, "data": data}
+
+
     async def get_all(
             self, 
             collection: AsyncIOMotorCollection, 
@@ -60,32 +98,12 @@ class CRUDBase():
             skip: int = 0, 
             limit: int = 10) -> dict:
         
-        pagination = {
-            "skip": skip,
-            "limit": limit,
-            "total": await collection.count_documents({})
-        }
-        if limit < 0: limit = 0
-        
-        if len(sort_by) > 0:
-            sort = []
-            for i in range(len(sort_by)):
-                if len(sort_desc) == len(sort_by):
-                    sort.append((sort_by[i], -1 if sort_desc[i] == True else 1))
-                else:
-                    sort.append((sort_by[i], 1))
-            data = await collection.find({}).sort(sort).skip(skip).limit(limit).to_list(None)
-            pagination["sort_by"] = sort_by
-            if len(sort_desc) > 0 and len(sort_desc) == len(sort_by) :
-                pagination["sort_desc"] = sort_desc
-        else:
-            data = await collection.find({}).skip(skip).limit(limit).to_list(None)
-        
-        for doc in data:
-            doc = translate_id(doc)
-        
-        result = {"pagination": pagination, "data": data}
-        return result
+        return self.search(
+            collection=collection, 
+            sort_by=sort_by,
+            sort_desc=sort_desc,
+            skip=skip, 
+            limit=limit)
 
 
     async def create(

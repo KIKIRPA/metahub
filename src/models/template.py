@@ -4,7 +4,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field
 
-from models.app_base_model import AppBaseModel, Pagination
+from models.app_base_model import AppBaseModel, QueryParameters
 
 class Resource(str, Enum):
     ACTIVITY = 'activity'
@@ -65,5 +65,5 @@ class TemplateUpdate(BaseModel):
 
 
 class TemplateList(BaseModel):
-    pagination: Pagination = Field(...)
+    query_parameters: QueryParameters = Field(...)
     data: List[Template] = Field([])
