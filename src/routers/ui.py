@@ -30,14 +30,18 @@ def show_template_list(request: Request):
     return templates.TemplateResponse("template_list.html.jinja", {"request": request})
 
 
-@router.get("/templates/schema_editor", response_class=HTMLResponse)
-def show_template_forml(request: Request):
+@router.get("/templates/{template_id}", response_class=HTMLResponse)
+def show_template_forml(
+        request: Request, 
+        template_id: str = Path(None, description="Template identifier")):
     """
-    Displaying template form
+    Displaying template form by its id
     """
-    return templates.TemplateResponse("template_editor.html.jinja", {
+    return templates.TemplateResponse("template_form.html.jinja", {
         "request": request,
-        "schema": models.Template.schema_json()})
+        "schema": models.TemplateUpdate.schema_json(),
+        "id": template_id
+    })
 
 
 

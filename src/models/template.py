@@ -39,8 +39,7 @@ class Template(AppBaseModel): # unique index on (resource, category and template
 
 
 class TemplateUpdate(BaseModel):
-    resource: Resource = Field(..., 
-        description="Resource for which the template will be used in the application") 
+    resource: Resource = Field(...) 
     category: str = Field(..., 
         description="Category identifier for the template (a-z, 0-9, -, _)",
         min_length=1,

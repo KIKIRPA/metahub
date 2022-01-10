@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-    <title>Document form</title>
+    <title>Schema editor</title>
     <meta charset="UTF-8">
     <link rel="shortcut icon" href="/static/images/favicon.ico">
 
@@ -29,14 +29,15 @@
         </v-app-bar>
 
         <v-banner color="primary" class="elevation-5">
-            <span class="white--text text-h2 px-10">Schema editor</div>
+            <span class="white--text text-h3 px-10">{{ '{{title}}' }}</div>
         </v-banner>
 
         <v-container>
             <v-row>
+
                 <v-col>
                     <v-card>
-                        <v-card-title class="primary--text text-h5">Schema/template form</v-card-title>
+                        <v-card-title class="primary--text text-h5">Template form</v-card-title>
                         <v-card-text>
                             <v-form ref="form" v-model="valid">
                                 <v-jsf v-model="model" :schema="schema" :options="options" />
@@ -48,8 +49,23 @@
                         </v-card-actions>
                     </v-card>
                 </v-col>
-                <v-col>{{'{{ schema }}'}}
+
+                <v-col>
+                    <v-card>
+                        <v-card-title>
+                            <v-tabs grow>
+                                <v-tab>Base schema</v-tab>
+                                <v-tab>Result schema</v-tab>
+                                <v-tab>Example form</v-tab>
+                                <v-tab>Help</v-tab>
+                            </v-tabs>
+                        </v-card-title>
+                        <v-card-text>
+                            <pre>{{ '{{model.json_schema}}' }}</pre>
+                        </v-card-text>
+                    </v-card>
                 </v-col>
+
             </v-row>
         </v-container>
 
@@ -59,7 +75,8 @@
     <script type="text/javascript">
 
         // initial settings and data from jinja
-        const initialSchema = '{{ schema |safe }}'
+        const initialSchema = '{{ schema | safe }}'
+        const initialId = '{{ id }}'
         const options =  { 
             "editMode": "inline",
             "textareaProps": {
@@ -84,28 +101,41 @@
             }),
 
             created() {
-                this.transformSchema()
+                this.transformSchema(initialSchema)
+                this.getTemplate(initialId)
             },
 
             data: {
                 options,
                 model: {},
                 schema: {},
-                valid: null
+                valid: null,
+                title: "Template form (loading)"
             },
 
             methods: {
-                transformSchema() {
-                    schema = JSON.parse(initialSchema)
-                    //schema.properties._id["x-display"] = "hidden"
-                    schema.properties._id["readOnly"] = true
+                transformSchema(schemaString) {
+                    schema = JSON.parse(schemaString)
+                    schema.properties.json_schema.type = "string"
                     schema.properties.json_schema["x-display"] = "textarea"
-                    schema.properties.created_timestamp["readOnly"] = true
-                    schema.properties.created_by_user["readOnly"] = true
-                    schema.properties.modified_timestamp["readOnly"] = true
-                    schema.properties.modified_by_user["readOnly"] = true
-
                     this.schema = schema
+                },
+
+                getTemplate(id) {
+                    if (id !== "") {
+                        let url = '/api/v1/templates/' + id
+                        axios.get(url)
+                            .then(response => {
+                                this.model = response.data
+                                this.model.json_schema = JSON.stringify(this.model.json_schema, null, 2)
+                                this.title = "Template: " + response.data.resource + "/" + response.data.category  + "/" + response.data.template
+                            })
+                            .catch(error => {
+                                console.log(error)
+                            })
+                    } else {
+                        this.title = "New template"
+                    }
                 },
             },
         })
