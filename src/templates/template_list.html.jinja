@@ -40,8 +40,8 @@
 
                 <v-data-table
                     :headers="headers"
-                    :items="activities"
-                    :server-items-length="totalActivities"
+                    :items="templates"
+                    :server-items-length="totalTemplates"
                     :options.sync="options"
                     :loading="loading"
                     :footer-props="{'items-per-page-options':[10, 50, 100, -1]}">
@@ -102,8 +102,8 @@
                     {text: 'Long name', value: 'long_name'},
                     {text: 'Selectable', value: 'selectable'}
                 ],
-                activities: [],
-                totalActivities: 0,
+                templates: [],
+                totalTemplates: 0,
                 options: {
                     sortBy: ['resource', 'category', 'template'],
                     multiSort: true},
@@ -114,14 +114,14 @@
             watch: {
                 options: {
                     handler () {
-                        this.getActivities()
+                        this.getTemplates()
                         },
                     deep: true,
                 },
             },
 
             methods: {
-                getActivities() {
+                getTemplates() {
                     this.loading = true
                     
                     // query parameters
@@ -137,8 +137,8 @@
                     url = '/api/v1/templates'
                     return axios.get(url, {params: parameters})
                         .then(response => {
-                            this.activities = response.data.data
-                            this.totalActivities = response.data.query_parameters.total
+                            this.templates = response.data.data
+                            this.totalTemplates = response.data.query_parameters.total
                             this.loading = false
                         })
                         .catch(error => {
