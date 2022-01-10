@@ -55,8 +55,21 @@
                                 mdi-file-eye-outline
                         </v-icon>
                     </template>
-
                 </v-data-table>
+
+                <v-card-text style="height: 45px; position: relative">
+                    <v-fab-transition>
+                        <v-btn
+                            color="primary"
+                            absolute
+                            right
+                            fab
+                            @click="openForm()">
+                            <v-icon>mdi-plus</v-icon>
+                        </v-btn>
+                    </v-fab-transition>
+                </v-card-text>
+
             </v-card>
         </v-container>
 
@@ -133,8 +146,9 @@
                         })
                 },
 
-                openForm(item) {
-                    window.open("/templates/" + item.id, "_self")
+                openForm(item = null) {
+                    url = "/templates/" + (item ? item.id : "new")
+                    window.open(url, "_self")
                 }
             }
         })

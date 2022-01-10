@@ -30,8 +30,20 @@ def show_template_list(request: Request):
     return templates.TemplateResponse("template_list.html.jinja", {"request": request})
 
 
+@router.get("/templates/new", response_class=HTMLResponse)
+def show_template_form_new(request: Request):
+    """
+    Displaying template form for new data entry
+    """
+    return templates.TemplateResponse("template_form.html.jinja", {
+        "request": request,
+        "schema": models.TemplateUpdate.schema_json(),
+        "id": ""
+    })
+
+
 @router.get("/templates/{template_id}", response_class=HTMLResponse)
-def show_template_forml(
+def show_template_form_with_id(
         request: Request, 
         template_id: str = Path(None, description="Template identifier")):
     """
@@ -42,6 +54,8 @@ def show_template_forml(
         "schema": models.TemplateUpdate.schema_json(),
         "id": template_id
     })
+
+
 
 
 
