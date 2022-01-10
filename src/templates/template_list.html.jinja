@@ -1,0 +1,144 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>Templates</title>
+    <meta charset="UTF-8">
+    <link rel="shortcut icon" href="/static/images/favicon.ico">
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.x/css/materialdesignicons.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+</head>
+<body>
+    
+    <v-app id="app">
+
+        <v-app-bar color="white">
+            <img height="45" src="/static/images/logo.svg"/>
+            <v-spacer></v-spacer>
+            <v-app-bar-nav-icon></v-app-bar-nav-icon>
+        </v-app-bar>
+
+        <v-banner color="primary" class="elevation-5">
+            <span class="white--text text-h2 px-10">Templates</div>
+        </v-banner>
+
+        <v-container>
+            <v-card>
+                <v-card-title>
+                    <v-text-field
+                        v-model="search"
+                        append-icon="mdi-magnify"
+                        label="Search"
+                        single-line
+                        hide-details />
+                </v-card-title>
+
+                <v-data-table
+                    :headers="headers"
+                    :items="activities"
+                    :server-items-length="totalActivities"
+                    :options.sync="options"
+                    :loading="loading"
+                    :footer-props="{'items-per-page-options':[10, 50, 100, -1]}">
+
+                    <template v-slot:item.id="{ item }">
+                        <v-icon
+                            small
+                            class="mr-2"
+                            color="primary"
+                            @click="openForm(item)">
+                                mdi-file-eye-outline
+                        </v-icon>
+                    </template>
+
+                </v-data-table>
+            </v-card>
+        </v-container>
+
+        <v-container fill-height /> <!-- fills remaining horizontal space, if necessary -->
+
+    </v-app>
+
+    <script type="text/javascript">
+        
+        new Vue({
+            el: '#app',
+
+            vuetify: new Vuetify({
+                theme: {
+                    themes: {
+                        light: {
+                            primary: '#af8d55'
+                        },
+                    },
+                },
+            }),
+
+            data: {
+                headers: [
+                    {text: ' ', value:'id', sortable: false},
+                    {text: 'Resource', value: 'resource'},
+                    {text: 'Category', value: 'category'},
+                    {text: 'Template', value: 'template'},
+                    {text: 'Short name', value: 'short_name'},
+                    {text: 'Long name', value: 'long_name'},
+                    {text: 'Selectable', value: 'selectable'}
+                ],
+                activities: [],
+                totalActivities: 0,
+                options: {
+                    sortBy: ['resource', 'category', 'template'],
+                    multiSort: true},
+                search: '',
+                loading: true,
+            },
+
+            watch: {
+                options: {
+                    handler () {
+                        this.getActivities()
+                        },
+                    deep: true,
+                },
+            },
+
+            methods: {
+                getActivities() {
+                    this.loading = true
+                    
+                    // query parameters
+                    //console.log(JSON.stringify(this.options, null, 2)) // DEBUG
+                    parameters = {
+                        skip: (this.options.page - 1) * this.options.itemsPerPage,
+                        limit: this.options.itemsPerPage,
+                        sort_by: this.options.sortBy,
+                        sort_desc: this.options.sortDesc
+                    }
+                 
+                    // api call
+                    url = '/api/v1/templates'
+                    return axios.get(url, {params: parameters})
+                        .then(response => {
+                            this.activities = response.data.data
+                            this.totalActivities = response.data.query_parameters.total
+                            this.loading = false
+                        })
+                        .catch(error => {
+                            console.log(error)
+                        })
+                },
+
+                openForm(item) {
+                    window.open("/templates/" + item.id, "_self")
+                }
+            }
+        })
+    </script>
+	
+</body>
+</html>

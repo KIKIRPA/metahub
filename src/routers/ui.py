@@ -22,6 +22,25 @@ document_types_list = json.dumps([{"alias": k, "short": v["short"]} for k, v in 
 activity_types_list = json.dumps([{"alias": k, "name": v["name"]} for k, v in config.activity_types.items()])
 
 
+@router.get("/templates", response_class=HTMLResponse)
+def show_template_list(request: Request):
+    """
+    Displaying the template list
+    """
+    return templates.TemplateResponse("template_list.html.jinja", {"request": request})
+
+
+@router.get("/templates/schema_editor", response_class=HTMLResponse)
+def show_template_forml(request: Request):
+    """
+    Displaying template form
+    """
+    return templates.TemplateResponse("template_editor.html.jinja", {
+        "request": request,
+        "schema": models.Template.schema_json()})
+
+
+
 @router.get("/activity", response_class=HTMLResponse)
 def show_activity_list(request: Request):
     """
@@ -31,7 +50,7 @@ def show_activity_list(request: Request):
 
 
 @router.get("/activity/{activity_type}", response_class=HTMLResponse)
-def show_activity_list(
+def show_activity_form(
         request: Request, 
         activity_type: str = Path(None, description="The type of activity"),
         id: Optional[str] = Query(None, description="The activity id")):
@@ -94,13 +113,3 @@ async def show_form(
         "template_alias": response["alias"],
         "schema_list": document_types_list
     })
-
-
-@router.get("/config/schema_editor", response_class=HTMLResponse)
-def show_activity_list(request: Request):
-    """
-    Displaying schema editor
-    """
-    return templates.TemplateResponse("schema_editor.html.jinja", {
-        "request": request,
-        "schema": models.Template.schema_json()})
