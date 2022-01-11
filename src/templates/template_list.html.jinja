@@ -59,14 +59,21 @@
 
                 <v-card-text style="height: 45px; position: relative">
                     <v-fab-transition>
-                        <v-btn
-                            color="primary"
-                            absolute
-                            right
-                            fab
-                            @click="openForm()">
-                            <v-icon>mdi-plus</v-icon>
-                        </v-btn>
+                        <v-tooltip left>
+                            <template v-slot:activator="{ on, attrs }">
+                                <v-btn
+                                    color="primary"
+                                    absolute
+                                    right
+                                    fab
+                                    @click="openForm()"
+                                    v-bind="attrs"
+                                    v-on="on">
+                                    <v-icon>mdi-plus</v-icon>
+                                </v-btn>
+                            </template>
+                            <span>Create new template</span>
+                        </v-tooltip>
                     </v-fab-transition>
                 </v-card-text>
 
