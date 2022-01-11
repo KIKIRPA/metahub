@@ -90,6 +90,14 @@
                             <v-form ref="form" v-model="valid" :disabled="!isEditable">
                                 <v-jsf v-model="model" :schema="schema" :options="options" />
                             </v-form>
+                            <v-textarea
+                                v-model="jsonSchemaTxt"
+                                @change="convertJson()"
+                                name="json_schema_txt"
+                                label="JSON schema overrides"
+                                style="font-family:'monospace'"
+                                rows="10"
+                                filled />
                         </v-card-text>
                     </v-card>
                 </v-col>
@@ -209,7 +217,7 @@
             "editMode": "inline",
             "textareaProps": {
                 "filled": true,
-                "auto-grow": true
+                "auto-grow": true,
             },
         }
         
@@ -241,6 +249,7 @@
                 stepper: 1,
                 isEditable: false,
                 isNew: false,
+                jsonSchemaTxt: ""
             },
 
             methods: {
@@ -251,8 +260,8 @@
 
                 transformSchema(schemaString) {
                     schema = JSON.parse(schemaString)
-                    schema.properties.json_schema.type = "string"
-                    schema.properties.json_schema["x-display"] = "textarea"
+                    //schema.properties.json_schema.type = "string"
+                    schema.properties.json_schema["x-display"] = "hidden"
                     this.schema = schema
                 },
 
@@ -262,7 +271,8 @@
                         axios.get(url)
                             .then(response => {
                                 this.model = response.data
-                                this.model.json_schema = JSON.stringify(this.model.json_schema, null, 2)
+                                //this.model.json_schema = JSON.stringify(this.model.json_schema, null, 2)
+                                this.jsonSchemaTxt = JSON.stringify(this.model.json_schema, null, 2)
                                 this.title = "Template: " + response.data.resource + "/" + response.data.category  + "/" + response.data.template
                                 this.isEditable = false
                                 this.isNew = false
@@ -276,6 +286,14 @@
                         this.isEditable = true
                         this.isNew = true
                         this.model = {}
+                    }
+                },
+
+                convertJson() {
+                    try {
+                        console.log(JSON.parse(this.jsonSchemaTxt))
+                    } catch (e) {
+                        console.warn(e)
                     }
                 },
             },
