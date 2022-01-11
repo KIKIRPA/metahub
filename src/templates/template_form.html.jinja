@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-    <title>Schema isEditableor</title>
+    <title>Schema Editor</title>
     <meta charset="UTF-8">
     <link rel="shortcut icon" href="/static/images/favicon.ico">
 
@@ -91,9 +91,6 @@
                                 <v-jsf v-model="model" :schema="schema" :options="options" />
                             </v-form>
                         </v-card-text>
-                        <v-card-actions>
-
-                        </v-card-actions>
                     </v-card>
                 </v-col>
 
@@ -269,6 +266,7 @@
                                 this.title = "Template: " + response.data.resource + "/" + response.data.category  + "/" + response.data.template
                                 this.isEditable = false
                                 this.isNew = false
+                                this.valid = true
                             })
                             .catch(error => {
                                 console.log(error)
