@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-    <title>Schema editor</title>
+    <title>Schema isEditableor</title>
     <meta charset="UTF-8">
     <link rel="shortcut icon" href="/static/images/favicon.ico">
 
@@ -28,26 +28,81 @@
             <v-app-bar-nav-icon></v-app-bar-nav-icon>
         </v-app-bar>
 
-        <v-banner color="primary" class="elevation-5">
-            <span class="white--text text-h3 px-10">{{ '{{title}}' }}</div>
+        <v-banner color="primary" class="elevation-5 px-10">
+            <span class="white--text text-h3 px-10">{{ '{{title}}' }}</span>
+            <template v-slot:actions>
+                <v-tooltip left v-if="!isEditable">
+                    <template v-slot:activator="{ on, attrs }">
+                        <v-btn
+                            class="mx-2"
+                            color="white"
+                            outlined
+                            fab
+                            @click="isEditable = true"
+                            v-bind="attrs"
+                            v-on="on">
+                            <v-icon>mdi-pencil</v-icon>
+                        </v-btn>
+                    </template>
+                    <span>Edit template</span>
+                </v-tooltip>
+                <v-tooltip left v-if="isEditable">
+                    <template v-slot:activator="{ on, attrs }">
+                        <v-btn
+                            class="mx-2"
+                            color="white"
+                            outlined
+                            fab
+                            @click="initialize()"
+                            v-bind="attrs"
+                            v-on="on">
+                            <v-icon>mdi-cancel</v-icon>
+                        </v-btn>
+                    </template>
+                    <span>Cancel</span>
+                </v-tooltip>
+                <v-tooltip left v-if="!isNew && isEditable">
+                    <template v-slot:activator="{ on, attrs }">
+                        <v-btn
+                            class="mx-2"
+                            color="error"
+                            outlined
+                            fab
+                            small
+                            @click=""
+                            v-bind="attrs"
+                            v-on="on">
+                            <v-icon>mdi-delete</v-icon>
+                        </v-btn>
+                    </template>
+                    <span>Delete</span>
+                </v-tooltip>
+            </template>
         </v-banner>
 
         <v-container>
             <v-row>
 
                 <v-col>
-                    <v-card>
+                    <v-card class="mt-6" :disabled="!isEditable">
                         <v-card-title class="primary--text text-h5">Template form</v-card-title>
-                        <v-card-text>
-                            <v-form ref="form" v-model="valid">
+                        <v-card-text >
+                            <v-form ref="form" v-model="valid" :disabled="!isEditable">
                                 <v-jsf v-model="model" :schema="schema" :options="options" />
                             </v-form>
                         </v-card-text>
+                        <v-card-actions>
+
+                        </v-card-actions>
                     </v-card>
                 </v-col>
 
                 <v-col>
-                    <v-stepper alt-labels v-model="stepper">
+                    <v-stepper 
+                        alt-labels
+                        class="mt-6"
+                        v-show="isEditable"
+                        v-model="stepper">
                         <v-stepper-header>
                             <v-stepper-step step="1">Metadata</v-stepper-step>
                             <v-divider></v-divider>
@@ -64,7 +119,7 @@
                                             <span v-if="valid"> valid</span>
                                             <span v-else> invalid</span>
                                         </span>
-                                        <v-spacer></v-spacer>                                        
+                                        <v-spacer></v-spacer>
                                         <v-tooltip bottom>
                                             <template v-slot:activator="{ on, attrs }">
                                                 <v-btn 
@@ -158,7 +213,7 @@
             "textareaProps": {
                 "filled": true,
                 "auto-grow": true
-            }
+            },
         }
         
         Vue.component('VJsf', VJsf.default)
@@ -177,8 +232,7 @@
             }),
 
             created() {
-                this.transformSchema(initialSchema)
-                this.getTemplate(initialId)
+                this.initialize()
             },
 
             data: {
@@ -187,10 +241,17 @@
                 schema: {},
                 valid: null,
                 title: "Template form (loading)",
-                stepper: 1
+                stepper: 1,
+                isEditable: false,
+                isNew: false,
             },
 
             methods: {
+                initialize() {
+                    this.transformSchema(initialSchema)
+                    this.getTemplate(initialId)
+                },
+
                 transformSchema(schemaString) {
                     schema = JSON.parse(schemaString)
                     schema.properties.json_schema.type = "string"
@@ -206,12 +267,17 @@
                                 this.model = response.data
                                 this.model.json_schema = JSON.stringify(this.model.json_schema, null, 2)
                                 this.title = "Template: " + response.data.resource + "/" + response.data.category  + "/" + response.data.template
+                                this.isEditable = false
+                                this.isNew = false
                             })
                             .catch(error => {
                                 console.log(error)
                             })
                     } else {
                         this.title = "New template"
+                        this.isEditable = true
+                        this.isNew = true
+                        this.model = {}
                     }
                 },
             },
