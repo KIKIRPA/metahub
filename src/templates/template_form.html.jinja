@@ -43,21 +43,97 @@
                                 <v-jsf v-model="model" :schema="schema" :options="options" />
                             </v-form>
                         </v-card-text>
-                        <v-card-actions class="white">
-                            <v-spacer></v-spacer>
-                            <v-btn class="mx-2" color="primary" @click="$refs.form.validate()">Validate</v-btn>
-                        </v-card-actions>
                     </v-card>
                 </v-col>
 
                 <v-col>
-                    <v-card>
+                    <v-stepper alt-labels v-model="stepper">
+                        <v-stepper-header>
+                            <v-stepper-step step="1">Metadata</v-stepper-step>
+                            <v-divider></v-divider>
+                            <v-stepper-step step="2">JSON</v-stepper-step>
+                            <v-divider></v-divider>
+                            <v-stepper-step step="3">Schema</v-stepper-step>
+                        </v-stepper-header>
+                        <v-stepper-items>
+                            <v-stepper-content step="1">
+                                <v-card>
+                                    <v-card-actions>
+                                        <span>
+                                            The template metadata is 
+                                            <span v-if="valid"> valid</span>
+                                            <span v-else> invalid</span>
+                                        </span>
+                                        <v-spacer></v-spacer>                                        
+                                        <v-tooltip bottom>
+                                            <template v-slot:activator="{ on, attrs }">
+                                                <v-btn 
+                                                    class="mx-2"
+                                                    :color="valid?'success':'primary'"
+                                                    fab
+                                                    small
+                                                    @click="$refs.form.validate()"
+                                                    v-bind="attrs"
+                                                    v-on="on">
+                                                    <v-icon v-if="valid">mdi-checkbox-marked-outline</v-icon>
+                                                    <v-icon v-else>mdi-checkbox-blank-outline</v-icon>
+                                                </v-btn>
+                                            </template>
+                                            <span>Validate metadata</span>
+                                        </v-tooltip>
+                                        <v-tooltip bottom>
+                                            <template v-slot:activator="{ on, attrs }">
+                                                <v-btn 
+                                                    class="mx-2"
+                                                    color="primary"
+                                                    :disabled="!valid"
+                                                    @click="stepper = 2"
+                                                    fab
+                                                    v-bind="attrs"
+                                                    v-on="on">
+                                                    <v-icon>mdi-chevron-right</v-icon>
+                                                </v-btn>
+                                            </template>
+                                            <span>Continue</span>
+                                        </v-tooltip>
+                                    </v-card-actions>
+                                </v-card>
+                            </v-stepper-content>
+
+                            <v-stepper-content step="2">
+                                <v-card
+                                    class="mb-12"
+                                    color="grey lighten-1"
+                                    height="200px">
+                                </v-card>
+                                <v-btn
+                                    color="primary"
+                                    @click="stepper = 3">
+                                    Continue
+                                </v-btn>
+                            </v-stepper-content>
+
+                            <v-stepper-content step="3">
+                                <v-card
+                                    class="mb-12"
+                                    color="grey lighten-1"
+                                    height="200px">
+                                </v-card>
+                                <v-btn
+                                    color="primary"
+                                    @click="stepper = 1">
+                                    Continue
+                                </v-btn>
+                            </v-stepper-content>
+                        </v-stepper-items>
+                    </v-stepper>
+
+                    <v-card class="mt-6">
                         <v-card-title>
                             <v-tabs grow>
+                                <v-tab>Example form</v-tab>
                                 <v-tab>Base schema</v-tab>
                                 <v-tab>Result schema</v-tab>
-                                <v-tab>Example form</v-tab>
-                                <v-tab>Help</v-tab>
                             </v-tabs>
                         </v-card-title>
                         <v-card-text>
@@ -110,7 +186,8 @@
                 model: {},
                 schema: {},
                 valid: null,
-                title: "Template form (loading)"
+                title: "Template form (loading)",
+                stepper: 1
             },
 
             methods: {
