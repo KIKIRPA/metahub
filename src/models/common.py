@@ -4,8 +4,11 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 
 
-class AppBaseModel(BaseModel):
+class IdBaseModel(BaseModel):
     id: str = Field(...)
+
+
+class LoggingBaseModel(BaseModel):
     created_timestamp: Optional[datetime] = Field(None)
     created_by_user: Optional[str] = Field(None)
     modified_timestamp: Optional[datetime] = Field(None)
