@@ -190,14 +190,26 @@
 
                     <v-card class="mt-6">
                         <v-card-title>
-                            <v-tabs grow>
-                                <v-tab>Example form</v-tab>
+                            <v-tabs 
+                                v-model="tab"
+                                grow>
                                 <v-tab>Base schema</v-tab>
                                 <v-tab>Result schema</v-tab>
+                                <v-tab>Example form</v-tab>
                             </v-tabs>
                         </v-card-title>
                         <v-card-text>
-                            <pre>{{ '{{model.json_schema}}' }}</pre>
+                            <v-tabs-items v-model="tab">
+                                <v-tab-item>
+                                    <pre>{{ '{{baseSchema}}' }}</pre>
+                                </v-tab-item>
+                                <v-tab-item>
+                                    <pre>{{ '{{resultSchema}}' }}</pre>
+                                </v-tab-item>
+                                <v-tab-item>
+                                    <pre>{{ '{{model.json_schema}}' }}</pre>
+                                </v-tab-item>
+                            </v-tabs-items>
                         </v-card-text>
                     </v-card>
                 </v-col>
@@ -249,7 +261,10 @@
                 stepper: 1,
                 isEditable: false,
                 isNew: false,
-                jsonSchemaTxt: ""
+                jsonSchemaTxt: "",
+                tab: null,
+                baseSchema: "",
+                resultSchema: ""
             },
 
             methods: {
@@ -277,6 +292,7 @@
                                 this.isEditable = false
                                 this.isNew = false
                                 this.valid = true
+                                this.getBaseSchema()
                             })
                             .catch(error => {
                                 console.log(error)
@@ -286,6 +302,22 @@
                         this.isEditable = true
                         this.isNew = true
                         this.model = {}
+                    }
+                },
+
+                getBaseSchema() {
+                    if (this.model.hasOwnProperty('resource')) {
+                        let url = '/schema/' + this.model.resource
+                        axios.get(url)
+                            .then(response => {
+                                this.baseSchema = response.data
+                            })
+                            .catch(error => {
+                                this.baseSchema = ""
+                                console.log(error)
+                            })
+                    } else {
+                        this.baseSchema = ""
                     }
                 },
 
