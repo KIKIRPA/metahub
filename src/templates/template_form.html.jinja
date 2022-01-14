@@ -31,42 +31,11 @@
         <v-banner color="primary" class="elevation-5 px-10">
             <span class="white--text text-h3 px-10">{{ '{{title}}' }}</span>
             <template v-slot:actions>
-                <v-tooltip left v-if="!isEditable">
-                    <template v-slot:activator="{ on, attrs }">
-                        <v-btn
-                            class="mx-2"
-                            color="white"
-                            outlined
-                            fab
-                            @click="isEditable = true"
-                            v-bind="attrs"
-                            v-on="on">
-                            <v-icon>mdi-pencil</v-icon>
-                        </v-btn>
-                    </template>
-                    <span>Edit template</span>
-                </v-tooltip>
-                <v-tooltip left v-if="isEditable">
-                    <template v-slot:activator="{ on, attrs }">
-                        <v-btn
-                            class="mx-2"
-                            color="white"
-                            outlined
-                            fab
-                            @click="initialize()"
-                            v-bind="attrs"
-                            v-on="on">
-                            <v-icon>mdi-cancel</v-icon>
-                        </v-btn>
-                    </template>
-                    <span>Cancel</span>
-                </v-tooltip>
                 <v-tooltip left v-if="!isNew && isEditable">
                     <template v-slot:activator="{ on, attrs }">
                         <v-btn
                             class="mx-2"
                             color="error"
-                            outlined
                             fab
                             small
                             @click=""
@@ -76,6 +45,49 @@
                         </v-btn>
                     </template>
                     <span>Delete</span>
+                </v-tooltip>
+                <v-tooltip left v-if="isEditable">
+                    <template v-slot:activator="{ on, attrs }">
+                        <v-btn
+                            class="mx-2"
+                            color="success"
+                            fab
+                            small
+                            @click=""
+                            v-bind="attrs"
+                            v-on="on">
+                            <v-icon>mdi-content-save</v-icon>
+                        </v-btn>
+                    </template>
+                    <span>Save</span>
+                </v-tooltip>
+                <v-tooltip left v-if="isEditable">
+                    <template v-slot:activator="{ on, attrs }">
+                        <v-btn
+                            class="mx-2"
+                            color="secondary"
+                            fab
+                            @click="initialize()"
+                            v-bind="attrs"
+                            v-on="on">
+                            <v-icon>mdi-cancel</v-icon>
+                        </v-btn>
+                    </template>
+                    <span>Cancel</span>
+                </v-tooltip>
+                <v-tooltip left v-if="!isEditable">
+                    <template v-slot:activator="{ on, attrs }">
+                        <v-btn
+                            class="mx-2"
+                            color="secondary"
+                            fab
+                            @click="isEditable = true"
+                            v-bind="attrs"
+                            v-on="on">
+                            <v-icon>mdi-pencil</v-icon>
+                        </v-btn>
+                    </template>
+                    <span>Edit template</span>
                 </v-tooltip>
             </template>
         </v-banner>
