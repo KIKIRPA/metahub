@@ -12,9 +12,8 @@ class Resource(str, Enum):
     DOCUMENT = 'document'
 
 
-class TemplateSummary(BaseModel): # unique index on (resource, category and template)
-    resource: Resource = Field(..., 
-        description="Resource for which the template will be used in the application") 
+class _TemplateMeta(BaseModel): # unique index on (resource, category and template)
+    resource: Resource = Field(...) 
     category: str = Field(..., 
         description="Category identifier (a-z, 0-9, -, _)",
         min_length=1,
@@ -36,8 +35,16 @@ class TemplateSummary(BaseModel): # unique index on (resource, category and temp
     selectable: bool = Field(False, description="Allow users to select this template")
 
 
-class TemplateUpdate(TemplateSummary): 
+class _TemplateJson(BaseModel): 
     json_schema: dict = Field(..., description="JSON schema overlay")
+
+
+class _TemplateShort(_TemplateMeta, IdBaseModel):
+    pass
+
+
+class TemplateUpdate(_TemplateJson, _TemplateMeta):
+    pass
 
 
 class Template(LoggingBaseModel, TemplateUpdate, IdBaseModel):
@@ -46,4 +53,4 @@ class Template(LoggingBaseModel, TemplateUpdate, IdBaseModel):
 
 class TemplateList(BaseModel):
     query_parameters: QueryParameters = Field(...)
-    data: List[TemplateSummary] = Field([])
+    data: List[_TemplateShort] = Field([])
