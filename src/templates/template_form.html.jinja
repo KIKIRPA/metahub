@@ -320,7 +320,7 @@
                             this.getBaseSchema()
                         else {
                             let newBaseSchemaKey = this.model.resource 
-                                + ((this.model.template !== '_default') ? '/' + this.model.template : '')
+                                + ((this.model.template !== '_default') ? '/' + this.model.category : '')
                             if (newBaseSchemaKey !== this.baseSchemaKey) {
                                 this.needsFullReload = true
                                 this.validSchemaError = "Activity, category or template fields have changed. Validation is required"
@@ -400,7 +400,7 @@
                             && this.model.hasOwnProperty('category')
                             && this.model.hasOwnProperty('template')) { 
                         let baseSchemaKey = this.model.resource 
-                            + ((this.model.template !== '_default') ? '/' + this.model.template : "")
+                            + ((this.model.template !== '_default') ? '/' + this.model.category : "")
                         let url = '/schema/' + baseSchemaKey
                         console.log('Get ' + url)
                         axios.get(url)
