@@ -178,28 +178,43 @@
                                                     <v-icon>mdi-checkbox-marked-outline</v-icon>
                                                 </v-btn>
                                             </template>
-                                            <span>Validate metadata</span>
+                                            <span>Validate JSON</span>
                                         </v-tooltip>
                                     </v-card-actions>
                                 </v-card>
                             </v-stepper-content>
 
                             <v-stepper-content step="3">
-                                <v-card
-                                    class="mb-12"
-                                    color="grey lighten-1"
-                                    height="200px">
+                                <v-card>
+                                    <v-card-actions>
+                                        <span 
+                                            class="error--text"
+                                            v-if="!validSchema || needsFullReload">
+                                            {{ '{{validSchemaError}}' }}
+                                        </span>
+                                        <v-spacer></v-spacer>
+                                        <v-tooltip bottom>
+                                            <template v-slot:activator="{ on, attrs }">
+                                                <v-btn 
+                                                    class="mx-2"
+                                                    :color="validSchema?'success':'primary'"
+                                                    fab
+                                                    small
+                                                    @click=""
+                                                    v-bind="attrs"
+                                                    v-on="on">
+                                                    <v-icon>mdi-checkbox-marked-outline</v-icon>
+                                                </v-btn>
+                                            </template>
+                                            <span>Validate schema</span>
+                                        </v-tooltip>
+                                    </v-card-actions>
                                 </v-card>
-                                <v-btn
-                                    color="primary"
-                                    @click="stepper = 1">
-                                    Continue
-                                </v-btn>
                             </v-stepper-content>
                         </v-stepper-items>
                     </v-stepper>
 
-                    <v-card class="mt-6">
+                    <v-card class="mt-6" v-if="!needsFullReload">
                         <v-card-title>
                             <v-tabs 
                                 v-model="tab"
@@ -210,7 +225,7 @@
                             </v-tabs>
                         </v-card-title>
                         <v-card-text>
-                            <v-tabs-items v-model="tab">
+                            <v-tabs-items v-model="tab" >
                                 <v-tab-item>
                                     <pre>{{ '{{baseSchema}}' }}</pre>
                                 </v-tab-item>
@@ -277,7 +292,7 @@
 
             watch: {
                 isEditable: function(val) {
-                    if (val) {
+                    if (val && this.model.hasOwnProperty('resource')) {
                         this.$refs.form.validate()  //validate metadata
                         this.convertJson()          //validate json
                     }
@@ -285,9 +300,12 @@
                 validMeta: function(val) {this.showStep()},
                 validJson: function(val) {this.showStep()},
                 key: function(val) {
-                    if (this.validMeta) {
-                        this.getBaseSchema()
+                    if (this.validMeta && this.model.hasOwnProperty('resource')) {
+                        this.needsFullReload = true
+                        this.validSchemaError = "Activity, category or template fields have changed. Re-validate the schema."
                     }
+                    this.baseSchema = {}
+                    this.computedSchema = {}
                 },
             },
 
@@ -303,11 +321,13 @@
                 tab: null,
                 baseSchema: {},
                 computedSchema: {},
+                needsFullReload: true,
 
                 validMeta: null,
                 validJson: null,
                 validJsonError: "",
                 validSchema: null,
+                validSchemaError: "",
 
                 computedSchemaValid: null,
                 computedSchemaModel: {},
@@ -337,6 +357,7 @@
                                 this.title = "Template: " + response.data.resource + "/" + response.data.category  + "/" + response.data.template
                                 this.isEditable = false
                                 this.isNew = false
+                                this.needsFullReload = false
                                 this.getBaseSchema()
                             })
                             .catch(error => {
@@ -351,8 +372,12 @@
                 },
 
                 getBaseSchema() {
-                    if (this.model.hasOwnProperty('resource')) {
+                    if (this.model.hasOwnProperty('resource')
+                            && this.model.hasOwnProperty('category')
+                            && this.model.hasOwnProperty('template')) {
                         let url = '/schema/' + this.model.resource
+                        if (this.model.template !== '_default')
+                            url += '/' + this.model.template
                         console.log('Get ' + url)
                         axios.get(url)
                             .then(response => {
@@ -364,6 +389,7 @@
                             })
                     } else {
                         this.baseSchema = {}
+                        this.computedSchema = {}
                     }
                 },
 
