@@ -55,7 +55,8 @@
                             small
                             @click=""
                             v-bind="attrs"
-                            v-on="on">
+                            v-on="on"
+                            :disabled="!validMeta || !validJson || !validSchema">
                             <v-icon>mdi-content-save</v-icon>
                         </v-btn>
                     </template>
@@ -212,7 +213,7 @@
                                                     :color="validSchema?'success':'primary'"
                                                     fab
                                                     small
-                                                    @click=""
+                                                    @click="validateSchema()"
                                                     v-bind="attrs"
                                                     v-on="on">
                                                     <v-icon>mdi-checkbox-marked-outline</v-icon>
@@ -312,11 +313,14 @@
                 validMeta: function(val) {this.showStep()},
                 validJson: function(val) {this.showStep()},
                 key: function(val) {
-                    if (this.validMeta && this.model.hasOwnProperty('resource')) {
-                        this.needsFullReload = true
-                        this.validSchemaError = "Activity, category or template fields have changed. Re-validate the schema."
+                    if (this.model.hasOwnProperty('resource')) {
+                        let newBaseSchemaKey = this.model.resource 
+                            + ((this.model.template !== '_default') ? '/' + this.model.template : '')
+                        if (newBaseSchemaKey !== this.baseSchemaKey) {
+                            this.needsFullReload = true
+                            this.validSchemaError = "Activity, category or template fields have changed. Validation is required"
+                        }
                     }
-                    this.baseSchema = {}
                     this.computedSchema = {}
                 },
             },
@@ -331,6 +335,7 @@
                 isNew: false,
                 jsonSchemaTxt: "",
                 tab: null,
+                baseSchemaKey: "",
                 baseSchema: {},
                 computedSchema: {},
                 needsFullReload: true,
@@ -386,14 +391,16 @@
                 getBaseSchema() {
                     if (this.model.hasOwnProperty('resource')
                             && this.model.hasOwnProperty('category')
-                            && this.model.hasOwnProperty('template')) {
-                        let url = '/schema/' + this.model.resource
-                        if (this.model.template !== '_default')
-                            url += '/' + this.model.template
+                            && this.model.hasOwnProperty('template')) { 
+                        let baseSchemaKey = this.model.resource 
+                            + ((this.model.template !== '_default') ? '/' + this.model.template : "")
+                        let url = '/schema/' + baseSchemaKey
                         console.log('Get ' + url)
                         axios.get(url)
                             .then(response => {
                                 this.baseSchema = response.data
+                                this.baseSchemaKey = baseSchemaKey
+                                this.needsFullReload = false
                             })
                             .catch(error => {
                                 this.baseSchema = {}
@@ -421,6 +428,12 @@
                     if (!this.validMeta) this.stepper = 1
                     else if (!this.validJson) this.stepper = 2
                     else this.stepper = 3
+                },
+
+                validateSchema() {
+                    this.validSchemaError = ""
+                    if (this.needsFullReload) 
+                        this.getBaseSchema()
                 },
 
             },
