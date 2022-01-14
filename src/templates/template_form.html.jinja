@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-    <title>Schema Editor</title>
+    <title>Template form</title>
     <meta charset="UTF-8">
     <link rel="shortcut icon" href="/static/images/favicon.ico">
 
@@ -85,10 +85,10 @@
 
                 <v-col>
                     <v-card class="mt-6" :disabled="!isEditable">
-                        <v-card-title class="primary--text text-h5">Template form</v-card-title>
+                        <v-card-title class="primary--text text-h5">Template</v-card-title>
                         <v-card-text >
-                            <v-form ref="form" v-model="valid" :disabled="!isEditable">
-                                <v-jsf v-model="model" :schema="schema" :options="options" />
+                            <v-form ref="form" v-model="validMeta">
+                                <v-jsf v-model="model" :schema="schema" :options="options"/>
                             </v-form>
                             <v-textarea
                                 v-model="jsonSchemaTxt"
@@ -109,68 +109,79 @@
                         v-show="isEditable"
                         v-model="stepper">
                         <v-stepper-header>
-                            <v-stepper-step step="1">Metadata</v-stepper-step>
+                            <v-stepper-step 
+                                step="1"
+                                :complete="validMeta">
+                                Metadata
+                            </v-stepper-step>
                             <v-divider></v-divider>
-                            <v-stepper-step step="2">JSON</v-stepper-step>
+                            <v-stepper-step
+                                step="2" 
+                                :complete="validJson">
+                                JSON
+                            </v-stepper-step>
                             <v-divider></v-divider>
-                            <v-stepper-step step="3">Schema</v-stepper-step>
+                            <v-stepper-step
+                                step="3"
+                                :complete="validSchema">
+                                Schema
+                            </v-stepper-step>
                         </v-stepper-header>
                         <v-stepper-items>
                             <v-stepper-content step="1">
                                 <v-card>
                                     <v-card-actions>
-                                        <span>
-                                            The template metadata is 
-                                            <span v-if="valid"> valid</span>
-                                            <span v-else> invalid</span>
+                                        <span 
+                                            class="error--text"
+                                            v-if="!validMeta">
+                                            The template metadata is invalid.
                                         </span>
                                         <v-spacer></v-spacer>
                                         <v-tooltip bottom>
                                             <template v-slot:activator="{ on, attrs }">
                                                 <v-btn 
                                                     class="mx-2"
-                                                    :color="valid?'success':'primary'"
+                                                    :color="validMeta?'success':'primary'"
                                                     fab
                                                     small
                                                     @click="$refs.form.validate()"
                                                     v-bind="attrs"
                                                     v-on="on">
-                                                    <v-icon v-if="valid">mdi-checkbox-marked-outline</v-icon>
-                                                    <v-icon v-else>mdi-checkbox-blank-outline</v-icon>
+                                                    <v-icon>mdi-checkbox-marked-outline</v-icon>
                                                 </v-btn>
                                             </template>
                                             <span>Validate metadata</span>
-                                        </v-tooltip>
-                                        <v-tooltip bottom>
-                                            <template v-slot:activator="{ on, attrs }">
-                                                <v-btn 
-                                                    class="mx-2"
-                                                    color="primary"
-                                                    :disabled="!valid"
-                                                    @click="stepper = 2"
-                                                    fab
-                                                    v-bind="attrs"
-                                                    v-on="on">
-                                                    <v-icon>mdi-chevron-right</v-icon>
-                                                </v-btn>
-                                            </template>
-                                            <span>Continue</span>
                                         </v-tooltip>
                                     </v-card-actions>
                                 </v-card>
                             </v-stepper-content>
 
                             <v-stepper-content step="2">
-                                <v-card
-                                    class="mb-12"
-                                    color="grey lighten-1"
-                                    height="200px">
+                                <v-card>
+                                    <v-card-actions>
+                                        <span 
+                                            class="error--text"
+                                            v-if="!validJson">
+                                            {{ '{{validJsonError}}' }}
+                                        </span>
+                                        <v-spacer></v-spacer>
+                                        <v-tooltip bottom>
+                                            <template v-slot:activator="{ on, attrs }">
+                                                <v-btn 
+                                                    class="mx-2"
+                                                    :color="validJson?'success':'primary'"
+                                                    fab
+                                                    small
+                                                    @click="convertJson()"
+                                                    v-bind="attrs"
+                                                    v-on="on">
+                                                    <v-icon>mdi-checkbox-marked-outline</v-icon>
+                                                </v-btn>
+                                            </template>
+                                            <span>Validate metadata</span>
+                                        </v-tooltip>
+                                    </v-card-actions>
                                 </v-card>
-                                <v-btn
-                                    color="primary"
-                                    @click="stepper = 3">
-                                    Continue
-                                </v-btn>
                             </v-stepper-content>
 
                             <v-stepper-content step="3">
@@ -194,7 +205,7 @@
                                 v-model="tab"
                                 grow>
                                 <v-tab>Base schema</v-tab>
-                                <v-tab>Result schema</v-tab>
+                                <v-tab>Computed schema</v-tab>
                                 <v-tab>Example form</v-tab>
                             </v-tabs>
                         </v-card-title>
@@ -204,10 +215,12 @@
                                     <pre>{{ '{{baseSchema}}' }}</pre>
                                 </v-tab-item>
                                 <v-tab-item>
-                                    <pre>{{ '{{resultSchema}}' }}</pre>
+                                    <pre>{{ '{{computedSchema}}' }}</pre>
                                 </v-tab-item>
                                 <v-tab-item>
-                                    <pre>{{ '{{model.json_schema}}' }}</pre>
+                                    <v-form ref="computedSchemaForm" v-model="computedSchemaValid">
+                                        <v-jsf v-model="computedSchemaModel" :schema="computedSchema" :options="computedSchemaOptions"/>
+                                    </v-form>
                                 </v-tab-item>
                             </v-tabs-items>
                         </v-card-text>
@@ -252,19 +265,53 @@
                 this.initialize()
             },
 
+            computed: {
+                key() {
+                    return {
+                        resource: this.model.resource, 
+                        category: this.model.category, 
+                        template: this.model.template
+                    }
+                }
+            },
+
+            watch: {
+                isEditable: function(val) {
+                    if (val) {
+                        this.$refs.form.validate()  //validate metadata
+                        this.convertJson()          //validate json
+                    }
+                },
+                validMeta: function(val) {this.showStep()},
+                validJson: function(val) {this.showStep()},
+                key: function(val) {
+                    if (this.validMeta) {
+                        this.getBaseSchema()
+                    }
+                },
+            },
+
             data: {
                 options,
                 model: {},
                 schema: {},
-                valid: null,
                 title: "Template form (loading)",
                 stepper: 1,
                 isEditable: false,
                 isNew: false,
                 jsonSchemaTxt: "",
                 tab: null,
-                baseSchema: "",
-                resultSchema: ""
+                baseSchema: {},
+                computedSchema: {},
+
+                validMeta: null,
+                validJson: null,
+                validJsonError: "",
+                validSchema: null,
+
+                computedSchemaValid: null,
+                computedSchemaModel: {},
+                computedSchemaOptions: {},
             },
 
             methods: {
@@ -275,7 +322,6 @@
 
                 transformSchema(schemaString) {
                     schema = JSON.parse(schemaString)
-                    //schema.properties.json_schema.type = "string"
                     schema.properties.json_schema["x-display"] = "hidden"
                     this.schema = schema
                 },
@@ -283,15 +329,14 @@
                 getTemplate(id) {
                     if (id !== "") {
                         let url = '/api/v1/templates/' + id
+                        console.log('Get ' + url)
                         axios.get(url)
                             .then(response => {
                                 this.model = response.data
-                                //this.model.json_schema = JSON.stringify(this.model.json_schema, null, 2)
                                 this.jsonSchemaTxt = JSON.stringify(this.model.json_schema, null, 2)
                                 this.title = "Template: " + response.data.resource + "/" + response.data.category  + "/" + response.data.template
                                 this.isEditable = false
                                 this.isNew = false
-                                this.valid = true
                                 this.getBaseSchema()
                             })
                             .catch(error => {
@@ -308,26 +353,38 @@
                 getBaseSchema() {
                     if (this.model.hasOwnProperty('resource')) {
                         let url = '/schema/' + this.model.resource
+                        console.log('Get ' + url)
                         axios.get(url)
                             .then(response => {
                                 this.baseSchema = response.data
                             })
                             .catch(error => {
-                                this.baseSchema = ""
+                                this.baseSchema = {}
                                 console.log(error)
                             })
                     } else {
-                        this.baseSchema = ""
+                        this.baseSchema = {}
                     }
                 },
 
                 convertJson() {
                     try {
-                        console.log(JSON.parse(this.jsonSchemaTxt))
+                        this.model.json_schema = JSON.parse(this.jsonSchemaTxt)
+                        this.validJson = true
                     } catch (e) {
-                        console.warn(e)
+                        this.validJsonError = e.toString()
+                            .replace("SyntaxError:", "Syntax error:")
+                            .replace("JSON.parse:", "")
+                        this.validJson = false
                     }
                 },
+
+                showStep() {
+                    if (!this.validMeta) this.stepper = 1
+                    else if (!this.validJson) this.stepper = 2
+                    else this.stepper = 3
+                },
+
             },
         })
     </script>
