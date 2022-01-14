@@ -313,12 +313,18 @@
                 validMeta: function(val) {this.showStep()},
                 validJson: function(val) {this.showStep()},
                 key: function(val) {
-                    if (this.model.hasOwnProperty('resource')) {
-                        let newBaseSchemaKey = this.model.resource 
-                            + ((this.model.template !== '_default') ? '/' + this.model.template : '')
-                        if (newBaseSchemaKey !== this.baseSchemaKey) {
-                            this.needsFullReload = true
-                            this.validSchemaError = "Activity, category or template fields have changed. Validation is required"
+                    if (this.model.hasOwnProperty('resource')
+                            && this.model.hasOwnProperty('category')
+                            && this.model.hasOwnProperty('template')) {
+                        if (this.baseSchemaKey === "")
+                            this.getBaseSchema()
+                        else {
+                            let newBaseSchemaKey = this.model.resource 
+                                + ((this.model.template !== '_default') ? '/' + this.model.template : '')
+                            if (newBaseSchemaKey !== this.baseSchemaKey) {
+                                this.needsFullReload = true
+                                this.validSchemaError = "Activity, category or template fields have changed. Validation is required"
+                            }
                         }
                     }
                     this.computedSchema = {}
@@ -382,9 +388,10 @@
                             })
                     } else {
                         this.title = "New template"
+                        this.model = {}
                         this.isEditable = true
                         this.isNew = true
-                        this.model = {}
+                        this.jsonSchemaTxt = "{}"
                     }
                 },
 
