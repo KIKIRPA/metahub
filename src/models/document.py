@@ -35,7 +35,8 @@ class _DocumentShort(DocumentUpdate, IdBaseModel):
 
 
 class Document(LoggingBaseModel, _DocumentShort):
-    pass
+    class Config:
+        title = "Generic document"
 
 
 class DocumentList(BaseModel):

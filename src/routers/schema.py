@@ -37,11 +37,13 @@ async def get_template_schema(resource: Resource, category: str, template: str =
             category=category,
             template=template)
         schema = response["json_schema"]
+        schema["title"] = response["title"]
     except crud.NoResultsError:
         key = f"{resource.value}/{category}" + f"/{template}" if template != "_default" else ""
         raise HTTPException(status_code=404, detail=f"schema not found: '{key}'")
     except BaseException as err:
         raise HTTPException(status_code=400, detail=err)
+
     return schema
 
 

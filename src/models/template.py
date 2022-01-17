@@ -25,11 +25,11 @@ class _TemplateMeta(BaseModel): # unique index on (resource, category and templa
         max_length=20,
         regex='^[a-z0-9-_]*$')
     short_name: str = Field(...,
-        description="Name for the template",
+        description="Short descriptive name or acronym for the template",
         min_length=1,
         max_length=20)
-    long_name: str = Field(..., 
-        description="Name for the template",
+    title: str = Field(..., 
+        description="Title of the template (and of the resulting schema)",
         min_length=1,
         max_length=100)
     selectable: bool = Field(False, description="Allow users to select this template")

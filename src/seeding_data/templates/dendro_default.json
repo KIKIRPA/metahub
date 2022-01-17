@@ -3,7 +3,7 @@
     "category": "dendro",
     "template": "_default",
     "short_name": "DENDRO",
-    "long_name": "Dendrochronology analysis",
+    "title": "Dendrochronology analysis",
     "selectable": true,
     "json_schema": {
         "definitions": {

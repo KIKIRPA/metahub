@@ -50,7 +50,8 @@ class _ActivityShort(ActivityUpdate, IdBaseModel):
 
 
 class Activity(LoggingBaseModel, _ActivityShort):
-    pass
+    class Config:
+        title = "Generic activity"
 
 
 class ActivityList(BaseModel):
