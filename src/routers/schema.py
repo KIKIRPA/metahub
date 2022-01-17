@@ -55,7 +55,7 @@ def get_schema_by_resource(
     """
     resource_schema = get_resource_schema(resource)
     base_schema = {
-        "$schema": "http://json-schema.org/draft-07/schema#",
+        "$schema": config.settings.json_schema_version,
         "$id": f"https://balat.kikirpa.be/schema/{resource.value}"
     }
 

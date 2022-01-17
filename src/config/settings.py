@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     documents_collection: str = "documents"
     activities_collection: str = "activities"
     templates_collection: str = "templates"
+    json_schema_version: str = "http://json-schema.org/draft-07/schema#"
 
     class Config:
         env_file = ".env"
