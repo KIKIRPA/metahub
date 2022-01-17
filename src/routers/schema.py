@@ -3,7 +3,9 @@ from mergedeep import merge
 from fastapi import APIRouter, HTTPException, Path
 from motor.motor_asyncio import AsyncIOMotorClient
 
-from models import Resource, Activity, Document
+import config
+from models import Activity, Document, Resource
+import crud
 
 
 # Creating a FastAPI router, meaning a set of routes that can be included later
@@ -13,66 +15,85 @@ router = APIRouter(
     tags=["schema"]
 )
 
+# Creating a MongoDB client and connect to the relevant collections
+client = AsyncIOMotorClient(config.settings.mongo_conn_str)
+db = client[config.settings.mongo_db]
 
 
-@router.get("/{resource}")
-async def get_schema_by_resource(
-        resource: Resource = Path(None, description="The type of resource")):
-    """
-    Returning a json-schema for the resource.
-    """
+def get_resource_schema(resource: Resource):
     try: 
         model = resource.value.capitalize()
         schema = globals()[model].schema()
     except:
-        raise HTTPException(status_code=404, detail="schema not found")
+        raise HTTPException(status_code=404, detail=f"schema not found: '{resource.value}'")
     return schema
 
 
+async def get_template_schema(resource: Resource, category: str, template: str = "_default"):
+    try:
+        response = await crud.template.get_by_keys(
+            collection=db[config.settings.templates_collection], 
+            resource=resource,
+            category=category,
+            template=template)
+        schema = response["json_schema"]
+    except crud.NoResultsError:
+        key = f"{resource.value}/{category}" + f"/{template}" if template != "_default" else ""
+        raise HTTPException(status_code=404, detail=f"schema not found: '{key}'")
+    except BaseException as err:
+        raise HTTPException(status_code=400, detail=err)
+    return schema
 
 
-# @router.get("/activity/{activity_type}")
-# async def read_measurement_schema(
-#         activity_type: str = Path(None, description="The type of activity")):
-#     """
-#     Returning a json-schema for the activity.
-#     """
+@router.get("/{resource}")
+def get_schema_by_resource(
+        resource: Resource = Path(None, description="Resource of the data described in the template")):
+    """
+    Returning a json-schema for a resource.
+    """
+    resource_schema = get_resource_schema(resource)
+    base_schema = {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "$id": f"https://balat.kikirpa.be/schema/{resource.value}"
+    }
 
-#     if activity_type not in config.activity_types:
-#         raise HTTPException(status_code=404, detail="Activity type does not exist")
-
-#     return config.activity_types[activity_type]["model"].schema()
-
-
-# @router.get("/document/{document_type}")
-# async def read_measurement_schema(
-#         document_type: str = Path(None, description="The type of report or measurement")):
-#     """
-#     Returning the json-schema for the document.
-#     """
-
-#     if document_type not in config.document_types:
-#         raise HTTPException(status_code=404, detail="Document type does not exist")
-
-#     return config.document_types[document_type]["model"].schema()
+    return merge({}, base_schema, resource_schema)
 
 
-# @router.get("/document/{document_type}/{template}")
-# async def read_measurement_schema(
-#         document_type: str = Path(None, description="The type of report or measurement"),
-#         template: str = Path(None, description="Schema template to be applied")):
-#     """
-#     Returning the json-schema for the document with an applied schema template.
-#     """
+@router.get("/{resource}/{category}")
+async def get_schema_by_category(
+        resource: Resource = Path(None, description="Resource of the data described in the template"),
+        category: str = Path(None, description="Category of the data described in the template")):
+    """
+    Returning a json-schema for a category.
+    """
+    resource_schema = get_resource_schema(resource)
+    category_schema = await get_template_schema(resource, category)
+    base_schema = {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "$id": f"https://balat.kikirpa.be/schema/{resource.value}/{category}"
+    }
 
-#     if document_type not in config.document_types:
-#         raise HTTPException(status_code=404, detail="Document type does not exist")
-#     schema = config.document_types[document_type]["model"].schema()
+    return merge({}, base_schema, resource_schema, category_schema)
 
-#     client = AsyncIOMotorClient(config.settings.mongo_conn_str)
-#     db = client[config.settings.mongo_db]
 
-#     if (response := await db[config.settings.templates_collection].find_one({"alias": template, "schemas": document_type})) is None:
-#         raise HTTPException(status_code=404, detail="Template type does not exist (for the given document type)")
+@router.get("/{resource}/{category}/{template}")
+async def get_schema_by_template(
+        resource: Resource = Path(None, description="Resource of the data described in the template"),
+        category: str = Path(None, description="Category of the data described in the template"),
+        template: str = Path(None, description="Template name")):
+    """
+    Returning a json-schema for a resource.
+    """
+    if template == "_default":
+        return await get_schema_by_category(resource, category)
 
-#     return merge({}, schema, response["template"])
+    resource_schema = get_resource_schema(resource)
+    category_schema = await get_template_schema(resource, category)
+    template_schema = await get_template_schema(resource, category, template)
+    base_schema = {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "$id": f"https://balat.kikirpa.be/schema/{resource.value}/{category}/{template}"
+    }
+
+    return merge({}, base_schema, resource_schema, category_schema, template_schema)
