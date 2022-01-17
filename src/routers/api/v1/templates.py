@@ -72,6 +72,46 @@ async def get_template_by_id(
     return response
 
 
+@router.get("/{resource}/{category}", response_model=models.Template)
+async def get_default_template_by_keys(
+        resource: models.Resource = Path(None, description="Resource of the data described in the template"),
+        category: str = Path(None, description="Category of the data described in the template")):
+    """
+    Return a single template by its keys (template=_default).
+    """
+    try:
+        response = await crud.template.get_by_keys(
+            collection=db[config.settings.templates_collection], 
+            resource=resource,
+            category=category)
+    except crud.NoResultsError:
+        raise HTTPException(status_code=404, detail="template not found")
+    except BaseException as err:
+        raise HTTPException(status_code=400, detail=err)
+    return response
+
+
+@router.get("/{resource}/{category}/{template}", response_model=models.Template)
+async def get_template_by_keys(
+        resource: models.Resource = Path(None, description="Resource of the data described in the template"),
+        category: str = Path(None, description="Category of the data described in the template"),
+        template: str = Path("_default", description="Template name")):
+    """
+    Return a single template by its keys.
+    """
+    try:
+        response = await crud.template.get_by_keys(
+            collection=db[config.settings.templates_collection], 
+            resource=resource,
+            category=category,
+            template=template)
+    except crud.NoResultsError:
+        raise HTTPException(status_code=404, detail="template not found")
+    except BaseException as err:
+        raise HTTPException(status_code=400, detail=err)
+    return response
+
+
 @router.post("/", response_model=models.Template)
 async def create_template(template: models.TemplateUpdate):
     """
