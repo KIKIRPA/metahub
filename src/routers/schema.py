@@ -72,7 +72,7 @@ async def get_schema_by_category(
     resource_schema = get_resource_schema(resource)
     category_schema = await get_template_schema(resource, category)
     base_schema = {
-        "$schema": "http://json-schema.org/draft-07/schema#",
+        "$schema": config.settings.json_schema_version,
         "$id": f"https://balat.kikirpa.be/schema/{resource.value}/{category}"
     }
 
@@ -94,7 +94,7 @@ async def get_schema_by_template(
     category_schema = await get_template_schema(resource, category)
     template_schema = await get_template_schema(resource, category, template)
     base_schema = {
-        "$schema": "http://json-schema.org/draft-07/schema#",
+        "$schema": config.settings.json_schema_version,
         "$id": f"https://balat.kikirpa.be/schema/{resource.value}/{category}/{template}"
     }
 
