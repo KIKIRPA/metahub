@@ -61,6 +61,31 @@ def show_template_form_with_id(
     })
 
 
+@router.get("/templates/{resource}/{category}", response_class=HTMLResponse)
+async def show_default_template_form_with_keys(
+        request: Request,
+        resource: models.Resource = Path(None, description="Resource of the data described in the template"),
+        category: str = Path(None, description="Category of the data described in the template")):
+    """
+    Displaying the default form with given resource and category
+    """
+    try:
+        response = await crud.template.get_by_keys(
+            collection=db[config.settings.templates_collection], 
+            resource=resource,
+            category=category,
+            template="_default")
+    except crud.NoResultsError:
+        raise HTTPException(status_code=404, detail="template not found")
+    except BaseException as err:
+        raise HTTPException(status_code=400, detail=err)
+
+    return templates.TemplateResponse("template_form.html.jinja", {
+        "request": request,
+        "schema": models.TemplateUpdate.schema_json(),
+        "id": response["id"]})
+
+
 @router.get("/templates/{resource}/{category}/{template}", response_class=HTMLResponse)
 async def show_template_form_with_keys(
         request: Request,
@@ -87,29 +112,7 @@ async def show_template_form_with_keys(
         "id": response["id"]})
 
 
-@router.get("/templates/{resource}/{category}", response_class=HTMLResponse)
-async def show_default_template_form_with_keys(
-        request: Request,
-        resource: models.Resource = Path(None, description="Resource of the data described in the template"),
-        category: str = Path(None, description="Category of the data described in the template")):
-    """
-    Displaying the default form with given resource and category
-    """
-    try:
-        response = await crud.template.get_by_keys(
-            collection=db[config.settings.templates_collection], 
-            resource=resource,
-            category=category,
-            template="_default")
-    except crud.NoResultsError:
-        raise HTTPException(status_code=404, detail="template not found")
-    except BaseException as err:
-        raise HTTPException(status_code=400, detail=err)
 
-    return templates.TemplateResponse("template_form.html.jinja", {
-        "request": request,
-        "schema": models.TemplateUpdate.schema_json(),
-        "id": response["id"]})
 
 
 
