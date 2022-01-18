@@ -1,10 +1,13 @@
+import json
 from typing import Optional, List
 
 from fastapi import APIRouter, HTTPException, Query, Path
 from motor.motor_asyncio import AsyncIOMotorClient
+import jsonschema
 
 import core
-import core.utils
+from core.utils import resolve_schema
+from core.enums import JsonSchemaVersion
 import models
 import crud
 
@@ -178,5 +181,31 @@ async def validate_template(template: models.TemplateUpdate):
     """
     Validate a template.
     """
-    resolved_schema = await core.utils.resolve_schema(temporary_template=template)
+    resolved_schema = await resolve_schema(temporary_template=template)
+
+    try:
+        if core.settings.json_schema_version == JsonSchemaVersion.DRAFT202012:
+            jsonschema.Draft201909Validator.check_schema(resolved_schema)
+        elif core.settings.json_schema_version == JsonSchemaVersion.DRAFT201909:
+            jsonschema.Draft201909Validator.check_schema(resolved_schema)
+        elif core.settings.json_schema_version == JsonSchemaVersion.DRAFT7:
+            jsonschema.Draft7Validator.check_schema(resolved_schema)
+        elif core.settings.json_schema_version == JsonSchemaVersion.DRAFT6:
+            jsonschema.Draft6Validator.check_schema(resolved_schema)
+        elif core.settings.json_schema_version == JsonSchemaVersion.DRAFT4:
+            jsonschema.Draft4Validator.check_schema(resolved_schema)
+        elif core.settings.json_schema_version == JsonSchemaVersion.DRAFT3:
+            jsonschema.Draft3Validator.check_schema(resolved_schema)
+        else:
+            raise NotImplementedError("This draft of JSON-schema is not implemented")
+    except jsonschema.exceptions.SchemaError as err:
+        detail = {
+            "type": f"Invalid JSON Schema: {err.validator} error [{core.settings.json_schema_version.name.capitalize()}]",
+            "msg": err.message,
+            "loc": list(err.path)
+        }
+        raise HTTPException(status_code=422, detail=detail)
+    except BaseException as err:
+        raise HTTPException(status_code=400, detail=err)
+
     return resolved_schema
