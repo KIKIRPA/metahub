@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List
+from typing import Optional, List
 
 from pydantic import BaseModel, Field
 
@@ -32,10 +32,11 @@ class _TemplateMeta(BaseModel): # unique index on (resource, category and templa
         description="Title of the template (and of the resulting schema)",
         min_length=1,
         max_length=100)
-    selectable: bool = Field(False, description="Allow users to select this template")
+    selectable: Optional[bool] = Field(False, description="Allow users to select this template")
 
 
 class _TemplateJson(BaseModel): 
+    independent_schema: Optional[bool] = Field(False, description="An independent schema does not inherit from a base schema")
     json_schema: dict = Field(..., description="JSON schema overlay")
 
 
