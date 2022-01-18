@@ -3,7 +3,7 @@ from typing import Optional, List
 from fastapi import APIRouter, HTTPException, Query, Path
 from motor.motor_asyncio import AsyncIOMotorClient
 
-import config
+import core
 import models.activities
 import crud
 
@@ -15,8 +15,8 @@ router = APIRouter(
     tags=["api/v1/activities"])
 
 # Creating a MongoDB client and connect to the relevant collections
-client = AsyncIOMotorClient(config.settings.mongo_conn_str)
-db = client[config.settings.mongo_db]
+client = AsyncIOMotorClient(core.settings.mongo_conn_str)
+db = client[core.settings.mongo_db]
 
 
 @router.get("/", response_model=dict)
@@ -31,7 +31,7 @@ async def get_all_activities(
     if len(sort_desc) > 0 and len(sort_desc) != len(sort_by):
         raise HTTPException(status_code=422, detail="Unequal number of items in sort_by and sort_desc")
     response = await crud.activity.get_all(
-        collection=db[config.settings.activities_collection],
+        collection=db[core.settings.activities_collection],
         skip=skip,
         limit=limit,
         sort_by=sort_by)
@@ -45,7 +45,7 @@ async def get_activity_by_id(
     Return a single activity by its id.
     """
     response = await crud.activity.get(
-        collection=db[config.settings.activities_collection], 
+        collection=db[core.settings.activities_collection], 
         id=id)
     if response is None:
         raise HTTPException(status_code=404, detail="Activity not found")
@@ -58,7 +58,7 @@ async def create_activity(activity: models.activities.Activity):
     Create a new activity.
     """
     response = await crud.activity.create(
-        collection=db[config.settings.activities_collection],
+        collection=db[core.settings.activities_collection],
         data=activity)
     return response
 
@@ -71,12 +71,12 @@ async def update_activity(
     Update an activity.
     """
     activity_from_db = await crud.activity.get(
-        collection=db[config.settings.activities_collection], 
+        collection=db[core.settings.activities_collection], 
         id=id)
     if activity_from_db is None:
         raise HTTPException(status_code=404, detail="Activity not found")
     updated = await crud.activity.update(
-        collection=db[config.settings.activities_collection], 
+        collection=db[core.settings.activities_collection], 
         id=id,
         data=activity)
     if not updated:
@@ -91,12 +91,12 @@ async def delete_activity(
     Delete an activity.
     """
     activity = await crud.activity.get(
-        collection=db[config.settings.activities_collection], 
+        collection=db[core.settings.activities_collection], 
         id=id)
     if activity is None:
         raise HTTPException(status_code=404, detail="Activity not found")
     deleted = await crud.activity.remove(
-        collection=db[config.settings.activities_collection], 
+        collection=db[core.settings.activities_collection], 
         id=id)
     if not deleted:
         raise HTTPException(status_code=400, detail="Bad request")

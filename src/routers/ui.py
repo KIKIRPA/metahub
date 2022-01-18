@@ -7,7 +7,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from motor.motor_asyncio import AsyncIOMotorClient
 
-import config
+import core
 import models
 import crud
 
@@ -19,12 +19,12 @@ router = APIRouter(
 )
 
 templates = Jinja2Templates(directory="templates")
-document_types_list = json.dumps([{"alias": k, "short": v["short"]} for k, v in config.document_types.items()])
-activity_types_list = json.dumps([{"alias": k, "name": v["name"]} for k, v in config.activity_types.items()])
+document_types_list = json.dumps([{"alias": k, "short": v["short"]} for k, v in core.document_types.items()])
+activity_types_list = json.dumps([{"alias": k, "name": v["name"]} for k, v in core.activity_types.items()])
 
 # Creating a MongoDB client and connect to the relevant collections
-client = AsyncIOMotorClient(config.settings.mongo_conn_str)
-db = client[config.settings.mongo_db]
+client = AsyncIOMotorClient(core.settings.mongo_conn_str)
+db = client[core.settings.mongo_db]
 
 
 @router.get("/templates", response_class=HTMLResponse)
@@ -71,7 +71,7 @@ async def show_default_template_form_with_keys(
     """
     try:
         response = await crud.template.get_by_keys(
-            collection=db[config.settings.templates_collection], 
+            collection=db[core.settings.templates_collection], 
             resource=resource,
             category=category,
             template="_default")
@@ -97,7 +97,7 @@ async def show_template_form_with_keys(
     """
     try:
         response = await crud.template.get_by_keys(
-            collection=db[config.settings.templates_collection], 
+            collection=db[core.settings.templates_collection], 
             resource=resource,
             category=category,
             template=template)
@@ -134,7 +134,7 @@ def show_activity_form(
     Displaying the activity input form
     """
     
-    if activity_type not in config.activity_types:
+    if activity_type not in core.activity_types:
         raise HTTPException(status_code=404, detail="Activity type does not exist")
     
     return templates.TemplateResponse("activity_form.html.jinja", {
@@ -154,7 +154,7 @@ async def show_form(
     Displaying the document input form
     """
     
-    if document_type not in config.document_types:
+    if document_type not in core.document_types:
         raise HTTPException(status_code=404, detail="Document type does not exist")
     
     return templates.TemplateResponse("document_form.html.jinja", {
@@ -174,13 +174,13 @@ async def show_form(
     Displaying the document input form
     """
     
-    if document_type not in config.document_types:
+    if document_type not in core.document_types:
         raise HTTPException(status_code=404, detail="Document type does not exist")
     
-    client = AsyncIOMotorClient(config.settings.mongo_conn_str)
-    db = client[config.settings.mongo_db]
+    client = AsyncIOMotorClient(core.settings.mongo_conn_str)
+    db = client[core.settings.mongo_db]
 
-    if (response := await db[config.settings.templates_collection].find_one({"alias": template, "schemas": document_type})) is None:
+    if (response := await db[core.settings.templates_collection].find_one({"alias": template, "schemas": document_type})) is None:
         raise HTTPException(status_code=404, detail="Template type does not exist (for the given document type)")
     
     return templates.TemplateResponse("document_form.html.jinja", {

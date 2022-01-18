@@ -8,7 +8,7 @@ import pymongo
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 from fastapi.encoders import jsonable_encoder
 
-import config
+import core
 import models
 
 
@@ -53,12 +53,12 @@ async def main():
     (options, args) = parser.parse_args()
     
     # MONGO CONNECTION
-    client = AsyncIOMotorClient(config.settings.mongo_conn_str)
-    db = client[config.settings.mongo_db]
+    client = AsyncIOMotorClient(core.settings.mongo_conn_str)
+    db = client[core.settings.mongo_db]
 
     # TEMPLATE COLLECTION
     print("\nTEMPLATE COLLECTION")
-    collection = config.settings.templates_collection
+    collection = core.settings.templates_collection
     if options.drop:
         await drop(db, collection)
 

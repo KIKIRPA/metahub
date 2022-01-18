@@ -3,7 +3,7 @@ from typing import Optional, List
 from fastapi import APIRouter, HTTPException, Query, Path
 from motor.motor_asyncio import AsyncIOMotorClient
 
-import config
+import core
 import models
 import crud
 
@@ -15,8 +15,8 @@ router = APIRouter(
     tags=["api/v1/templates"])
 
 # Creating a MongoDB client and connect to the relevant collections
-client = AsyncIOMotorClient(config.settings.mongo_conn_str)
-db = client[config.settings.mongo_db]
+client = AsyncIOMotorClient(core.settings.mongo_conn_str)
+db = client[core.settings.mongo_db]
 
 
 #
@@ -44,7 +44,7 @@ async def search_templates(
         raise HTTPException(status_code=422, detail="Unequal number of items in sort_by and sort_desc")
     try: 
         response = await crud.template.search(
-            collection=db[config.settings.templates_collection],
+            collection=db[core.settings.templates_collection],
             find=find,
             skip=skip,
             limit=limit,
@@ -63,7 +63,7 @@ async def get_template_by_id(
     """
     try:
         response = await crud.template.get(
-            collection=db[config.settings.templates_collection], 
+            collection=db[core.settings.templates_collection], 
             id=id)
     except crud.NoResultsError:
         raise HTTPException(status_code=404, detail="template not found")
@@ -81,7 +81,7 @@ async def get_default_template_by_keys(
     """
     try:
         response = await crud.template.get_by_keys(
-            collection=db[config.settings.templates_collection], 
+            collection=db[core.settings.templates_collection], 
             resource=resource,
             category=category)
     except crud.NoResultsError:
@@ -101,7 +101,7 @@ async def get_template_by_keys(
     """
     try:
         response = await crud.template.get_by_keys(
-            collection=db[config.settings.templates_collection], 
+            collection=db[core.settings.templates_collection], 
             resource=resource,
             category=category,
             template=template)
@@ -119,7 +119,7 @@ async def create_template(template: models.TemplateUpdate):
     """
     try:
         response = await crud.template.create(
-            collection=db[config.settings.templates_collection],
+            collection=db[core.settings.templates_collection],
             data=template)
     except crud.DuplicateKeyError:
         raise HTTPException(status_code=422, detail="duplicate key (resource, category, template)")
@@ -139,7 +139,7 @@ async def update_template(
     """
     try:
         updated = await crud.template.update(
-            collection=db[config.settings.templates_collection], 
+            collection=db[core.settings.templates_collection], 
             id=id,
             data=template)
     except crud.NoResultsError:
@@ -161,7 +161,7 @@ async def delete_template(
     """
     try:
         deleted = await crud.template.remove(
-            collection=db[config.settings.templates_collection], 
+            collection=db[core.settings.templates_collection], 
             id=id)
     except crud.NoResultsError:
         raise HTTPException(status_code=404, detail="template not found")
