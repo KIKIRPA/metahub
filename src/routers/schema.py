@@ -29,37 +29,72 @@ def get_resource_schema(resource: Resource):
     return schema
 
 
-async def get_template_schema(resource: Resource, category: str, template: str = "_default"):
+async def get_template(resource: Resource, category: str, template: str = "_default"):
     try:
         response = await crud.template.get_by_keys(
             collection=db[config.settings.templates_collection], 
             resource=resource,
             category=category,
             template=template)
-        schema = response["json_schema"]
-        schema["title"] = response["title"]
     except crud.NoResultsError:
         key = f"{resource.value}/{category}" + f"/{template}" if template != "_default" else ""
         raise HTTPException(status_code=404, detail=f"schema not found: '{key}'")
     except BaseException as err:
         raise HTTPException(status_code=400, detail=err)
+    return response
 
-    return schema
+
+async def resolve_schema(resource: Resource, category: str = None, template: str = "_default"):
+    resource_schema = {}
+    category_schema = {}
+    template_schema = {}
+    prevent_inheritance = False
+    
+    id_parts = []
+
+    if template != '_default' and category != None:
+        t = await get_template(resource, category, template)
+        template_schema = t['json_schema']
+        template_schema["title"] = t["title"]
+        id_parts.append(template)
+        if t['independent_schema']:
+            prevent_inheritance = True
+
+    if category != None:
+        id_parts.append(category)
+        if prevent_inheritance == False:
+            c = await get_template(resource, category)
+            category_schema = c['json_schema']
+            category_schema["title"] = c["title"]
+            if c['independent_schema']:
+                prevent_inheritance = True
+
+    id_parts.append(resource.value)
+    if prevent_inheritance == False:
+        resource_schema = get_resource_schema(resource)
+    
+    id_base = config.settings.json_schema_base_url
+    if id_base[-1] == "/": id_base = id_base[:-1]
+    id_parts.append(id_base)
+    id_parts.reverse()
+
+    base_schema = {
+        "$schema": config.settings.json_schema_version,
+        "$id": "/".join(id_parts)
+    }
+
+    return merge({}, base_schema, resource_schema, category_schema, template_schema)
+
+
 
 
 @router.get("/{resource}")
-def get_schema_by_resource(
+async def get_schema_by_resource(
         resource: Resource = Path(None, description="Resource of the data described in the template")):
     """
     Returning a json-schema for a resource.
     """
-    resource_schema = get_resource_schema(resource)
-    base_schema = {
-        "$schema": config.settings.json_schema_version,
-        "$id": f"https://balat.kikirpa.be/schema/{resource.value}"
-    }
-
-    return merge({}, base_schema, resource_schema)
+    return await resolve_schema(resource)
 
 
 @router.get("/{resource}/{category}")
@@ -69,14 +104,7 @@ async def get_schema_by_category(
     """
     Returning a json-schema for a category.
     """
-    resource_schema = get_resource_schema(resource)
-    category_schema = await get_template_schema(resource, category)
-    base_schema = {
-        "$schema": config.settings.json_schema_version,
-        "$id": f"https://balat.kikirpa.be/schema/{resource.value}/{category}"
-    }
-
-    return merge({}, base_schema, resource_schema, category_schema)
+    return await resolve_schema(resource, category)
 
 
 @router.get("/{resource}/{category}/{template}")
@@ -87,15 +115,4 @@ async def get_schema_by_template(
     """
     Returning a json-schema for a resource.
     """
-    if template == "_default":
-        return await get_schema_by_category(resource, category)
-
-    resource_schema = get_resource_schema(resource)
-    category_schema = await get_template_schema(resource, category)
-    template_schema = await get_template_schema(resource, category, template)
-    base_schema = {
-        "$schema": config.settings.json_schema_version,
-        "$id": f"https://balat.kikirpa.be/schema/{resource.value}/{category}/{template}"
-    }
-
-    return merge({}, base_schema, resource_schema, category_schema, template_schema)
+    return await resolve_schema(resource, category, template)

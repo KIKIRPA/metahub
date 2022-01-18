@@ -5,6 +5,7 @@
     "short_name": "INVIA 785",
     "title": "Renishaw inVia, microscope, 785nm",
     "selectable": true,
+    "independent_schema": false,
     "json_schema": {
         "definitions": {
             "LaserPower": {

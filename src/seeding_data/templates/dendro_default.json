@@ -5,6 +5,7 @@
     "short_name": "DENDRO",
     "title": "Dendrochronology analysis",
     "selectable": true,
+    "independent_schema": false,
     "json_schema": {
         "definitions": {
             "DendroParameters": {
