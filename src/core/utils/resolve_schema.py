@@ -1,10 +1,11 @@
+from logging import NullHandler
 from mergedeep import merge
 
 from fastapi import HTTPException
 from motor.motor_asyncio import AsyncIOMotorClient
 
 import core
-from models import Activity, Document, Resource
+from models import Activity, Document, TemplateUpdate, Resource
 import crud
 
 
@@ -37,16 +38,41 @@ async def get_template(resource: Resource, category: str, template: str = "_defa
     return response
 
 
-async def resolve_schema(resource: Resource, category: str = None, template: str = "_default"):
+async def resolve_schema(
+        resource: Resource = None, 
+        category: str = None, 
+        template: str = "_default", 
+        temporary_template: TemplateUpdate = None):
+    """
+    Resolves a schema.
+    - With only a resource, returns the schema of the pydantic model for the resource
+    - With resource, category and optional template, returns the resolved schema
+    - With resource and temporary_template, returns the resolved schema
+    """
+    t = None
+    c = None
     resource_schema = {}
     category_schema = {}
     template_schema = {}
     prevent_inheritance = False
-    
     id_parts = []
 
+    if resource is None and temporary_template is None:
+        raise RuntimeError('Invalid arguments for resolve_schema')
+
+    if temporary_template is not None:
+        id_parts.append("[unsaved]")
+        resource = temporary_template.resource
+        category = temporary_template.category
+        template = temporary_template.template
+        if template != '_default':
+            t = temporary_template.dict()
+        else:
+            c = temporary_template.dict()
+
     if template != '_default' and category != None:
-        t = await get_template(resource, category, template)
+        if t is None:
+            t = await get_template(resource, category, template)
         template_schema = t['json_schema']
         template_schema["title"] = t["title"]
         id_parts.append(template)
@@ -56,7 +82,8 @@ async def resolve_schema(resource: Resource, category: str = None, template: str
     if category != None:
         id_parts.append(category)
         if prevent_inheritance == False:
-            c = await get_template(resource, category)
+            if c is None:
+                c = await get_template(resource, category)
             category_schema = c['json_schema']
             category_schema["title"] = c["title"]
             if c['independent_schema']:

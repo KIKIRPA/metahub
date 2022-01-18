@@ -4,6 +4,7 @@ from fastapi import APIRouter, HTTPException, Query, Path
 from motor.motor_asyncio import AsyncIOMotorClient
 
 import core
+import core.utils
 import models
 import crud
 
@@ -170,3 +171,12 @@ async def delete_template(
     except BaseException as err:
         raise HTTPException(status_code=400, detail=err)
     return deleted
+
+
+@router.post("/validate")
+async def validate_template(template: models.TemplateUpdate):
+    """
+    Validate a template.
+    """
+    resolved_schema = await core.utils.resolve_schema(temporary_template=template)
+    return resolved_schema
