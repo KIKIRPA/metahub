@@ -3,7 +3,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 
 import core
 from core.utils import resolve_schema
-from models import Resource
+from core.enums import Resource
 
 
 # Creating a FastAPI router, meaning a set of routes that can be included later

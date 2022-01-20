@@ -1,16 +1,9 @@
-from enum import Enum
-from typing import Optional, List
+from typing import List
 
 from pydantic import BaseModel, Field
 
+from core.enums import Resource
 from models.common import IdBaseModel, LoggingBaseModel, QueryParameters
-
-class Resource(str, Enum):
-    ACTIVITY = 'activity'
-    COLLECTION = 'collection'
-    SAMPLE = 'sample'
-    DOCUMENT = 'document'
-
 
 class _TemplateMeta(BaseModel): # unique index on (resource, category and template)
     resource: Resource = Field(...) 

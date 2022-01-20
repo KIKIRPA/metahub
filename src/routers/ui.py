@@ -8,6 +8,7 @@ from fastapi.templating import Jinja2Templates
 from motor.motor_asyncio import AsyncIOMotorClient
 
 import core
+from core.enums import Resource
 import models
 import crud
 
@@ -64,7 +65,7 @@ def show_template_form_with_id(
 @router.get("/templates/{resource}/{category}", response_class=HTMLResponse)
 async def show_default_template_form_with_keys(
         request: Request,
-        resource: models.Resource = Path(None, description="Resource of the data described in the template"),
+        resource: Resource = Path(None, description="Resource of the data described in the template"),
         category: str = Path(None, description="Category of the data described in the template")):
     """
     Displaying the default form with given resource and category
@@ -89,7 +90,7 @@ async def show_default_template_form_with_keys(
 @router.get("/templates/{resource}/{category}/{template}", response_class=HTMLResponse)
 async def show_template_form_with_keys(
         request: Request,
-        resource: models.Resource = Path(None, description="Resource of the data described in the template"),
+        resource: Resource = Path(None, description="Resource of the data described in the template"),
         category: str = Path(None, description="Category of the data described in the template"),
         template: str = Path("_default", description="Template name")):
     """

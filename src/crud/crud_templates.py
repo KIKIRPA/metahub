@@ -1,5 +1,6 @@
 from motor.motor_asyncio import AsyncIOMotorCollection
 
+from core.enums import Resource
 from crud.base import CRUDBase, NoResultsError, translate_id
 import models
 
@@ -9,7 +10,7 @@ class CRUDTemplate(CRUDBase):
             self, 
             collection: AsyncIOMotorCollection, 
             *,
-            resource: models.Resource,
+            resource: Resource,
             category: str,
             template: str = "_default") -> dict:
         result = await collection.find_one({

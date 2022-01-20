@@ -7,7 +7,7 @@ import jsonschema
 
 import core
 from core.utils import resolve_schema
-from core.enums import JsonSchemaVersion
+from core.enums import JsonSchemaVersion, Resource
 import models
 import crud
 
@@ -33,7 +33,7 @@ async def search_templates(
         limit: Optional[int] = Query(10, description="Return x results"), 
         sort_by: Optional[List[str]] = Query(["resource", "category", "template"], description="Sorting options (array of strings)"),
         sort_desc: Optional[List[bool]] = Query([], description="Sort descending (arry of booleans)"),
-        resource: Optional[models.Resource] = Query(None, description="Filter on resource type"),
+        resource: Optional[Resource] = Query(None, description="Filter on resource type"),
         category: Optional[str] = Query(None, description="Filter on category identifier (partial match)"),
         template: Optional[str] = Query(None, description="Filter on template identifier (partial match)")):
     """
@@ -78,7 +78,7 @@ async def get_template_by_id(
 
 @router.get("/{resource}/{category}", response_model=models.Template)
 async def get_default_template_by_keys(
-        resource: models.Resource = Path(None, description="Resource of the data described in the template"),
+        resource: Resource = Path(None, description="Resource of the data described in the template"),
         category: str = Path(None, description="Category of the data described in the template")):
     """
     Return a single template by its keys (template=_default).
@@ -97,7 +97,7 @@ async def get_default_template_by_keys(
 
 @router.get("/{resource}/{category}/{template}", response_model=models.Template)
 async def get_template_by_keys(
-        resource: models.Resource = Path(None, description="Resource of the data described in the template"),
+        resource: Resource = Path(None, description="Resource of the data described in the template"),
         category: str = Path(None, description="Category of the data described in the template"),
         template: str = Path("_default", description="Template name")):
     """

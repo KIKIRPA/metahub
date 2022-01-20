@@ -5,7 +5,8 @@ from fastapi import HTTPException
 from motor.motor_asyncio import AsyncIOMotorClient
 
 import core
-from models import Activity, Document, TemplateUpdate, Resource
+from core.enums import Resource
+from models import Activity, Document, TemplateUpdate
 import crud
 
 
