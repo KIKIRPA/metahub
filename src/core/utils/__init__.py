@@ -1,1 +1,1 @@
-from .resolve_schema import resolve_schema
+from core.utils.resolve_schema import resolve_schema

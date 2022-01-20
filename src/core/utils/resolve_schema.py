@@ -4,7 +4,7 @@ from fastapi import HTTPException
 from motor.motor_asyncio import AsyncIOMotorClient
 
 import core
-from core.enums import Resource
+from core.enums import Resource, JsonSchemaVersion
 from models import Project, Dataset, TemplateUpdate
 import crud
 
@@ -16,7 +16,7 @@ db = client[core.settings.mongo_db]
 
 def get_resource_schema(resource: Resource):
     try: 
-        model = resource.value.capitalize()
+        model = resource.name.capitalize()
         schema = globals()[model].schema()
     except:
         raise HTTPException(status_code=404, detail=f"schema not found: '{resource.value}'")
@@ -98,8 +98,9 @@ async def resolve_schema(
     id_parts.append(id_base)
     id_parts.reverse()
 
+    version = JsonSchemaVersion[core.settings.json_schema_version]
     base_schema = {
-        "$schema": core.settings.json_schema_version,
+        "$schema": version,
         "$id": "/".join(id_parts)
     }
 

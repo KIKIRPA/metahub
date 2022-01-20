@@ -1,4 +1,3 @@
-import json
 from typing import Optional, List
 
 from fastapi import APIRouter, HTTPException, Query, Path
@@ -183,18 +182,19 @@ async def validate_template(template: models.TemplateUpdate):
     """
     resolved_schema = await resolve_schema(temporary_template=template)
 
+    version = JsonSchemaVersion[core.settings.json_schema_version]
     try:
-        if core.settings.json_schema_version == JsonSchemaVersion.DRAFT202012:
+        if version == JsonSchemaVersion.DRAFT202012:
             jsonschema.Draft201909Validator.check_schema(resolved_schema)
-        elif core.settings.json_schema_version == JsonSchemaVersion.DRAFT201909:
+        elif version == JsonSchemaVersion.DRAFT201909:
             jsonschema.Draft201909Validator.check_schema(resolved_schema)
-        elif core.settings.json_schema_version == JsonSchemaVersion.DRAFT7:
+        elif version == JsonSchemaVersion.DRAFT7:
             jsonschema.Draft7Validator.check_schema(resolved_schema)
-        elif core.settings.json_schema_version == JsonSchemaVersion.DRAFT6:
+        elif version == JsonSchemaVersion.DRAFT6:
             jsonschema.Draft6Validator.check_schema(resolved_schema)
-        elif core.settings.json_schema_version == JsonSchemaVersion.DRAFT4:
+        elif version == JsonSchemaVersion.DRAFT4:
             jsonschema.Draft4Validator.check_schema(resolved_schema)
-        elif core.settings.json_schema_version == JsonSchemaVersion.DRAFT3:
+        elif version == JsonSchemaVersion.DRAFT3:
             jsonschema.Draft3Validator.check_schema(resolved_schema)
         else:
             raise NotImplementedError("This draft of JSON-schema is not implemented")
