@@ -58,9 +58,9 @@ async def main():
 
     # TEMPLATE COLLECTION
     print("\nTEMPLATE COLLECTION")
-    collection = core.settings.templates_collection
+    collection = "templates"
     if options.drop:
-        await drop(db, collection)
+        await drop(db, "templates")
 
     try:
         await db[collection].create_index([

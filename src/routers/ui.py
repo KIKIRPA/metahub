@@ -72,7 +72,7 @@ async def show_default_template_form_with_keys(
     """
     try:
         response = await crud.template.get_by_keys(
-            collection=db[core.settings.templates_collection], 
+            collection=db.templates, 
             resource=resource,
             category=category,
             template="_default")
@@ -98,7 +98,7 @@ async def show_template_form_with_keys(
     """
     try:
         response = await crud.template.get_by_keys(
-            collection=db[core.settings.templates_collection], 
+            collection=db.templates, 
             resource=resource,
             category=category,
             template=template)
@@ -181,7 +181,7 @@ async def show_form(
     client = AsyncIOMotorClient(core.settings.mongo_conn_str)
     db = client[core.settings.mongo_db]
 
-    if (response := await db[core.settings.templates_collection].find_one({"alias": template, "schemas": document_type})) is None:
+    if (response := await db.templates.find_one({"alias": template, "schemas": document_type})) is None:
         raise HTTPException(status_code=404, detail="Template type does not exist (for the given document type)")
     
     return templates.TemplateResponse("document_form.html.jinja", {

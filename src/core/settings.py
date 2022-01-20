@@ -9,9 +9,6 @@ class Settings(BaseSettings):
     admin_email: str = "hescida@kikirpa.be"
     mongo_conn_str: str = "mongodb://kikirpa:hescida@localhost:27017/"
     mongo_db: str = "meta"
-    documents_collection: str = "documents"
-    projects_collection: str = "projects"
-    templates_collection: str = "templates"
     json_schema_version: JsonSchemaVersion = JsonSchemaVersion.DRAFT7
     json_schema_base_url: str = "https://balat.kikirpa.be/schema"
 

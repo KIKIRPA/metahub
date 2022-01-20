@@ -31,7 +31,7 @@ async def get_all_projects(
     if len(sort_desc) > 0 and len(sort_desc) != len(sort_by):
         raise HTTPException(status_code=422, detail="Unequal number of items in sort_by and sort_desc")
     response = await crud.project.get_all(
-        collection=db[core.settings.projects_collection],
+        collection=db.projects,
         skip=skip,
         limit=limit,
         sort_by=sort_by)
@@ -45,7 +45,7 @@ async def get_project_by_id(
     Return a single project by its id.
     """
     response = await crud.project.get(
-        collection=db[core.settings.projects_collection], 
+        collection=db.projects, 
         id=id)
     if response is None:
         raise HTTPException(status_code=404, detail="Project not found")
@@ -58,7 +58,7 @@ async def create_project(project: models.projects.Project):
     Create a new project.
     """
     response = await crud.project.create(
-        collection=db[core.settings.projects_collection],
+        collection=db.projects,
         data=project)
     return response
 
@@ -71,12 +71,12 @@ async def update_project(
     Update an project.
     """
     project_from_db = await crud.project.get(
-        collection=db[core.settings.projects_collection], 
+        collection=db.projects, 
         id=id)
     if project_from_db is None:
         raise HTTPException(status_code=404, detail="Project not found")
     updated = await crud.project.update(
-        collection=db[core.settings.projects_collection], 
+        collection=db.projects, 
         id=id,
         data=project)
     if not updated:
@@ -91,12 +91,12 @@ async def delete_project(
     Delete an project.
     """
     project = await crud.project.get(
-        collection=db[core.settings.projects_collection], 
+        collection=db.projects, 
         id=id)
     if project is None:
         raise HTTPException(status_code=404, detail="Project not found")
     deleted = await crud.project.remove(
-        collection=db[core.settings.projects_collection], 
+        collection=db.projects, 
         id=id)
     if not deleted:
         raise HTTPException(status_code=400, detail="Bad request")

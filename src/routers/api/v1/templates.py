@@ -48,7 +48,7 @@ async def search_templates(
         raise HTTPException(status_code=422, detail="Unequal number of items in sort_by and sort_desc")
     try: 
         response = await crud.template.search(
-            collection=db[core.settings.templates_collection],
+            collection=db.templates,
             find=find,
             skip=skip,
             limit=limit,
@@ -67,7 +67,7 @@ async def get_template_by_id(
     """
     try:
         response = await crud.template.get(
-            collection=db[core.settings.templates_collection], 
+            collection=db.templates, 
             id=id)
     except crud.NoResultsError:
         raise HTTPException(status_code=404, detail="template not found")
@@ -85,7 +85,7 @@ async def get_default_template_by_keys(
     """
     try:
         response = await crud.template.get_by_keys(
-            collection=db[core.settings.templates_collection], 
+            collection=db.templates, 
             resource=resource,
             category=category)
     except crud.NoResultsError:
@@ -105,7 +105,7 @@ async def get_template_by_keys(
     """
     try:
         response = await crud.template.get_by_keys(
-            collection=db[core.settings.templates_collection], 
+            collection=db.templates, 
             resource=resource,
             category=category,
             template=template)
@@ -123,7 +123,7 @@ async def create_template(template: models.TemplateUpdate):
     """
     try:
         response = await crud.template.create(
-            collection=db[core.settings.templates_collection],
+            collection=db.templates,
             data=template)
     except crud.DuplicateKeyError:
         raise HTTPException(status_code=422, detail="duplicate key (resource, category, template)")
@@ -143,7 +143,7 @@ async def update_template(
     """
     try:
         updated = await crud.template.update(
-            collection=db[core.settings.templates_collection], 
+            collection=db.templates, 
             id=id,
             data=template)
     except crud.NoResultsError:
@@ -165,7 +165,7 @@ async def delete_template(
     """
     try:
         deleted = await crud.template.remove(
-            collection=db[core.settings.templates_collection], 
+            collection=db.templates, 
             id=id)
     except crud.NoResultsError:
         raise HTTPException(status_code=404, detail="template not found")

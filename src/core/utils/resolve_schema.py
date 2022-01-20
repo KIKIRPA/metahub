@@ -26,7 +26,7 @@ def get_resource_schema(resource: Resource):
 async def get_template(resource: Resource, category: str, template: str = "_default"):
     try:
         response = await crud.template.get_by_keys(
-            collection=db[core.settings.templates_collection], 
+            collection=db.templates, 
             resource=resource,
             category=category,
             template=template)
