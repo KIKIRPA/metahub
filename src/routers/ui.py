@@ -21,7 +21,7 @@ router = APIRouter(
 
 templates = Jinja2Templates(directory="templates")
 document_types_list = json.dumps([{"alias": k, "short": v["short"]} for k, v in core.document_types.items()])
-activity_types_list = json.dumps([{"alias": k, "name": v["name"]} for k, v in core.activity_types.items()])
+project_types_list = json.dumps([{"alias": k, "name": v["name"]} for k, v in core.project_types.items()])
 
 # Creating a MongoDB client and connect to the relevant collections
 client = AsyncIOMotorClient(core.settings.mongo_conn_str)
@@ -118,31 +118,31 @@ async def show_template_form_with_keys(
 
 
 
-@router.get("/activity", response_class=HTMLResponse)
-def show_activity_list(request: Request):
+@router.get("/project", response_class=HTMLResponse)
+def show_project_list(request: Request):
     """
-    Displaying the activity list
+    Displaying the project list
     """
-    return templates.TemplateResponse("activity_list.html.jinja", {"request": request})
+    return templates.TemplateResponse("project_list.html.jinja", {"request": request})
 
 
-@router.get("/activity/{activity_type}", response_class=HTMLResponse)
-def show_activity_form(
+@router.get("/project/{project_type}", response_class=HTMLResponse)
+def show_project_form(
         request: Request, 
-        activity_type: str = Path(None, description="The type of activity"),
-        id: Optional[str] = Query(None, description="The activity id")):
+        project_type: str = Path(None, description="The type of project"),
+        id: Optional[str] = Query(None, description="The project id")):
     """
-    Displaying the activity input form
+    Displaying the project input form
     """
     
-    if activity_type not in core.activity_types:
-        raise HTTPException(status_code=404, detail="Activity type does not exist")
+    if project_type not in core.project_types:
+        raise HTTPException(status_code=404, detail="Project type does not exist")
     
-    return templates.TemplateResponse("activity_form.html.jinja", {
+    return templates.TemplateResponse("project_form.html.jinja", {
         "request": request, 
-        "schema_alias": activity_type, 
+        "schema_alias": project_type, 
         "template_alias": "",
-        "schema_list": activity_types_list,
+        "schema_list": project_types_list,
         "id": id 
     })
 

@@ -1,10 +1,10 @@
 from typing import Set, Optional
 from pydantic import Field
 
-from .activity import Activity
+from .project import Project
 
 
-class InterventionFile(Activity):
+class InterventionFile(Project):
     #intervention_file_id: str = Field(...)
     #related_objects: Optional[Set[int]]
 

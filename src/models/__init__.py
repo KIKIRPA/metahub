@@ -1,3 +1,3 @@
 from .template import Template, TemplateUpdate, TemplateList
-from .activity import Activity, ActivityUpdate, ActivityList
+from .project import Project, ProjectUpdate, ProjectList
 from .document import Document, DocumentUpdate, DocumentList

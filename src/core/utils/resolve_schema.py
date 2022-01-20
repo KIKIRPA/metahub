@@ -1,4 +1,3 @@
-from logging import NullHandler
 from mergedeep import merge
 
 from fastapi import HTTPException
@@ -6,7 +5,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 
 import core
 from core.enums import Resource
-from models import Activity, Document, TemplateUpdate
+from models import Project, Document, TemplateUpdate
 import crud
 
 

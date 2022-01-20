@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 from bson import ObjectId
 
 
-class ActivityType(str, Enum):
+class ProjectType(str, Enum):
     INTERVENTION_FILE = 'Intervention file'
     PROJECT = 'Project'
 
@@ -45,16 +45,16 @@ class Contributor(BaseModel):
     role: Role = Field(...)
 
 
-class Activity(BaseModel):
+class Project(BaseModel):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id", title="Document Id")
-    activity_type: ActivityType = Field(...)
-    activity_id: str = Field(...)
+    project_type: ProjectType = Field(...)
+    project_id: str = Field(...)
     unit: Unit = Field(...)
-    subject: Optional[str] = Field(None, description='Subject of the activity (e.g. project name or object title)')
+    subject: Optional[str] = Field(None, description='Subject of the project (e.g. project name or object title)')
     related_objects: Optional[List[int]]
     contributors: Optional[List[Contributor]] = Field(None, unique=True)
     state: State = Field(...)
 
     class Config:
         json_encoders = {ObjectId: str}
-        title = "Activity"
+        title = "Project"

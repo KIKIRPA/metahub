@@ -1,15 +1,15 @@
-import models.activities
+import models.projects
 
 
-activity_types = {
+project_types = {
     "intervention_file": {
         "alias": "intervention_file",
         "name": "Intervention file",
-        "model": models.activities.InterventionFile
+        "model": models.projects.InterventionFile
     },
     "project": {
         "alias": "project",
         "name": "¨Project",
-        "model": models.activities.Project
+        "model": models.projects.Project
     }
 }

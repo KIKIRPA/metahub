@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-    <title>Activity list</title>
+    <title>Project list</title>
     <meta charset="UTF-8">
     <link rel="shortcut icon" href="/static/images/favicon.ico">
 
@@ -37,8 +37,8 @@
 
                 <v-data-table
                     :headers="headers"
-                    :items="activities"
-                    :server-items-length="totalActivities"
+                    :items="projects"
+                    :server-items-length="totalProjects"
                     :options.sync="options"
                     :loading="loading"
                     :footer-props="{'items-per-page-options':[10, 50, 100, -1]}">
@@ -80,16 +80,16 @@
             data: {
                 headers: [
                     {text: ' ', value:'_id', sortable: false},
-                    {text: 'Intervention File/Project', value: 'activity_id'},
+                    {text: 'Intervention File/Project', value: 'project_id'},
                     {text: 'Unit', value: 'unit'},
                     {text: 'Subject', value: 'subject'},
-                    {text: 'Activity type', value: 'activity_type'},
+                    {text: 'Project type', value: 'project_type'},
                     {text: 'State', value: 'state'},
                 ],
-                activities: [],
-                totalActivities: 0,
+                projects: [],
+                totalProjects: 0,
                 options: {
-                    sortBy: ['activity_id', 'unit'],
+                    sortBy: ['project_id', 'unit'],
                     multiSort: true},
                 search: '',
                 loading: true,
@@ -98,14 +98,14 @@
             watch: {
                 options: {
                     handler () {
-                        this.getActivities()
+                        this.getProjects()
                         },
                     deep: true,
                 },
             },
 
             methods: {
-                getActivities() {
+                getProjects() {
                     this.loading = true
                     
                     // query parameters
@@ -118,11 +118,11 @@
                     }
                  
                     // api call
-                    url = '/api/v1/activity'
+                    url = '/api/v1/project'
                     return axios.get(url, {params: parameters})
                         .then(response => {
-                            this.activities = response.data.data
-                            this.totalActivities = response.data.pagination.total
+                            this.projects = response.data.data
+                            this.totalProjects = response.data.pagination.total
                             this.loading = false
                         })
                         .catch(error => {
@@ -131,7 +131,7 @@
                 },
 
                 openForm(item) {
-                    window.open("/activity/intervention_file?id=" + item._id, "_self")
+                    window.open("/project/intervention_file?id=" + item._id, "_self")
                 }
             }
         })

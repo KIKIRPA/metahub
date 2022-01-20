@@ -1,1 +1,1 @@
-from . import templates, activities
+from . import templates, projects

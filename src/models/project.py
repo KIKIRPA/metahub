@@ -36,24 +36,24 @@ class Terms(BaseModel):
     embargo: date
 
 
-class ActivityUpdate(BaseModel):
-    code: str = Field(..., description='Intervention number, project acronym...')
+class ProjectUpdate(BaseModel):
+    code: str = Field(..., description='Project code or acronym')
     unit: Unit = Field(...)
-    subject: Optional[str] = Field(None, description='Subject of the activity (e.g. project name or object title)')
+    subject: Optional[str] = Field(None, description='Subject of the project (e.g. project name or object title)')
     contributors: Optional[List[Contributor]] = Field(None, unique=True)
     state: State = Field(...)
     terms: Optional[Terms] = Field(None)
 
 
-class _ActivityShort(ActivityUpdate, IdBaseModel):
+class _ProjectShort(ProjectUpdate, IdBaseModel):
     pass
 
 
-class Activity(LoggingBaseModel, _ActivityShort):
+class Project(LoggingBaseModel, _ProjectShort):
     class Config:
-        title = "Generic activity"
+        title = "Generic project"
 
 
-class ActivityList(BaseModel):
+class ProjectList(BaseModel):
     query_parameters: QueryParameters = Field(...)
-    data: List[_ActivityShort] = Field([])
+    data: List[_ProjectShort] = Field([])

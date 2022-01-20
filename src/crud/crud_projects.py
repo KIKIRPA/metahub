@@ -1,7 +1,7 @@
 from crud.base import CRUDBase
 
 
-activity = CRUDBase()
+project = CRUDBase()
 
 intervention_file = CRUDBase()
 
