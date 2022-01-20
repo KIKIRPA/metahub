@@ -72,7 +72,7 @@ class RamanResults(BaseModel):
 
 
 class Raman(Measurement):
-    document_type: str = Field("raman", const=True) #OVERRIDE FROM DOCUMENT
+    dataset_type: str = Field("raman", const=True) #OVERRIDE FROM DATASET
     measurement_parameters: Optional[RamanParameters] = Field(None)
     measurement_results: Optional[RamanResults] = Field(None)
 

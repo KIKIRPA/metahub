@@ -5,7 +5,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 
 import core
 from core.enums import Resource
-from models import Project, Document, TemplateUpdate
+from models import Project, Dataset, TemplateUpdate
 import crud
 
 

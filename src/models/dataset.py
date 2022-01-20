@@ -22,23 +22,23 @@ class File(BaseModel):
     format: Optional[str] = Field(None, title="File format")
 
 
-class DocumentUpdate(BaseModel):
-    document_type: str = Field(...)
+class DatasetUpdate(BaseModel):
+    dataset_type: str = Field(...)
     dossier_id: str = Field(..., title='Dossier/project Id')
-    object_id: Optional[int] = Field(None, description="Object number to which this document belongs")
+    object_id: Optional[int] = Field(None, description="Object number to which this dataset belongs")
     contributors: Optional[Set[Contributor]] = Field(...)
     files: Optional[Set[File]] = Field(...)
 
 
-class _DocumentShort(DocumentUpdate, IdBaseModel):
+class _DatasetShort(DatasetUpdate, IdBaseModel):
     pass
 
 
-class Document(LoggingBaseModel, _DocumentShort):
+class Dataset(LoggingBaseModel, _DatasetShort):
     class Config:
-        title = "Generic document"
+        title = "Generic dataset"
 
 
-class DocumentList(BaseModel):
+class DatasetList(BaseModel):
     query_parameters: QueryParameters = Field(...)
-    data: List[_DocumentShort] = Field([])
+    data: List[_DatasetShort] = Field([])

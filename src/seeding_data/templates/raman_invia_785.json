@@ -1,5 +1,5 @@
 {
-    "resource": "document",
+    "resource": "dataset",
     "category": "raman",
     "template": "invia_785",
     "short_name": "INVIA 785",

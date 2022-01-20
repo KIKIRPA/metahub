@@ -19,8 +19,8 @@ class PyObjectId(ObjectId):
         field_schema.update(type="string")
 
 
-class DocumentTemplate(BaseModel):
-    id: PyObjectId = Field(default_factory=PyObjectId, alias="_id", title="Document Id")
+class DatasetTemplate(BaseModel):
+    id: PyObjectId = Field(default_factory=PyObjectId, alias="_id", title="Dataset Id")
     alias: str = Field(..., description='Short and unique name for the template')
     title: str = Field(..., description='Descriptive name for the template')
     schemas: Set[str] = Field(..., description='Base schemas on which this template can be applied')
@@ -30,7 +30,7 @@ class DocumentTemplate(BaseModel):
         json_encoders = {ObjectId: str}
 
 
-class DocumentTemplateReduced(BaseModel):
+class DatasetTemplateReduced(BaseModel):
     alias: str
     title: str
     schemas: Set[str]

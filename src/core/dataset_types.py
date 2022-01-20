@@ -1,23 +1,23 @@
-import models.documents
+import models.datasets
 
 
-document_types = {
+dataset_types = {
     "dendro": {
         "alias": "dendro",
         "name": "Dendrochronology measurement",
         "short": "DENDRO",
-        "model": models.documents.Dendro
+        "model": models.datasets.Dendro
     },
     "drms": {
         "alias": "drms",
         "name": "Drilling resistance measurement",
         "short": "DRMS",
-        "model": models.documents.DRMS
+        "model": models.datasets.DRMS
     },
     "raman": {
         "alias": "raman",
         "name": "Micro-Raman spectroscopy measurement",
         "short": "MRS",
-        "model": models.documents.Raman
+        "model": models.datasets.Raman
     }
 }

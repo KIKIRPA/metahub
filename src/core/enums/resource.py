@@ -4,4 +4,4 @@ class Resource(str, Enum):
     PROJECT = 'project'
     COLLECTION = 'collection'
     SAMPLE = 'sample'
-    DOCUMENT = 'document'
+    DATASET = 'dataset'

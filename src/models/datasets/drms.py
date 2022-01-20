@@ -25,7 +25,7 @@ class DRMSResults(BaseModel):
 
 
 class DRMS(Measurement):
-    document_type: str = Field("drms", const=True) #OVERRIDE FROM DOCUMENT
+    dataset_type: str = Field("drms", const=True) #OVERRIDE FROM DATASET
     measurement_parameters: Optional[DRMSParameters] = Field(None)
     measurement_results: Optional[DRMSResults] = Field(None)
 

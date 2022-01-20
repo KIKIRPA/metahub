@@ -2,7 +2,7 @@ from datetime import date
 from typing import Set, Optional
 
 from pydantic import BaseModel, Field
-from .document import Document
+from .dataset import Dataset
 
 
 class MeasurementId(BaseModel):
@@ -17,7 +17,7 @@ class Sample(BaseModel):
     sample_id: str
 
 
-class Measurement(Document):
+class Measurement(Dataset):
     measurement_id: MeasurementId = Field(...)
     samples: Optional[Set[Sample]] = Field(..., title='Samples')
 

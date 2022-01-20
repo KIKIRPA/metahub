@@ -46,7 +46,7 @@ class Contributor(BaseModel):
 
 
 class Project(BaseModel):
-    id: PyObjectId = Field(default_factory=PyObjectId, alias="_id", title="Document Id")
+    id: PyObjectId = Field(default_factory=PyObjectId, alias="_id", title="Dataset Id")
     project_type: ProjectType = Field(...)
     project_id: str = Field(...)
     unit: Unit = Field(...)

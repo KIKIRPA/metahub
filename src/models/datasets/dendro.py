@@ -162,7 +162,7 @@ class DendroResults(BaseModel):
 
 
 class Dendro(Measurement):
-    document_type: str = Field("dendro", const=True) #OVERRIDE FROM DOCUMENT
+    dataset_type: str = Field("dendro", const=True) #OVERRIDE FROM DATASET
     measurement_parameters: Optional[DendroParameters] = Field(None)
     measurement_results: Optional[DendroResults] = Field(None)
 

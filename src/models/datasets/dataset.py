@@ -36,14 +36,14 @@ class File(BaseModel):
     format: Optional[str] = Field(None, title="File format")
 
 
-class Document(BaseModel):
-    id: PyObjectId = Field(default_factory=PyObjectId, alias="_id", title="Document Id")
-    document_type: str = Field(...)
+class Dataset(BaseModel):
+    id: PyObjectId = Field(default_factory=PyObjectId, alias="_id", title="Dataset Id")
+    dataset_type: str = Field(...)
     dossier_id: str = Field(..., title='Dossier/project Id')
-    object_id: Optional[int] = Field(None, description="Object number to which this document belongs")
+    object_id: Optional[int] = Field(None, description="Object number to which this dataset belongs")
     contributors: Optional[Set[Contributor]] = Field(...)
     files: Optional[Set[File]] = Field(...)
 
     class Config:
         json_encoders = {ObjectId: str}
-        title = "Document"
+        title = "Dataset"
