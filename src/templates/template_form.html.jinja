@@ -246,9 +246,9 @@
                                     <pre>{{ '{{computedSchema}}' }}</pre>
                                 </v-tab-item>
                                 <v-tab-item>
-                                    <v-form ref="computedSchemaForm" v-model="computedSchemaValid">
+                                    <!-- v-form ref="computedSchemaForm" v-model="computedSchemaValid">
                                         <v-jsf v-model="computedSchemaModel" :schema="computedSchema" :options="computedSchemaOptions"/>
-                                    </v-form>
+                                    </v-form -->
                                 </v-tab-item>
                             </v-tabs-items>
                         </v-card-text>
@@ -313,6 +313,7 @@
                 validMeta: function(val) {this.showStep()},
                 validJson: function(val) {this.showStep()},
                 key: function(val) {
+                    console.log('Watch: key')
                     if (this.model.hasOwnProperty('resource')
                             && this.model.hasOwnProperty('category')
                             && this.model.hasOwnProperty('template')) {
@@ -343,7 +344,6 @@
                 tab: null,
                 baseSchemaKey: "",
                 baseSchema: {},
-                computedSchema: {},
                 needsFullReload: true,
 
                 validMeta: null,
@@ -352,6 +352,7 @@
                 validSchema: null,
                 validSchemaError: "",
 
+                computedSchema: {},
                 computedSchemaValid: null,
                 computedSchemaModel: {},
                 computedSchemaOptions: {},
@@ -359,17 +360,20 @@
 
             methods: {
                 initialize() {
+                    console.log('Method initialize')
                     this.transformSchema(initialSchema)
                     this.getTemplate(initialId)
                 },
 
                 transformSchema(schemaString) {
+                    console.log('TransformSchema')
                     schema = JSON.parse(schemaString)
                     schema.properties.json_schema["x-display"] = "hidden"
                     this.schema = schema
                 },
 
                 getTemplate(id) {
+                    console.log('Method getTemplate')
                     if (id !== "") {
                         let url = '/api/v1/templates/' + id
                         console.log('Get ' + url)
@@ -396,6 +400,7 @@
                 },
 
                 getBaseSchema() {
+                    console.log('Method getBaseSchema')
                     if (this.model.hasOwnProperty('resource')
                             && this.model.hasOwnProperty('category')
                             && this.model.hasOwnProperty('template')) { 
@@ -420,6 +425,7 @@
                 },
 
                 convertJson() {
+                    console.log('Method convertJson')
                     try {
                         this.model.json_schema = JSON.parse(this.jsonSchemaTxt)
                         this.validJson = true
@@ -432,15 +438,29 @@
                 },
 
                 showStep() {
+                    console.log('Method showStep')
                     if (!this.validMeta) this.stepper = 1
                     else if (!this.validJson) this.stepper = 2
                     else this.stepper = 3
                 },
 
                 validateSchema() {
+                    console.log('Method validateSchema')
                     this.validSchemaError = ""
-                    if (this.needsFullReload) 
-                        this.getBaseSchema()
+                    //if (this.needsFullReload) 
+                    //    this.getBaseSchema()
+                    
+                    let url = '/api/v1/templates/validate'
+                    console.log('Post ' + url)
+                    axios.post(url, this.model)
+                        .then(function (response) {
+                            console.log(response.data)
+                            this.computedSchema = response.data
+                            console.log(this.computedSchema)
+                        })
+                        .catch(function (error) {
+                            console.log(error);
+                        });
                 },
 
             },
