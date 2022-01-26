@@ -97,22 +97,74 @@
             <v-row>
 
                 <v-col>
-                    <v-card class="mt-6" :disabled="!isEditable">
-                        <v-card-title class="primary--text text-h5">Template</v-card-title>
-                        <v-card-text >
-                            <v-form ref="form" v-model="validMeta">
-                                <v-jsf v-model="model" :schema="schema" :options="options"/>
-                            </v-form>
-                            <v-textarea
-                                v-model="jsonSchemaTxt"
-                                @change="convertJson()"
-                                name="json_schema_txt"
-                                label="JSON schema overrides"
-                                style="font-family:'monospace'"
-                                rows="10"
-                                filled />
-                        </v-card-text>
-                    </v-card>
+
+                    <v-expansion-panels 
+                        class="mt-6" 
+                        multiple 
+                        v-model="panel">
+
+                        <v-expansion-panel>
+                            <v-expansion-panel-header class="primary--text text-h5">Template</v-expansion-panel-header>
+                            <v-expansion-panel-content>
+                                <v-card tile flat :disabled="!isEditable">
+                                    <v-form ref="form" v-model="validMeta">
+                                        <v-jsf v-model="model" :schema="schema" :options="options"/>
+                                    </v-form>
+                                    <v-textarea
+                                        v-model="jsonSchemaTxt"
+                                        @change="convertJson()"
+                                        name="json_schema_txt"
+                                        label="JSON schema overrides"
+                                        style="font-family:'monospace'"
+                                        rows="10"
+                                        filled />
+                                </v-card>
+                            </v-expansion-panel-content>
+                        </v-expansion-panel>
+
+                        <v-expansion-panel v-if="validSchema">
+                            <v-expansion-panel-header class="primary--text text-h5">Data instance</v-expansion-panel-header>
+                            <v-expansion-panel-content>
+                                <v-card tile flat>
+                                    <v-card-text>
+                                        <v-textarea
+                                            v-model="computedSchemaModelJson"
+                                            name="json_schema_txt"
+                                            label="Data"
+                                            style="font-family:'monospace'"
+                                            rows="10"
+                                            filled />
+                                    </v-card-text>
+                                    <v-card-actions>
+                                        <v-btn 
+                                            class="mx-2"
+                                            color="primary"
+                                            @click="convertComputedSchemaModelToJson">
+                                            <v-icon
+                                                left
+                                                dark>
+                                                mdi-arrow-left-circle
+                                            </v-icon>
+                                            Data from form
+                                        </v-btn>
+                                        <v-btn 
+                                            class="mx-2"
+                                            color="primary"
+                                            @click="convertJsonToComputedSchemaModel">
+                                            <v-icon
+                                                left
+                                                dark>
+                                                mdi-arrow-right-circle
+                                            </v-icon>
+                                            Data to form
+                                        </v-btn>
+                                    </v-card-actions>
+                                </v-card>
+
+                            </v-expansion-panel-content>
+                        </v-expansion-panel>
+
+                    </v-expansion-panels>
                 </v-col>
 
                 <v-col>
@@ -200,11 +252,16 @@
                             <v-stepper-content step="3">
                                 <v-card>
                                     <v-card-actions>
-                                        <span 
-                                            class="error--text"
-                                            v-if="!validSchema || needsFullReload">
-                                            {{ '{{validSchemaError}}' }}
+                                        <span>
+                                            {{ '{{validSchemaMsg}}' }}
                                         </span>
+                                        <div 
+                                            class="error--text"
+                                            v-if="!validSchema">
+                                            <p class="font-weight-bold">{{ '{{validSchemaErrorType}}' }}</p>
+                                            <p class="font-weight-regular">{{ '{{validSchemaErrorMsg}}' }}</p>
+                                            <p class="text-caption">{{ '{{validSchemaErrorLoc}}' }}</p>
+                                        </div>
                                         <v-spacer></v-spacer>
                                         <v-tooltip bottom>
                                             <template v-slot:activator="{ on, attrs }">
@@ -227,14 +284,14 @@
                         </v-stepper-items>
                     </v-stepper>
 
-                    <v-card class="mt-6" v-if="!needsFullReload">
+                    <v-card class="mt-6">
                         <v-card-title>
                             <v-tabs 
                                 v-model="tab"
                                 grow>
                                 <v-tab>Base schema</v-tab>
-                                <v-tab>Computed schema</v-tab>
-                                <v-tab>Example form</v-tab>
+                                <v-tab v-if="validSchema">Computed schema</v-tab>
+                                <v-tab v-if="validSchema">Example form</v-tab>
                             </v-tabs>
                         </v-card-title>
                         <v-card-text>
@@ -246,18 +303,9 @@
                                     <pre>{{ '{{computedSchema}}' }}</pre>
                                 </v-tab-item>
                                 <v-tab-item>
-                                    <div class="primary--text text-h5">Form</div>
                                     <v-form ref="computedSchemaForm" v-model="computedSchemaValid">
                                         <v-jsf v-model="computedSchemaModel" :schema="computedSchema" :options="computedSchemaOptions"/>
                                     </v-form>
-                                    <div class="primary--text text-h5">Instance</div>
-                                    <v-textarea
-                                        v-model="computedSchemaModelJson"
-                                        name="json_schema_txt"
-                                        label="Data"
-                                        style="font-family:'monospace'"
-                                        rows="10"
-                                        filled />
                                 </v-tab-item>
                             </v-tabs-items>
                         </v-card-text>
@@ -316,7 +364,7 @@
                 isEditable: function(val) {
                     if (val && this.model.hasOwnProperty('resource')) {
                         this.$refs.form.validate()  //validate metadata
-                        this.convertJson()          //validate json
+                        this.validJson = true       //json should be valid
                     }
                 },
                 validMeta: function(val) {this.showStep()},
@@ -325,40 +373,45 @@
                     if (this.model.hasOwnProperty('resource')
                             && this.model.hasOwnProperty('category')
                             && this.model.hasOwnProperty('template')) {
-                        if (this.baseSchemaKey === "")
+                        if (this.baseSchemaKey === "") {
+                            //initial situation
                             this.getBaseSchema()
-                        else {
+                        } else {
+                            //when the template form changes
+                            this.eraseComputed()
                             let newBaseSchemaKey = this.model.resource 
                                 + ((this.model.template !== '_default') ? '/' + this.model.category : '')
                             if (newBaseSchemaKey !== this.baseSchemaKey) {
-                                this.needsFullReload = true
-                                this.validSchemaError = "Project, category or template fields have changed. Validation is required"
+                                this.getBaseSchema()
                             }
                         }
                     }
-                    this.computedSchema = {}
                 },
             },
 
             data: {
-                options,
-                model: {},
-                schema: {},
                 title: "Template form (loading)",
+                panel: [0, 1],
                 stepper: 1,
                 isEditable: false,
                 isNew: false,
-                jsonSchemaTxt: "",
                 tab: null,
+                
+                options,
+                model: {},
+                schema: {},
                 baseSchemaKey: "",
                 baseSchema: {},
-                needsFullReload: true,
+                jsonSchemaTxt: "",
 
                 validMeta: null,
                 validJson: null,
                 validJsonError: "",
                 validSchema: null,
-                validSchemaError: "",
+                validSchemaMsg: "",
+                validSchemaErrorType: "",
+                validSchemaErrorMsg: "",
+                validSchemaErrorLoc: "",
 
                 computedSchema: {},
                 computedSchemaValid: null,
@@ -390,8 +443,7 @@
                                 this.title = "Template: " + response.data.resource + "/" + response.data.category  + "/" + response.data.template
                                 this.isEditable = false
                                 this.isNew = false
-                                this.needsFullReload = false
-                                this.getBaseSchema()
+                                this.validateSchema()
                             })
                             .catch(error => {
                                 console.log(error)
@@ -417,10 +469,10 @@
                             .then(response => {
                                 this.baseSchema = response.data
                                 this.baseSchemaKey = baseSchemaKey
-                                this.needsFullReload = false
                             })
                             .catch(error => {
                                 this.baseSchema = {}
+                                this.baseSchemaKey = ""
                                 console.log(error)
                             })
                     } else {
@@ -431,22 +483,32 @@
 
                 validateSchema() {
                     this.validSchemaError = ""
-                    //if (this.needsFullReload) 
-                    //    this.getBaseSchema()
-                    
                     let url = '/api/v1/templates/validate'
                     console.log('Post ' + url)
                     axios.post(url, this.model)
                         .then(response => {
-                            console.log(response.data)
                             this.computedSchema = response.data
+                            this.validSchema = true
+                            this.validSchemaMsg = "The JSON schema is valid. Before saving, thouroughly test the schema and form!"
+                            this.validSchemaErrorType = this.validSchemaErrorMsg = this.validSchemaErrorLoc = ""
+                            this.convertComputedSchemaModelToJson()
                         })
                         .catch(error => {
-                            console.log(error);
-                        });
+                            this.validSchema = false
+                            this.validSchemaMsg = ""
+                            if (error.response.status == 422) {
+                                this.validSchemaErrorType = error.response.data.detail.type
+                                this.validSchemaErrorMsg = error.response.data.detail.msg
+                                this.validSchemaErrorLoc = "Location: " + error.response.data.detail.loc.join(" > ")
+                                console.log(error.response)
+                            } else {
+                                console.log(error)
+                            }
+                        })
                 },
 
                 convertJson() {
+                    this.eraseComputed()
                     try {
                         this.model.json_schema = JSON.parse(this.jsonSchemaTxt)
                         this.validJson = true
@@ -458,12 +520,38 @@
                     }
                 },
 
+                convertJsonToComputedSchemaModel() {
+                    try {
+                        this.computedSchemaModel = JSON.parse(this.computedSchemaModelJson)
+                    } catch (e) {
+                        console.log(e.toString())
+                    }
+                },
+
+                convertComputedSchemaModelToJson() {
+                    try {
+                        if (!this.validSchema)
+                            this.$refs.computedSchemaForm.validate()
+                        this.computedSchemaModelJson = JSON.stringify(this.computedSchemaModel, null, 2)
+                    } catch (e) {
+                        console.log(e.toString())
+                    }
+                },
+
                 showStep() {
                     if (!this.validMeta) this.stepper = 1
                     else if (!this.validJson) this.stepper = 2
                     else this.stepper = 3
                 },
 
+                eraseComputed() {
+                    this.computedSchema = {}
+                    this.validSchema = false
+                    this.validSchemaMsg = "The template has changed. Manual validation is required."
+                    this.validSchemaErrorType = ""
+                    this.validSchemaErrorMsg = ""
+                    this.validSchemaErrorLoc = ""
+                },
             },
         })
     </script>
