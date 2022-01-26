@@ -200,7 +200,7 @@ async def validate_template(template: models.TemplateUpdate):
             raise NotImplementedError("This draft of JSON-schema is not implemented")
     except jsonschema.exceptions.SchemaError as err:
         detail = {
-            "type": f"Invalid JSON Schema: {err.validator} error [{core.settings.json_schema_version.name.capitalize()}]",
+            "type": f"Invalid JSON Schema: {err.validator} error [{core.settings.json_schema_version}]",
             "msg": err.message,
             "loc": list(err.path)
         }
