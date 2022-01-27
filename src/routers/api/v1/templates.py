@@ -120,9 +120,16 @@ async def create_template(template: models.TemplateUpdate):
     Create a new template.
     """
     try:
+        # first validate the schema
+        resolved_schema = await core.utils.resolve_schema(temporary_template=template)
+        core.utils.validate_schema(resolved_schema)
+
+        # create the template
         response = await crud.template.create(
             collection=db.templates,
             data=template)
+    except core.utils.SchemaValidationError as err:
+        raise HTTPException(status_code=422, detail=err.args[0])
     except crud.DuplicateKeyError:
         raise HTTPException(status_code=422, detail="duplicate key (resource, category, template)")
     except crud.NotCreatedError:
@@ -140,10 +147,17 @@ async def update_template(
     Update a template.
     """
     try:
+        # first validate the schema
+        resolved_schema = await core.utils.resolve_schema(temporary_template=template)
+        core.utils.validate_schema(resolved_schema)
+
+        # update the template
         updated = await crud.template.update(
             collection=db.templates, 
             id=id,
             data=template)
+    except core.utils.SchemaValidationError as err:
+        raise HTTPException(status_code=422, detail=err.args[0])
     except crud.NoResultsError:
         raise HTTPException(status_code=404, detail="template not found")
     except crud.DuplicateKeyError:
@@ -181,7 +195,7 @@ async def validate_template(template: models.TemplateUpdate):
     """
     try:
         resolved_schema = await core.utils.resolve_schema(temporary_template=template)
-        core.utils.validate_schema(resolved_schema)        
+        core.utils.validate_schema(resolved_schema)
     except core.utils.SchemaValidationError as err:
         raise HTTPException(status_code=422, detail=err.args[0])
     except BaseException as err:
