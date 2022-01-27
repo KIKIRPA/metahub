@@ -2,11 +2,10 @@ from typing import Optional, List
 
 from fastapi import APIRouter, HTTPException, Query, Path
 from motor.motor_asyncio import AsyncIOMotorClient
-import jsonschema
 
 import core
-from core.utils import resolve_schema
-from core.enums import JsonSchemaVersion, Resource
+import core.utils
+from core.enums import Resource
 import models
 import crud
 
@@ -180,31 +179,11 @@ async def validate_template(template: models.TemplateUpdate):
     """
     Validate a template.
     """
-    resolved_schema = await resolve_schema(temporary_template=template)
-
-    version = JsonSchemaVersion[core.settings.json_schema_version]
     try:
-        if version == JsonSchemaVersion.DRAFT202012:
-            jsonschema.Draft201909Validator.check_schema(resolved_schema)
-        elif version == JsonSchemaVersion.DRAFT201909:
-            jsonschema.Draft201909Validator.check_schema(resolved_schema)
-        elif version == JsonSchemaVersion.DRAFT7:
-            jsonschema.Draft7Validator.check_schema(resolved_schema)
-        elif version == JsonSchemaVersion.DRAFT6:
-            jsonschema.Draft6Validator.check_schema(resolved_schema)
-        elif version == JsonSchemaVersion.DRAFT4:
-            jsonschema.Draft4Validator.check_schema(resolved_schema)
-        elif version == JsonSchemaVersion.DRAFT3:
-            jsonschema.Draft3Validator.check_schema(resolved_schema)
-        else:
-            raise NotImplementedError("This draft of JSON-schema is not implemented")
-    except jsonschema.exceptions.SchemaError as err:
-        detail = {
-            "type": f"Invalid JSON Schema: {err.validator} error [{core.settings.json_schema_version}]",
-            "msg": err.message,
-            "loc": list(err.path)
-        }
-        raise HTTPException(status_code=422, detail=detail)
+        resolved_schema = await core.utils.resolve_schema(temporary_template=template)
+        core.utils.validate_schema(resolved_schema)        
+    except core.utils.SchemaValidationError as err:
+        raise HTTPException(status_code=422, detail=err.args[0])
     except BaseException as err:
         raise HTTPException(status_code=400, detail=err)
 
