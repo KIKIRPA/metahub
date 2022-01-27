@@ -17,22 +17,37 @@ def translate_id(obj: dict):
 
 
 class NoResultsError(Exception):
+    """
+    Exception raised when a CRUD retrieve action does not yield results
+    """
     pass
 
 
 class NotCreatedError(Exception):
+    """
+    Exception raised when a CRUD create action does not succeed
+    """
     pass
 
 
 class NotUpdatedError(Exception):
+    """
+    Exception raised when a CRUD update action does not succeed
+    """
     pass
 
 
 class NotDeletedError(Exception):
+    """
+    Exception raised when a CRUD delete action does not succeed
+    """
     pass
 
 
 class DuplicateKeyError(Exception):
+    """
+    Exception raised when a CRUD action would result in a duplicate key
+    """
     pass
 
 
