@@ -109,6 +109,7 @@
                     <v-alert class="mb-0"
                         v-model="alert"
                         :type="alertType"
+                        elevation="5"
                         transition="scale-transition"
                         dismissible>
                         {{ '{{alertText}}' }}
@@ -323,6 +324,13 @@
                                     <pre>{{ '{{computedSchema}}' }}</pre>
                                 </v-tab-item>
                                 <v-tab-item>
+                                    <v-alert
+                                        outlined
+                                        type="info"
+                                        elevation="5"
+                                        class="ml-5 mr-7">
+                                        This form shows the fields exactly as described in the JSON schema, <em>unprocessed</em>. In the specific resource forms, some fields may be rendered differently or hidden.
+                                    </v-alert>
                                     <v-form ref="computedSchemaForm" v-model="computedSchemaValid">
                                         <v-jsf v-model="computedSchemaModel" :schema="computedSchema" :options="computedSchemaOptions"/>
                                     </v-form>
