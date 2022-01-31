@@ -541,7 +541,7 @@
                     axios.post(url, this.model)
                         .then(response => {
                             this.showAlert("success", "The template was successfully saved.")
-                            // replace data and make it an update form
+                            // replace data with the returned data
                             this.isNew = false
                             this.isEditable = false
                             initialId = response.data.id
@@ -561,11 +561,16 @@
 
                 putTemplate() {
                     this.alert = false
-                    let url = '/api/v1/templates' + model.id
+                    let url = '/api/v1/templates/' + this.model.id
                     console.log('Put ' + url)
                     axios.put(url, this.model)
                         .then(response => {
                             this.showAlert("success", "The template was successfully saved.")
+                            // replace data with the returned data
+                            this.isEditable = false
+                            this.title = "Template: " + response.data.resource + "/" + response.data.category  + "/" + response.data.template
+                            this.model = response.data
+                            window.history.replaceState({}, "Template form", "/templates/" + response.data.id)
                         })
                         .catch(error => {
                             if (error.response && error.response.status == 422) {
