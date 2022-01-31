@@ -29,7 +29,11 @@
         </v-app-bar>
 
         <v-banner color="primary" class="elevation-5 px-10">
-            <span class="white--text text-h3 px-10">{{ '{{title}}' }}</span>
+            <span 
+                v-html="title"
+                class="white--text 
+                text-h3 
+                px-10"></span>
             <template v-slot:actions v-if="!isError">
                 <v-tooltip left v-if="!isNew && isEditable">
                     <template v-slot:activator="{ on, attrs }">
@@ -461,7 +465,8 @@
                             .then(response => {
                                 this.model = response.data
                                 this.jsonSchemaTxt = JSON.stringify(this.model.json_schema, null, 2)
-                                this.title = "Template: " + response.data.resource + "/" + response.data.category  + "/" + response.data.template
+                                this.title = "Template: <i>" + response.data.resource + "</i> &#10148; <i>" + response.data.category + "</i>"
+                                if (response.data.template !== "_default") this.title += " &#10148; <i>" + response.data.template + "</i>"
                                 this.isEditable = false
                                 this.isNew = false
                                 this.validateSchema()
@@ -545,7 +550,8 @@
                             this.isNew = false
                             this.isEditable = false
                             initialId = response.data.id
-                            this.title = "Template: " + response.data.resource + "/" + response.data.category  + "/" + response.data.template
+                            this.title = "Template: <i>" + response.data.resource + "</i> &#10148; <i>" + response.data.category + "</i>"
+                            if (response.data.template !== "_default") this.title += " &#10148; <i>" + response.data.template + "</i>"
                             this.model = response.data
                             window.history.replaceState({}, "Template form", "/templates/" + response.data.id)
                         })
@@ -568,7 +574,9 @@
                             this.showAlert("success", "The template was successfully saved.")
                             // replace data with the returned data
                             this.isEditable = false
-                            this.title = "Template: " + response.data.resource + "/" + response.data.category  + "/" + response.data.template
+                            this.title = "Template: " + response.data.resource + " &#10148; " + response.data.category
+                            this.title = "Template: <i>" + response.data.resource + "</i> &#10148; <i>" + response.data.category + "</i>"
+                            if (response.data.template !== "_default") this.title += " &#10148; <i>" + response.data.template + "</i>"
                             this.model = response.data
                             window.history.replaceState({}, "Template form", "/templates/" + response.data.id)
                         })
