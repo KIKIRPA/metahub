@@ -338,7 +338,7 @@
 
         // initial settings and data from jinja
         const initialSchema = '{{ schema | safe }}'
-        const initialId = '{{ id }}'
+        let initialId = '{{ id }}'
         const options =  { 
             "editMode": "inline",
             "textareaProps": {
@@ -541,6 +541,13 @@
                     axios.post(url, this.model)
                         .then(response => {
                             this.showAlert("success", "The template was successfully saved.")
+                            // replace data and make it an update form
+                            this.isNew = false
+                            this.isEditable = false
+                            initialId = response.data.id
+                            this.title = "Template: " + response.data.resource + "/" + response.data.category  + "/" + response.data.template
+                            this.model = response.data
+                            window.history.replaceState({}, "Template form", "/templates/" + response.data.id)
                         })
                         .catch(error => {
                             if (error.response && error.response.status == 422) {
