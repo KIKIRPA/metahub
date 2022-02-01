@@ -13,9 +13,7 @@ source venv/bin/activate  # Activating the virtual environment
 pip install -r requirements.txt  # Installing requirements
 ```
 
-## Starting the API
-
-### MongoDB
+## Start MongoDB
 
 Before starting the API, verify that the MongoDB container is started by running the `docker-compose ps` command in the `mongo_container` directory. You should see something like:
 
@@ -27,6 +25,14 @@ mongo_container_mongo_mbapi_1     docker-entrypoint.sh mongod      Up      0.0.0
 ```
 
 If the MongoDB containers are not "up", one can do this with `docker-compose up`
+
+## Seed data
+
+```shell
+source venv/bin/activate  # Activating the virtual environment
+cd src
+python setup.py --drop --seed-templates "./seeding_data/templates/*.json"
+```
 
 ### FastAPI
 

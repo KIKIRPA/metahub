@@ -1,0 +1,732 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>Template form</title>
+    <meta charset="UTF-8">
+    <link rel="shortcut icon" href="/static/images/favicon.ico">
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@koumoul/vjsf@2.7.3/dist/main.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@koumoul/vjsf@2.7.3/dist/third-party.js"></script>
+
+    <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.x/css/materialdesignicons.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@koumoul/vjsf@2.7.3/dist/main.css">
+</head>
+<body>
+
+    <v-app id="app">
+
+        <v-app-bar color="white" class="px-10">
+            <img height="45" src="/static/images/logo.svg"/>
+            <v-spacer></v-spacer>
+            <v-app-bar-nav-icon></v-app-bar-nav-icon>
+        </v-app-bar>
+
+        <v-banner color="primary" class="elevation-5 px-10">
+            <span 
+                v-html="title"
+                class="white--text 
+                text-h3 
+                px-10"></span>
+            <template v-slot:actions v-if="!isError">
+                <v-tooltip left v-if="!isNew && isEditable">
+                    <template v-slot:activator="{ on, attrs }">
+                        <v-btn
+                            class="mx-2"
+                            color="error"
+                            fab
+                            small
+                            @click="deleteDialog = true"
+                            v-bind="attrs"
+                            v-on="on">
+                            <v-icon>mdi-delete</v-icon>
+                        </v-btn>
+                    </template>
+                    <span>Delete</span>
+                </v-tooltip>
+                <v-tooltip left v-if="isEditable">
+                    <template v-slot:activator="{ on, attrs }">
+                        <v-btn
+                            class="mx-2"
+                            color="success"
+                            fab
+                            small
+                            @click="saveTemplate()"
+                            v-bind="attrs"
+                            v-on="on"
+                            :disabled="!validMeta || !validJson || !validSchema">
+                            <v-icon>mdi-content-save</v-icon>
+                        </v-btn>
+                    </template>
+                    <span>Save</span>
+                </v-tooltip>
+                <v-tooltip left v-if="isEditable">
+                    <template v-slot:activator="{ on, attrs }">
+                        <v-btn
+                            class="mx-2"
+                            color="secondary"
+                            fab
+                            @click="initialize()"
+                            v-bind="attrs"
+                            v-on="on">
+                            <v-icon>mdi-cancel</v-icon>
+                        </v-btn>
+                    </template>
+                    <span>Cancel</span>
+                </v-tooltip>
+                <v-tooltip left v-if="!isEditable">
+                    <template v-slot:activator="{ on, attrs }">
+                        <v-btn
+                            class="mx-2"
+                            color="secondary"
+                            fab
+                            @click="isEditable = true"
+                            v-bind="attrs"
+                            v-on="on">
+                            <v-icon>mdi-pencil</v-icon>
+                        </v-btn>
+                    </template>
+                    <span>Edit template</span>
+                </v-tooltip>
+            </template>
+        </v-banner>
+
+        <v-container>
+
+            <v-row 
+                v-if="alert" 
+                class="pb-0">
+                <v-col
+                    md="6"
+                    offset-md="3"
+                    class="pb-0">
+                    <v-alert class="mb-0"
+                        v-model="alert"
+                        :type="alertType"
+                        elevation="5"
+                        transition="scale-transition"
+                        dismissible>
+                        {{ '{{alertText}}' }}
+                    </v-alert>
+                </v-col>
+            </v-row>
+
+            <v-row v-if="!isError">
+                <v-col>
+                    <v-expansion-panels 
+                        class="mt-6" 
+                        multiple 
+                        v-model="panel">
+
+                        <v-expansion-panel>
+                            <v-expansion-panel-header class="primary--text text-h5">Template</v-expansion-panel-header>
+                            <v-expansion-panel-content>
+                                <v-card tile flat :disabled="!isEditable">
+                                    <v-form ref="form" v-model="validMeta">
+                                        <v-jsf v-model="model" :schema="schema" :options="options"/>
+                                    </v-form>
+                                    <v-textarea
+                                        v-model="jsonSchemaTxt"
+                                        @change="convertJson()"
+                                        name="json_schema_txt"
+                                        label="JSON schema overrides"
+                                        style="font-family:'monospace'"
+                                        rows="10"
+                                        filled />
+                                </v-card>
+                            </v-expansion-panel-content>
+                        </v-expansion-panel>
+
+                        <v-expansion-panel v-if="validSchema">
+                            <v-expansion-panel-header class="primary--text text-h5">Data instance</v-expansion-panel-header>
+                            <v-expansion-panel-content>
+                                <v-card tile flat>
+                                    <v-card-text>
+                                        <v-textarea
+                                            v-model="computedSchemaModelJson"
+                                            name="json_schema_txt"
+                                            label="Data"
+                                            style="font-family:'monospace'"
+                                            rows="10"
+                                            filled />
+                                    </v-card-text>
+                                    <v-card-actions>
+                                        <v-btn 
+                                            class="mx-2"
+                                            color="primary"
+                                            @click="convertComputedSchemaModelToJson">
+                                            <v-icon
+                                                left
+                                                dark>
+                                                mdi-arrow-left-circle
+                                            </v-icon>
+                                            Data from form
+                                        </v-btn>
+                                        <v-btn 
+                                            class="mx-2"
+                                            color="primary"
+                                            @click="convertJsonToComputedSchemaModel">
+                                            <v-icon
+                                                left
+                                                dark>
+                                                mdi-arrow-right-circle
+                                            </v-icon>
+                                            Data to form
+                                        </v-btn>
+                                    </v-card-actions>
+                                </v-card>
+
+                            </v-expansion-panel-content>
+                        </v-expansion-panel>
+
+                    </v-expansion-panels>
+                </v-col>
+
+                <v-col>
+                    <v-stepper 
+                        alt-labels
+                        class="mt-6"
+                        v-show="isEditable"
+                        v-model="stepper">
+                        <v-stepper-header>
+                            <v-stepper-step 
+                                step="1"
+                                :complete="validMeta">
+                                Metadata
+                            </v-stepper-step>
+                            <v-divider></v-divider>
+                            <v-stepper-step
+                                step="2" 
+                                :complete="validJson">
+                                JSON
+                            </v-stepper-step>
+                            <v-divider></v-divider>
+                            <v-stepper-step
+                                step="3"
+                                :complete="validSchema">
+                                Schema
+                            </v-stepper-step>
+                        </v-stepper-header>
+                        <v-stepper-items>
+                            <v-stepper-content step="1">
+                                <v-card>
+                                    <v-card-actions>
+                                        <span 
+                                            class="error--text"
+                                            v-if="!validMeta">
+                                            The template metadata is invalid.
+                                        </span>
+                                        <v-spacer></v-spacer>
+                                        <v-tooltip bottom>
+                                            <template v-slot:activator="{ on, attrs }">
+                                                <v-btn 
+                                                    class="mx-2"
+                                                    :color="validMeta?'success':'primary'"
+                                                    fab
+                                                    small
+                                                    @click="$refs.form.validate()"
+                                                    v-bind="attrs"
+                                                    v-on="on">
+                                                    <v-icon>mdi-checkbox-marked-outline</v-icon>
+                                                </v-btn>
+                                            </template>
+                                            <span>Validate metadata</span>
+                                        </v-tooltip>
+                                    </v-card-actions>
+                                </v-card>
+                            </v-stepper-content>
+
+                            <v-stepper-content step="2">
+                                <v-card>
+                                    <v-card-actions>
+                                        <span 
+                                            class="error--text"
+                                            v-if="!validJson">
+                                            {{ '{{validJsonError}}' }}
+                                        </span>
+                                        <v-spacer></v-spacer>
+                                        <v-tooltip bottom>
+                                            <template v-slot:activator="{ on, attrs }">
+                                                <v-btn 
+                                                    class="mx-2"
+                                                    :color="validJson?'success':'primary'"
+                                                    fab
+                                                    small
+                                                    @click="convertJson()"
+                                                    v-bind="attrs"
+                                                    v-on="on">
+                                                    <v-icon>mdi-checkbox-marked-outline</v-icon>
+                                                </v-btn>
+                                            </template>
+                                            <span>Validate JSON</span>
+                                        </v-tooltip>
+                                    </v-card-actions>
+                                </v-card>
+                            </v-stepper-content>
+
+                            <v-stepper-content step="3">
+                                <v-card>
+                                    <v-card-actions>
+                                        <span>
+                                            {{ '{{validSchemaMsg}}' }}
+                                        </span>
+                                        <div 
+                                            class="error--text"
+                                            v-if="!validSchema">
+                                            <p class="font-weight-bold">{{ '{{validSchemaErrorType}}' }}</p>
+                                            <p class="font-weight-regular">{{ '{{validSchemaErrorMsg}}' }}</p>
+                                            <p class="text-caption">{{ '{{validSchemaErrorLoc}}' }}</p>
+                                        </div>
+                                        <v-spacer></v-spacer>
+                                        <v-tooltip bottom>
+                                            <template v-slot:activator="{ on, attrs }">
+                                                <v-btn 
+                                                    class="mx-2"
+                                                    :color="validSchema?'success':'primary'"
+                                                    fab
+                                                    small
+                                                    @click="validateSchema()"
+                                                    v-bind="attrs"
+                                                    v-on="on">
+                                                    <v-icon>mdi-checkbox-marked-outline</v-icon>
+                                                </v-btn>
+                                            </template>
+                                            <span>Validate schema</span>
+                                        </v-tooltip>
+                                    </v-card-actions>
+                                </v-card>
+                            </v-stepper-content>
+                        </v-stepper-items>
+                    </v-stepper>
+
+                    <v-card class="mt-6">
+                        <v-card-title>
+                            <v-tabs 
+                                v-model="tab"
+                                grow>
+                                <v-tab>Base schema</v-tab>
+                                <v-tab v-if="validSchema">Computed schema</v-tab>
+                                <v-tab v-if="validSchema">Example form</v-tab>
+                            </v-tabs>
+                        </v-card-title>
+                        <v-card-text>
+                            <v-tabs-items v-model="tab" >
+                                <v-tab-item>
+                                    <pre>{{ '{{baseSchema}}' }}</pre>
+                                </v-tab-item>
+                                <v-tab-item>
+                                    <pre>{{ '{{computedSchema}}' }}</pre>
+                                </v-tab-item>
+                                <v-tab-item>
+                                    <v-alert
+                                        outlined
+                                        type="info"
+                                        elevation="5"
+                                        class="ml-5 mr-7">
+                                        This form shows the fields exactly as described in the JSON schema, <em>unprocessed</em>. In the specific resource forms, some fields may be rendered differently or hidden.
+                                    </v-alert>
+                                    <v-form ref="computedSchemaForm" v-model="computedSchemaValid">
+                                        <v-jsf v-model="computedSchemaModel" :schema="computedSchema" :options="computedSchemaOptions"/>
+                                    </v-form>
+                                </v-tab-item>
+                            </v-tabs-items>
+                        </v-card-text>
+                    </v-card>
+                </v-col>
+
+            </v-row>
+        </v-container>
+
+        <v-container fill-height /> <!-- fills remaining horizontal space, if necessary -->
+
+        <v-dialog
+            v-model="deleteDialog"
+            max-width="300"
+            :persistent="isDeleted">
+            <v-card>
+                <v-card-title class="text-h5">
+                    Delete template
+                </v-card-title>
+                <v-card-text v-if="!isDeleted">
+                    Are you sure you want to delete this template? This action cannot be undone.
+                </v-card-text>
+                <v-card-text v-if="isDeleted">
+                    The template is deleted.
+                </v-card-text>
+                <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn
+                        v-if="!isDeleted"
+                        color="primary"
+                        text
+                        @click="deleteDialog = false">
+                        Cancel
+                    </v-btn>
+                    <v-btn
+                        v-if="!isDeleted"
+                        color="primary"
+                        text
+                        @click="deleteTemplate()">
+                        Delete
+                    </v-btn>
+                    <v-btn
+                        v-if="isDeleted"
+                        color="primary"
+                        text
+                        href="/templates">
+                        OK
+                    </v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
+
+    </v-app>
+
+    <script type="text/javascript">
+
+        // initial settings and data from jinja
+        const initialSchema = '{{ schema | safe }}'
+        let initialId = '{{ id }}'
+        const options =  { 
+            "editMode": "inline",
+            "textareaProps": {
+                "filled": true,
+                "auto-grow": true,
+            },
+        }
+        
+        Vue.component('VJsf', VJsf.default)
+
+        new Vue({
+            el: '#app',
+
+            vuetify: new Vuetify({
+                theme: {
+                    themes: {
+                        light: {
+                            primary: '#af8d55'
+                        },
+                    },
+                },
+            }),
+
+            created() {
+                this.initialize()
+            },
+
+            computed: {
+                key() {
+                    return {
+                        resource: this.model.resource, 
+                        category: this.model.category, 
+                        template: this.model.template
+                    }
+                }
+            },
+
+            watch: {
+                isEditable: function(val) {
+                    if (val && this.model.hasOwnProperty('resource')) {
+                        this.$refs.form.validate()  //validate metadata
+                        this.validJson = true       //json should be valid
+                    }
+                },
+                validMeta: function(val) {this.showStep()},
+                validJson: function(val) {this.showStep()},
+                key: function(val) {
+                    if (this.model.hasOwnProperty('resource')
+                            && this.model.hasOwnProperty('category')
+                            && this.model.hasOwnProperty('template')) {
+                        if (this.baseSchemaKey === "") {
+                            //initial situation
+                            this.getBaseSchema()
+                        } else {
+                            //when the template form changes
+                            this.eraseComputed()
+                            let newBaseSchemaKey = this.model.resource 
+                                + ((this.model.template !== '_default') ? '/' + this.model.category : '')
+                            if (newBaseSchemaKey !== this.baseSchemaKey) {
+                                this.getBaseSchema()
+                            }
+                        }
+                    }
+                },
+            },
+
+            data: {
+                title: "Template form (loading)",
+                panel: [0, 1],
+                stepper: 1,
+                isError: false,
+                isEditable: false,
+                isNew: false,
+                isDeleted: false,
+                tab: null,
+                deleteDialog: false,
+                
+                options,
+                model: {},
+                schema: {},
+                baseSchemaKey: "",
+                baseSchema: {},
+                jsonSchemaTxt: "",
+
+                validMeta: null,
+                validJson: null,
+                validJsonError: "",
+                validSchema: null,
+                validSchemaMsg: "",
+                validSchemaErrorType: "",
+                validSchemaErrorMsg: "",
+                validSchemaErrorLoc: "",
+
+                computedSchema: {},
+                computedSchemaValid: null,
+                computedSchemaModel: {},
+                computedSchemaModelJson: "",
+                computedSchemaOptions: {},
+
+                alert: false,
+                alertType: "info",
+                alertText: ""
+            },
+
+            methods: {
+                initialize() {
+                    this.transformSchema(initialSchema)
+                    this.getTemplate(initialId)
+                },
+
+                transformSchema(schemaString) {
+                    schema = JSON.parse(schemaString)
+                    schema.properties.json_schema["x-display"] = "hidden"
+                    this.schema = schema
+                },
+
+                getTemplate(id) {
+                    if (id !== "") {
+                        let url = '/api/v1/templates/' + id
+                        console.log('Get ' + url)
+                        axios.get(url)
+                            .then(response => {
+                                this.model = response.data
+                                this.jsonSchemaTxt = JSON.stringify(this.model.json_schema, null, 2)
+                                this.title = "Template: <i>" + response.data.resource + "</i> &#10148; <i>" + response.data.category + "</i>"
+                                if (response.data.template !== "_default") this.title += " &#10148; <i>" + response.data.template + "</i>"
+                                this.isEditable = false
+                                this.isNew = false
+                                this.validateSchema()
+                            })
+                            .catch(error => {
+                                this.title = "Template not found"
+                                this.isError = true
+                                this.showAlert("error", "Could not retrieve the template.")
+                                console.log(error)
+                            })
+                    } else {
+                        this.title = "New template"
+                        this.model = {}
+                        this.isEditable = true
+                        this.isNew = true
+                        this.jsonSchemaTxt = "{}"
+                    }
+                },
+
+                getBaseSchema() {
+                    if (this.model.hasOwnProperty('resource')
+                            && this.model.hasOwnProperty('category')
+                            && this.model.hasOwnProperty('template')) { 
+                        let baseSchemaKey = this.model.resource 
+                            + ((this.model.template !== '_default') ? '/' + this.model.category : "")
+                        let url = '/schema/' + baseSchemaKey
+                        console.log('Get ' + url)
+                        axios.get(url)
+                            .then(response => {
+                                this.baseSchema = response.data
+                                this.baseSchemaKey = baseSchemaKey
+                                this.alert = false
+                            })
+                            .catch(error => {
+                                this.baseSchema = {}
+                                this.baseSchemaKey = ""
+                                this.showAlert("warning", "Could not find the base schema.")
+                                console.log(error)
+                            })
+                    } else {
+                        this.baseSchema = {}
+                        this.computedSchema = {}
+                    }
+                },
+
+                validateSchema() {
+                    this.validSchemaError = ""
+                    this.alert = false
+                    let url = '/api/v1/templates/validate'
+                    console.log('Post ' + url)
+                    axios.post(url, this.model)
+                        .then(response => {
+                            this.computedSchema = response.data
+                            this.validSchema = true
+                            this.validSchemaMsg = "The JSON schema is valid. Before saving, thouroughly test the schema and form!"
+                            this.validSchemaErrorType = this.validSchemaErrorMsg = this.validSchemaErrorLoc = ""
+                            this.convertComputedSchemaModelToJson()
+                        })
+                        .catch(error => {
+                            this.validSchema = false
+                            this.validSchemaMsg = ""
+                            if (error.response && error.response.status == 422) {
+                                this.validSchemaErrorType = error.response.data.detail.type
+                                this.validSchemaErrorMsg = error.response.data.detail.msg
+                                this.validSchemaErrorLoc = "Location: " + error.response.data.detail.loc.join(" > ")
+                            } else {
+                                this.showAlert("warning", "Unknown error while validating the template.")
+                                console.warn(error)
+                            }
+                        })
+                },
+
+                postTemplate() {
+                    this.alert = false
+                    let url = '/api/v1/templates'
+                    console.log('Post ' + url)
+                    axios.post(url, this.model)
+                        .then(response => {
+                            this.showAlert("success", "The template was successfully saved.")
+                            // replace data with the returned data
+                            this.isNew = false
+                            this.isEditable = false
+                            initialId = response.data.id
+                            this.title = "Template: <i>" + response.data.resource + "</i> &#10148; <i>" + response.data.category + "</i>"
+                            if (response.data.template !== "_default") this.title += " &#10148; <i>" + response.data.template + "</i>"
+                            this.model = response.data
+                            window.history.replaceState({}, "Template form", "/templates/" + response.data.id)
+                        })
+                        .catch(error => {
+                            if (error.response && error.response.status == 422) {
+                                this.showAlert("error", "The template could not be saved: " + error.response.data.detail)
+                            } else {
+                                this.showAlert("error", "The template could not be saved.")
+                                console.warn(error)
+                            }
+                        })
+                },
+
+                putTemplate() {
+                    this.alert = false
+                    let url = '/api/v1/templates/' + this.model.id
+                    console.log('Put ' + url)
+                    axios.put(url, this.model)
+                        .then(response => {
+                            this.showAlert("success", "The template was successfully saved.")
+                            // replace data with the returned data
+                            this.isEditable = false
+                            this.title = "Template: " + response.data.resource + " &#10148; " + response.data.category
+                            this.title = "Template: <i>" + response.data.resource + "</i> &#10148; <i>" + response.data.category + "</i>"
+                            if (response.data.template !== "_default") this.title += " &#10148; <i>" + response.data.template + "</i>"
+                            this.model = response.data
+                            window.history.replaceState({}, "Template form", "/templates/" + response.data.id)
+                        })
+                        .catch(error => {
+                            if (error.response && error.response.status == 422) {
+                                this.showAlert("error", "The template could not be saved: " + error.response.data.detail)
+                            } else {
+                                this.showAlert("error", "The template could not be saved.")
+                                console.warn(error)
+                            }
+                        })
+                },
+
+                deleteTemplate() {
+                    this.alert = false
+                    if (!this.isNew) {
+                        let url = '/api/v1/templates/' + this.model.id
+                        console.log('Delete ' + url)
+                        axios.delete(url)
+                            .then(response => {
+                                this.isDeleted = true
+                            })
+                            .catch(error => {
+                                this.deleteDialog = false
+                                if (error.response && error.response.status == 422) {
+                                    this.showAlert("error", "The template could not be deleted: " + error.response.data.detail)
+                                } else {
+                                    this.showAlert("error", "The template could not be deleted.")
+                                    console.warn(error)
+                                }
+                            })
+                    }
+                },
+
+                convertJson() {
+                    this.eraseComputed()
+                    try {
+                        this.model.json_schema = JSON.parse(this.jsonSchemaTxt)
+                        this.validJson = true
+                    } catch (e) {
+                        this.validJsonError = e.toString()
+                            .replace("SyntaxError:", "Syntax error:")
+                            .replace("JSON.parse:", "")
+                        this.validJson = false
+                    }
+                },
+
+                convertJsonToComputedSchemaModel() {
+                    try {
+                        this.computedSchemaModel = JSON.parse(this.computedSchemaModelJson)
+                    } catch (e) {
+                        console.log(e.toString())
+                    }
+                },
+
+                convertComputedSchemaModelToJson() {
+                    try {
+                        if (!this.validSchema)
+                            this.$refs.computedSchemaForm.validate()
+                        this.computedSchemaModelJson = JSON.stringify(this.computedSchemaModel, null, 2)
+                    } catch (e) {
+                        console.log(e.toString())
+                    }
+                },
+
+                showStep() {
+                    if (!this.validMeta) this.stepper = 1
+                    else if (!this.validJson) this.stepper = 2
+                    else this.stepper = 3
+                },
+
+                eraseComputed() {
+                    this.computedSchema = {}
+                    this.validSchema = false
+                    this.validSchemaMsg = "The template has changed. Manual validation is required."
+                    this.validSchemaErrorType = ""
+                    this.validSchemaErrorMsg = ""
+                    this.validSchemaErrorLoc = ""
+                },
+
+                saveTemplate() {
+                    if (this.validMeta && this.validJson && this.validSchema) {
+                        if (this.isNew) {
+                            this.postTemplate()
+                        } else {
+                            this.putTemplate()
+                        }
+                    }
+                },
+
+                showAlert(type, text) {
+                    this.alert = true
+                    this.alertType = type
+                    this.alertText = text
+                }
+            },
+        })
+    </script>
+	
+</body>
+</html>

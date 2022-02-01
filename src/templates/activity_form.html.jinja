@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-    <title>Activity form</title>
+    <title>Project form</title>
     <meta charset="UTF-8">
     <link rel="shortcut icon" href="/static/images/favicon.ico">
 
@@ -40,9 +40,9 @@
                                 :items="schemaList"
                                 item-text="name"
                                 item-value="alias"
-                                label="Activity type"
+                                label="Project type"
                                 v-model="schemaAlias"
-                                v-on:change="changeActivity"/>
+                                v-on:change="changeProject"/>
                         </v-col>
                         <v-col cols="2">
                             <v-select dense dark
@@ -59,7 +59,7 @@
                     <v-tab>Metadata</v-tab>
                     <v-tab>Related images</v-tab>
                     <v-tab>Related samples</v-tab>
-                    <v-tab>Related documents</v-tab>
+                    <v-tab>Related datasets</v-tab>
                 </v-tabs>
 
                 <v-card-text class="white">
@@ -129,7 +129,7 @@
 
             methods: {
                 getSchema() {
-                    let url = '/activity/' + this.schemaAlias + (this.templateAlias !== '' ? '/' + this.templateAlias : '')
+                    let url = '/project/' + this.schemaAlias + (this.templateAlias !== '' ? '/' + this.templateAlias : '')
                     axios.get('/schema' + url)
                         .then(response => {
                             this.schema = response.data
@@ -142,7 +142,7 @@
                 },
 
                 getData() {
-                    axios.get('/api/v1/activity/' + initialId)
+                    axios.get('/api/v1/project/' + initialId)
                         .then(response => {
                             this.model = response.data
                             this.options.disableAll = true
@@ -162,7 +162,7 @@
                         })
                 },
 
-                changeActivity() {
+                changeProject() {
                     this.templateAlias = ""
                     this.getSchema()
                     this.getTemplateList()

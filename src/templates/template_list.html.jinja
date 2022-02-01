@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-    <title>Project list</title>
+    <title>Templates</title>
     <meta charset="UTF-8">
     <link rel="shortcut icon" href="/static/images/favicon.ico">
 
@@ -17,15 +17,36 @@
     
     <v-app id="app">
 
-        <v-app-bar color="white">
+        <v-app-bar color="white" class="px-10">
             <img height="45" src="/static/images/logo.svg"/>
             <v-spacer></v-spacer>
             <v-app-bar-nav-icon></v-app-bar-nav-icon>
         </v-app-bar>
 
+        <v-banner color="primary" class="elevation-5 px-10">
+            <span class="white--text text-h3 px-10">Templates</div>
+        </v-banner>
+
         <v-container>
-            <v-card>
-                
+            <v-row 
+                v-if="alert" 
+                class="pb-0">
+                <v-col
+                    md="6"
+                    offset-md="3"
+                    class="pb-0">
+                    <v-alert class="mb-0"
+                        v-model="alert"
+                        :type="alertType"
+                        elevation="5"
+                        transition="scale-transition"
+                        dismissible>
+                        {{ '{{alertText}}' }}
+                    </v-alert>
+                </v-col>
+            </v-row>
+
+            <v-card class="mt-6">
                 <v-card-title>
                     <v-text-field
                         v-model="search"
@@ -37,13 +58,13 @@
 
                 <v-data-table
                     :headers="headers"
-                    :items="projects"
-                    :server-items-length="totalProjects"
+                    :items="templates"
+                    :server-items-length="totalTemplates"
                     :options.sync="options"
                     :loading="loading"
                     :footer-props="{'items-per-page-options':[10, 50, 100, -1]}">
 
-                    <template v-slot:item._id="{ item }">
+                    <template v-slot:item.id="{ item }">
                         <v-icon
                             small
                             class="mr-2"
@@ -52,9 +73,27 @@
                                 mdi-file-eye-outline
                         </v-icon>
                     </template>
-
                 </v-data-table>
 
+                <v-card-text style="height: 45px; position: relative">
+                    <v-fab-transition>
+                        <v-tooltip left>
+                            <template v-slot:activator="{ on, attrs }">
+                                <v-btn
+                                    color="primary"
+                                    absolute
+                                    right
+                                    fab
+                                    @click="openForm()"
+                                    v-bind="attrs"
+                                    v-on="on">
+                                    <v-icon>mdi-plus</v-icon>
+                                </v-btn>
+                            </template>
+                            <span>Create new template</span>
+                        </v-tooltip>
+                    </v-fab-transition>
+                </v-card-text>
             </v-card>
         </v-container>
 
@@ -79,34 +118,44 @@
 
             data: {
                 headers: [
-                    {text: ' ', value:'_id', sortable: false},
-                    {text: 'Intervention File/Project', value: 'project_id'},
-                    {text: 'Unit', value: 'unit'},
-                    {text: 'Subject', value: 'subject'},
-                    {text: 'Project type', value: 'project_type'},
-                    {text: 'State', value: 'state'},
+                    {text: ' ', value:'id', sortable: false},
+                    {text: 'Resource', value: 'resource'},
+                    {text: 'Category', value: 'category'},
+                    {text: 'Template', value: 'template'},
+                    {text: 'Short name', value: 'short_name'},
+                    {text: 'Title', value: 'title'},
+                    {text: 'Selectable', value: 'selectable'}
                 ],
-                projects: [],
-                totalProjects: 0,
+                templates: [],
+                totalTemplates: 0,
                 options: {
-                    sortBy: ['project_id', 'unit'],
+                    sortBy: ['resource', 'category', 'template'],
                     multiSort: true},
                 search: '',
                 loading: true,
+
+                alert: false,
+                alertType: "info",
+                alertText: ""
+            },
+
+            created() {
+                this.lookupQueryParams()
             },
 
             watch: {
                 options: {
                     handler () {
-                        this.getProjects()
+                        this.getTemplates()
                         },
                     deep: true,
                 },
             },
 
             methods: {
-                getProjects() {
+                getTemplates() {
                     this.loading = true
+                    this.alert = false
                     
                     // query parameters
                     //console.log(JSON.stringify(this.options, null, 2)) // DEBUG
@@ -118,20 +167,29 @@
                     }
                  
                     // api call
-                    url = '/api/v1/project'
+                    url = '/api/v1/templates'
                     return axios.get(url, {params: parameters})
                         .then(response => {
-                            this.projects = response.data.data
-                            this.totalProjects = response.data.pagination.total
+                            this.templates = response.data.data
+                            this.totalTemplates = response.data.query_parameters.total
                             this.loading = false
                         })
                         .catch(error => {
+                            this.showAlert("error", "Connection failed.")
                             console.log(error)
+                            this.loading = false
                         })
                 },
 
-                openForm(item) {
-                    window.open("/project/intervention_file?id=" + item._id, "_self")
+                openForm(item = null) {
+                    url = "/templates/" + (item ? item.id : "new")
+                    window.open(url, "_self")
+                },
+
+                showAlert(type, text) {
+                    this.alert = true
+                    this.alertType = type
+                    this.alertText = text
                 }
             }
         })

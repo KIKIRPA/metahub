@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-    <title>Document form</title>
+    <title>Dataset form</title>
     <meta charset="UTF-8">
     <link rel="shortcut icon" href="/static/images/favicon.ico">
 
@@ -40,9 +40,9 @@
                                 :items="schemaList"
                                 item-text="short"
                                 item-value="alias"
-                                label="Document type"
+                                label="Dataset type"
                                 v-model="schemaAlias"
-                                v-on:change="changeDocument"/>
+                                v-on:change="changeDataset"/>
                         </v-col>
                         <v-col cols="2">
                             <v-select dense dark
@@ -126,7 +126,7 @@
 
             methods: {
                 getSchema() {
-                    let url = '/document/' + this.schemaAlias + (this.templateAlias !== '' ? '/' + this.templateAlias : '')
+                    let url = '/dataset/' + this.schemaAlias + (this.templateAlias !== '' ? '/' + this.templateAlias : '')
                     axios.get('/schema' + url)
                         .then(response => {
                             this.schema = response.data;
@@ -145,7 +145,7 @@
                             console.log(error)
                         })
                 },
-                changeDocument() {
+                changeDataset() {
                     this.templateAlias = ""
                     this.getSchema()
                     this.getTemplateList()
