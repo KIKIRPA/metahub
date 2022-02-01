@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    {% block head %}
+    <title>{% block title %}{% endblock %} - My Webpage</title>
+    <meta charset="UTF-8">
+    <link rel="shortcut icon" href="/static/images/favicon.ico">
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.x/css/materialdesignicons.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+    {% endblock %}
+</head>
+
+<body>
+    <v-app id="app">
+
+    <v-app-bar color="white" class="px-10">
+        <img height="45" src="/static/images/logo.svg"/>
+        <v-spacer></v-spacer>
+        <v-app-bar-nav-icon></v-app-bar-nav-icon>
+    </v-app-bar>
+
+    {% block content %}{% endblock %}
+        
+    <v-container fill-height></v-container> <!-- fills remaining horizontal space, if necessary -->
+
+    <v-footer padless>
+        <v-container fluid>
+            <div class="pt-0 text-center">
+                &copy; {{'{{ new Date().getFullYear() }}'}} — <strong>Metahub</strong> <em>by KIK-IRPA</em>
+            </div>
+        </v-container>
+    </v-footer>
+
+    </v-app>
+
+    {% block script %}{% endblock %}
+
+</body>
+</html>
