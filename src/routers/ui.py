@@ -28,6 +28,14 @@ client = AsyncIOMotorClient(core.settings.mongo_conn_str)
 db = client[core.settings.mongo_db]
 
 
+@router.get("/", response_class=HTMLResponse)
+def show_root_page(request: Request):
+    """
+    Displaying the root page
+    """
+    return templates.TemplateResponse("root.html.jinja", {"request": request})
+
+
 @router.get("/templates", response_class=HTMLResponse)
 def show_template_list(request: Request):
     """
