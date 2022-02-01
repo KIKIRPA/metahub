@@ -22,7 +22,7 @@ db = client[core.settings.mongo_db]
 
 
 #
-#   TEMPLATES
+#   TEMPLATE ROUTES
 #
 
 @router.get("/", response_model=models.TemplateList)

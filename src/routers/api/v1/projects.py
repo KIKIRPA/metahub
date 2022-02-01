@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException, Query, Path
 from motor.motor_asyncio import AsyncIOMotorClient
 
 import core
-import models.projects
+import models
 import crud
 
 
@@ -19,23 +19,43 @@ client = AsyncIOMotorClient(core.settings.mongo_conn_str)
 db = client[core.settings.mongo_db]
 
 
-@router.get("/", response_model=dict)
-async def get_all_projects(
-    skip: Optional[int] = Query(0),
-    limit: Optional[int] = Query(10), 
-    sort_by: Optional[List[str]] = Query(["project_id", "unit"]),
-    sort_desc: Optional[List[bool]] = Query([])):
+#
+#   PROJECT ROUTES
+#
+
+@router.get("/")
+async def search_projects(
+        skip: Optional[int] = Query(0, description="Skip the x first results"),
+        limit: Optional[int] = Query(10, description="Return x results"), 
+        sort_by: Optional[List[str]] = Query(["resource", "category", "template"], description="Sorting options (array of strings)"),
+        sort_desc: Optional[List[bool]] = Query([], description="Sort descending (arry of booleans)"),
+        category: Optional[str] = Query(None, description="Filter on category identifier (partial match)"),
+        template: Optional[str] = Query(None, description="Filter on template identifier (partial match)")):
     """
     Return all projects.
     """
+    find = {}
+    if category is not None: find['category'] = {'$regex': f'.*{category.lower()}.*'}
+    if template is not None: find['template'] = {'$regex': f'.*{template.lower()}.*'}
+
     if len(sort_desc) > 0 and len(sort_desc) != len(sort_by):
         raise HTTPException(status_code=422, detail="Unequal number of items in sort_by and sort_desc")
-    response = await crud.project.get_all(
-        collection=db.projects,
-        skip=skip,
-        limit=limit,
-        sort_by=sort_by)
+    try: 
+        response = await crud.project.search(
+            collection=db.projects,
+            find=find,
+            skip=skip,
+            limit=limit,
+            sort_by=sort_by,
+            sort_desc=sort_desc)
+    except BaseException as err:
+        raise HTTPException(status_code=400, detail=err)
     return response
+
+
+
+
+
 
 
 @router.get("/{id}", response_model=models.projects.Project)
