@@ -77,5 +77,4 @@ async def main():
     print("\n")
 
 if __name__ == '__main__' and __package__ is None:
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(main())
+    loop = asyncio.run(main())
