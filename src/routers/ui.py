@@ -121,17 +121,17 @@ async def show_template_form_with_keys(
         "id": response["id"]})
 
 
-
-
-
-
-
-@router.get("/project", response_class=HTMLResponse)
+@router.get("/projects", response_class=HTMLResponse)
 def show_project_list(request: Request):
     """
     Displaying the project list
     """
     return templates.TemplateResponse("project_list.html.jinja", {"request": request})
+
+
+
+
+
 
 
 @router.get("/project/{project_type}", response_class=HTMLResponse)

@@ -1,0 +1,176 @@
+{% extends "base.html.jinja" %}
+
+{% block title %}Projects{% endblock %}
+
+{% block head %}
+    {{ super() }}
+{% endblock %}
+
+{% block content %}
+
+    <v-banner color="primary" class="elevation-5 px-10">
+        <span class="white--text text-h3 px-10">Projects</span>
+    </v-banner>
+
+    <v-container>
+        <v-row 
+            v-if="alert" 
+            class="pb-0">
+            <v-col
+                md="6"
+                offset-md="3"
+                class="pb-0">
+                <v-alert class="mb-0"
+                    v-model="alert"
+                    :type="alertType"
+                    elevation="5"
+                    transition="scale-transition"
+                    dismissible>
+                    {{ '{{alertText}}' }}
+                </v-alert>
+            </v-col>
+        </v-row>
+
+        <v-card class="mt-6">
+            <v-card-title>
+                <v-text-field
+                    v-model="search"
+                    append-icon="mdi-magnify"
+                    label="Search"
+                    single-line
+                    hide-details />
+            </v-card-title>
+
+            <v-data-table
+                :headers="headers"
+                :items="projects"
+                :server-items-length="totalProjects"
+                :options.sync="options"
+                :loading="loading"
+                :footer-props="{'items-per-page-options':[10, 50, 100, -1]}">
+
+                <template v-slot:item.id="{ item }">
+                    <v-icon
+                        small
+                        class="mr-2"
+                        color="primary"
+                        @click="openForm(item)">
+                            mdi-file-eye-outline
+                    </v-icon>
+                </template>
+            </v-data-table>
+
+            <v-card-text style="height: 45px; position: relative">
+                <v-fab-transition>
+                    <v-tooltip left>
+                        <template v-slot:activator="{ on, attrs }">
+                            <v-btn
+                                color="primary"
+                                absolute
+                                right
+                                fab
+                                @click="openForm()"
+                                v-bind="attrs"
+                                v-on="on">
+                                <v-icon>mdi-plus</v-icon>
+                            </v-btn>
+                        </template>
+                        <span>Create new template</span>
+                    </v-tooltip>
+                </v-fab-transition>
+            </v-card-text>
+        </v-card>
+    </v-container>
+{% endblock %}
+
+{% block script %}
+    <script type="text/javascript">
+        
+        new Vue({
+            el: '#app',
+
+            vuetify: new Vuetify({
+                theme: {
+                    themes: {
+                        light: {
+                            primary: '#af8d55'
+                        },
+                    },
+                },
+            }),
+
+            data: {
+                appBarDropdown: false,
+
+                headers: [
+                    {text: ' ', value:'id', sortable: false},
+                    {text: 'Project', value: 'project_code'},
+                    {text: 'Unit', value: 'unit'},
+                    {text: 'Subject', value: 'subject'},
+                    {text: 'State', value: 'state'},
+                    {text: 'Terms', value: 'terms'}
+                ],
+                projects: [],
+                totalProjects: 0,
+                options: {
+                    sortBy: ['project_code', 'unit'],
+                    multiSort: true},
+                search: '',
+                loading: true,
+
+                alert: false,
+                alertType: "info",
+                alertText: ""
+            },
+
+            watch: {
+                options: {
+                    handler () {
+                        this.getProjects()
+                        },
+                    deep: true,
+                },
+            },
+
+            methods: {
+                getProjects() {
+                    this.loading = true
+                    
+                    // query parameters
+                    //console.log(JSON.stringify(this.options, null, 2)) // DEBUG
+                    parameters = {
+                        skip: (this.options.page - 1) * this.options.itemsPerPage,
+                        limit: this.options.itemsPerPage,
+                        sort_by: this.options.sortBy,
+                        sort_desc: this.options.sortDesc
+                    }
+                 
+                    // api call
+                    url = '/api/v1/projects'
+                    return axios.get(url, {params: parameters})
+                        .then(response => {
+                            this.projects = response.data.data
+                            this.totalProjects = response.data.query_parameters.total
+                            this.loading = false
+                        })
+                        .catch(error => {
+                            this.showAlert("error", "Connection failed.")
+                            console.log(error)
+                            this.loading = false
+                        })
+                },
+
+                openForm(item = null) {
+                    url = "/projects/" + (item ? item.id : "new")
+                    window.open(url, "_self")
+                },
+
+                showAlert(type, text) {
+                    this.alert = true
+                    this.alertType = type
+                    this.alertText = text
+                }
+            }
+        })
+    </script>
+{% endblock %}
