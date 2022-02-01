@@ -23,8 +23,8 @@ class File(BaseModel):
 
 
 class DatasetUpdate(BaseModel):
-    dataset_type: str = Field(...)
-    dossier_id: str = Field(..., title='Dossier/project Id')
+    pid: str = Field(...)
+    project_id: str = Field(..., title='Project Id')
     object_id: Optional[int] = Field(None, description="Object number to which this dataset belongs")
     contributors: Optional[Set[Contributor]] = Field(...)
     files: Optional[Set[File]] = Field(...)

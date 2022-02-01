@@ -43,6 +43,8 @@ class ProjectUpdate(BaseModel):
     contributors: Optional[List[Contributor]] = Field(None, unique=True)
     state: State = Field(...)
     terms: Optional[Terms] = Field(None)
+    pid: str = Field(...)
+    path: str = Field(...)
 
 
 class _ProjectShort(ProjectUpdate, IdBaseModel):
