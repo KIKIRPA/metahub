@@ -61,7 +61,7 @@ async def get_project_by_id(
     """
     try:
         response = await crud.project.get(
-            collection=db.project, 
+            collection=db.projects, 
             id=id)
     except crud.NoResultsError:
         raise HTTPException(status_code=404, detail="project not found")
@@ -80,7 +80,7 @@ async def create_project(project: dict):
 
         # create the project
         response = await crud.project.create(
-            collection=db.project,
+            collection=db.projects,
             data=project)
     except crud.DuplicateKeyError:
         raise HTTPException(status_code=422, detail="duplicate key (project code, unit)")
@@ -103,7 +103,7 @@ async def update_project(
 
         # update the project
         updated = await crud.project.update(
-            collection=db.project, 
+            collection=db.projects, 
             id=id,
             data=project)
     except crud.NoResultsError:
@@ -125,7 +125,7 @@ async def delete_project(
     """
     try:
         deleted = await crud.project.remove(
-            collection=db.project, 
+            collection=db.projects, 
             id=id)
     except crud.NoResultsError:
         raise HTTPException(status_code=404, detail="project not found")

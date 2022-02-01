@@ -127,7 +127,7 @@ class CRUDBase():
             *, 
             data: dict) -> dict:
         # first encode for json, than include a datetime (to be converted to mongo date object)
-        data = data.dict()
+        #data = data.dict()
         data = jsonable_encoder(data)
         data["created_timestamp"] = datetime.now(timezone.utc)
         
@@ -152,7 +152,7 @@ class CRUDBase():
         if result is None: raise NoResultsError
 
         # first encode for json, than include a datetime (to be converted to mongo date object)
-        data = data.dict()
+        #data = data.dict()
         data = jsonable_encoder(data)
         data["modified_timestamp"] = datetime.now(timezone.utc)
         
