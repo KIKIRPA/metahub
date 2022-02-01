@@ -27,7 +27,7 @@ db = client[core.settings.mongo_db]
 async def search_projects(
         skip: Optional[int] = Query(0, description="Skip the x first results"),
         limit: Optional[int] = Query(10, description="Return x results"), 
-        sort_by: Optional[List[str]] = Query(["resource", "category", "template"], description="Sorting options (array of strings)"),
+        sort_by: Optional[List[str]] = Query(["project_code", "unit"], description="Sorting options (array of strings)"),
         sort_desc: Optional[List[bool]] = Query([], description="Sort descending (arry of booleans)"),
         category: Optional[str] = Query(None, description="Filter on category identifier (partial match)"),
         template: Optional[str] = Query(None, description="Filter on template identifier (partial match)")):
@@ -53,71 +53,84 @@ async def search_projects(
     return response
 
 
-
-
-
-
-
-@router.get("/{id}", response_model=models.projects.Project)
+@router.get("/{id}")
 async def get_project_by_id(
         id: str = Path(None, description="The id of the project")):
     """
     Return a single project by its id.
     """
-    response = await crud.project.get(
-        collection=db.projects, 
-        id=id)
-    if response is None:
-        raise HTTPException(status_code=404, detail="Project not found")
+    try:
+        response = await crud.project.get(
+            collection=db.project, 
+            id=id)
+    except crud.NoResultsError:
+        raise HTTPException(status_code=404, detail="project not found")
+    except BaseException as err:
+        raise HTTPException(status_code=400, detail=err)
     return response
 
 
-@router.post("/", response_model=models.projects.Project)
-async def create_project(project: models.projects.Project):
+@router.post("/")
+async def create_project(project: dict):
     """
     Create a new project.
     """
-    response = await crud.project.create(
-        collection=db.projects,
-        data=project)
+    try:
+        # TODO VALIDATION !!!!
+
+        # create the project
+        response = await crud.project.create(
+            collection=db.project,
+            data=project)
+    except crud.DuplicateKeyError:
+        raise HTTPException(status_code=422, detail="duplicate key (project code, unit)")
+    except crud.NotCreatedError:
+        raise HTTPException(status_code=400, detail="project was not created")
+    except BaseException as err:
+        raise HTTPException(status_code=400, detail=err)
     return response
 
 
-@router.put("/{id}", response_model=models.projects.Project)
+@router.put("/{id}")
 async def update_project(
-        project: models.projects.Project,
+        project: dict,
         id: str = Path(None, description="The id of the project")):
     """
-    Update an project.
+    Update a project.
     """
-    project_from_db = await crud.project.get(
-        collection=db.projects, 
-        id=id)
-    if project_from_db is None:
-        raise HTTPException(status_code=404, detail="Project not found")
-    updated = await crud.project.update(
-        collection=db.projects, 
-        id=id,
-        data=project)
-    if not updated:
-        raise HTTPException(status_code=400, detail="Bad request")
-    return project
+    try:
+        # TODO VALIDATION !!!!
+
+        # update the project
+        updated = await crud.project.update(
+            collection=db.project, 
+            id=id,
+            data=project)
+    except crud.NoResultsError:
+        raise HTTPException(status_code=404, detail="project not found")
+    except crud.DuplicateKeyError:
+        raise HTTPException(status_code=422, detail="duplicate key (project code, unit)")
+    except crud.NotUpdatedError:
+        raise HTTPException(status_code=400, detail="project was not updated")
+    except BaseException as err:
+        raise HTTPException(status_code=400, detail=err)
+    return updated
 
 
-@router.delete("/{id}", response_model=models.projects.Project)
+@router.delete("/{id}")
 async def delete_project(
         id: str = Path(None, description="The id of the project")):
     """
-    Delete an project.
+    Delete a project.
     """
-    project = await crud.project.get(
-        collection=db.projects, 
-        id=id)
-    if project is None:
-        raise HTTPException(status_code=404, detail="Project not found")
-    deleted = await crud.project.remove(
-        collection=db.projects, 
-        id=id)
-    if not deleted:
-        raise HTTPException(status_code=400, detail="Bad request")
-    return project
+    try:
+        deleted = await crud.project.remove(
+            collection=db.project, 
+            id=id)
+    except crud.NoResultsError:
+        raise HTTPException(status_code=404, detail="project not found")
+    except crud.NotDeletedError:
+        raise HTTPException(status_code=400, detail="project was not deleted")
+    except BaseException as err:
+        raise HTTPException(status_code=400, detail=err)
+    return deleted
