@@ -83,7 +83,7 @@ async def main():
     except:
         print(f" ! Error in creating collection '{collection}' and an index with a unique restraint")
 
-    if len(options.seed_templates) > 0:
+    if options.seed_templates is not None:
         await seed(db, collection, options.seed_templates, models.TemplateUpdate)
 
 
@@ -104,7 +104,7 @@ async def main():
     except:
         print(f" ! Error in creating collection '{collection}' and an index with a unique restraint")
 
-    if len(options.seed_projects) > 0:
+    if options.seed_projects is not None:
         await seed(db, collection, options.seed_projects)
 
 
@@ -123,7 +123,7 @@ async def main():
     except:
         print(f" ! Error in creating collection '{collection}'")
 
-    if len(options.seed_datasets) > 0:
+    if options.seed_datasets is not None:
         await seed(db, collection, options.seed_datasets)
 
 
