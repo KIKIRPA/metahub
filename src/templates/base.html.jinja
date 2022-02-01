@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+    {% block head %}
+    <title>{% block title %}{% endblock %} - My Webpage</title>
+    <meta charset="UTF-8">
+    <link rel="shortcut icon" href="/static/images/favicon.ico">
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.x/css/materialdesignicons.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+    {% endblock %}
+</head>
+
+<body>
+    <v-app id="app">
+
+    <v-app-bar color="white" class="px-10">
+        <a href="/">
+            <img height="45" src="/static/images/logo.svg" alt="Metahub" />
+        </a>
+        <v-spacer></v-spacer>
+
+        <v-btn 
+            text
+            href="/projects"
+            class="hidden-sm-and-down"
+            color="grey darken-2">
+            <v-icon left>mdi-folder-open</v-icon>
+            Projects
+        </v-btn>
+
+        <v-btn 
+            text
+            href="/datasets"
+            class="hidden-sm-and-down"
+            color="grey darken-2">
+            <v-icon left>mdi-chart-box</v-icon>
+            Datasets
+        </v-btn>
+
+        <v-btn 
+            text
+            href="/collections"
+            class="hidden-sm-and-down"
+            color="grey darken-2">
+            <v-icon left>mdi-file-cabinet</v-icon>
+            Collections
+        </v-btn>
+
+        <v-btn 
+            text
+            href="/samples"
+            class="hidden-sm-and-down"
+            color="grey darken-2">
+            <v-icon left>mdi-test-tube-empty</v-icon>
+            Samples
+        </v-btn>
+
+        <v-divider vertical class="hidden-sm-and-down"></v-divider>
+
+        <v-btn 
+            text
+            href="/templates"
+            class="hidden-sm-and-down"
+            color="grey darken-2">
+            <v-icon left>mdi-cog</v-icon>
+            Templates
+        </v-btn>
+
+        <v-app-bar-nav-icon 
+            class="hidden-md-and-up"
+            @click="appBarDropdown = true"></v-app-bar-nav-icon>
+    </v-app-bar>
+
+    <v-navigation-drawer
+        v-model="appBarDropdown"
+        absolute
+        temporary
+        right>
+        <v-list
+            nav
+            dense>
+            <v-list-item-group color="primary">
+                <v-list-item href="/projects">
+                    <v-list-item-icon>
+                        <v-icon>mdi-folder-open</v-icon>
+                    </v-list-item-icon>
+                    <v-list-item-title>Projects</v-list-item-title>
+                </v-list-item>
+                <v-list-item href="/datasets">
+                    <v-list-item-icon>
+                        <v-icon>mdi-chart-box</v-icon>
+                    </v-list-item-icon>
+                    <v-list-item-title>Datasets</v-list-item-title>
+                </v-list-item>
+                <v-list-item href="/collections">
+                    <v-list-item-icon>
+                        <v-icon>mdi-file-cabinet</v-icon>
+                    </v-list-item-icon>
+                    <v-list-item-title>Collections</v-list-item-title>
+                </v-list-item>
+                <v-list-item href="/samples">
+                    <v-list-item-icon>
+                        <v-icon>mdi-test-tube-empty</v-icon>
+                    </v-list-item-icon>
+                    <v-list-item-title>Samples</v-list-item-title>
+                </v-list-item>
+                 <v-divider></v-divider>
+                <v-list-item href="/templates">
+                    <v-list-item-icon>
+                        <v-icon>mdi-cog</v-icon>
+                    </v-list-item-icon>
+                    <v-list-item-title>Templates</v-list-item-title>
+                </v-list-item>
+            </v-list-item-group>
+        </v-list>
+    </v-navigation-drawer>
+
+    {% block content %}{% endblock %}
+        
+    <v-container fill-height></v-container> <!-- fills remaining horizontal space, if necessary -->
+
+    <v-footer padless>
+        <v-container fluid>
+            <div class="pt-0 text-center">
+                &copy; {{'{{ new Date().getFullYear() }}'}} — <strong>Metahub</strong> <em>by KIK-IRPA</em>
+            </div>
+        </v-container>
+    </v-footer>
+
+    </v-app>
+
+    {% block script %}{% endblock %}
+
+</body>
+</html>

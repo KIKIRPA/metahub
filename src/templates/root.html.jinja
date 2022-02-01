@@ -1,0 +1,35 @@
+{% extends "base.html.jinja" %}
+
+{% block title %}Metahub{% endblock %}
+
+{% block head %}
+    {{ super() }}
+{% endblock %}
+
+{% block content %}
+    <v-banner color="primary" class="elevation-5 px-10">
+        <span class="white--text text-h3 px-10">Metahub main page</span>
+    </v-banner>
+{% endblock %}
+
+{% block script %}
+    <script type="text/javascript">
+        new Vue({
+            el: '#app',
+
+            vuetify: new Vuetify({
+                theme: {
+                    themes: {
+                        light: {
+                            primary: '#af8d55'
+                        },
+                    },
+                },
+            }),
+
+            data: {
+                appBarDropdown: false,
+            },
+        })
+    </script>
+{% endblock %}

@@ -1,108 +1,89 @@
-<!DOCTYPE HTML>
-<html>
-<head>
-    <title>Templates</title>
-    <meta charset="UTF-8">
-    <link rel="shortcut icon" href="/static/images/favicon.ico">
+{% extends "base.html.jinja" %}
 
-    <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+{% block title %}Templates{% endblock %}
 
-    <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.x/css/materialdesignicons.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
-</head>
-<body>
-    
-    <v-app id="app">
+{% block head %}
+    {{ super() }}
+{% endblock %}
 
-        <v-app-bar color="white" class="px-10">
-            <img height="45" src="/static/images/logo.svg"/>
-            <v-spacer></v-spacer>
-            <v-app-bar-nav-icon></v-app-bar-nav-icon>
-        </v-app-bar>
+{% block content %}
+    <v-banner color="primary" class="elevation-5 px-10">
+        <span class="white--text text-h3 px-10">Templates</span>
+    </v-banner>
 
-        <v-banner color="primary" class="elevation-5 px-10">
-            <span class="white--text text-h3 px-10">Templates</div>
-        </v-banner>
-
-        <v-container>
-            <v-row 
-                v-if="alert" 
+    <v-container>
+        <v-row 
+            v-if="alert" 
+            class="pb-0">
+            <v-col
+                md="6"
+                offset-md="3"
                 class="pb-0">
-                <v-col
-                    md="6"
-                    offset-md="3"
-                    class="pb-0">
-                    <v-alert class="mb-0"
-                        v-model="alert"
-                        :type="alertType"
-                        elevation="5"
-                        transition="scale-transition"
-                        dismissible>
-                        {{ '{{alertText}}' }}
-                    </v-alert>
-                </v-col>
-            </v-row>
+                <v-alert class="mb-0"
+                    v-model="alert"
+                    :type="alertType"
+                    elevation="5"
+                    transition="scale-transition"
+                    dismissible>
+                    {{ '{{alertText}}' }}
+                </v-alert>
+            </v-col>
+        </v-row>
 
-            <v-card class="mt-6">
-                <v-card-title>
-                    <v-text-field
-                        v-model="search"
-                        append-icon="mdi-magnify"
-                        label="Search"
-                        single-line
-                        hide-details />
-                </v-card-title>
+        <v-card class="mt-6">
+            <v-card-title>
+                <v-text-field
+                    v-model="search"
+                    append-icon="mdi-magnify"
+                    label="Search"
+                    single-line
+                    hide-details></v-text-field>
+            </v-card-title>
 
-                <v-data-table
-                    :headers="headers"
-                    :items="templates"
-                    :server-items-length="totalTemplates"
-                    :options.sync="options"
-                    :loading="loading"
-                    :footer-props="{'items-per-page-options':[10, 50, 100, -1]}">
+            <v-data-table
+                :headers="headers"
+                :items="templates"
+                :server-items-length="totalTemplates"
+                :options.sync="options"
+                :loading="loading"
+                :footer-props="{'items-per-page-options':[10, 50, 100, -1]}">
 
-                    <template v-slot:item.id="{ item }">
-                        <v-icon
-                            small
-                            class="mr-2"
-                            color="primary"
-                            @click="openForm(item)">
-                                mdi-file-eye-outline
-                        </v-icon>
-                    </template>
-                </v-data-table>
+                <template v-slot:item.id="{ item }">
+                    <v-icon
+                        small
+                        class="mr-2"
+                        color="primary"
+                        @click="openForm(item)">
+                            mdi-file-eye-outline
+                    </v-icon>
+                </template>
+            </v-data-table>
 
-                <v-card-text style="height: 45px; position: relative">
-                    <v-fab-transition>
-                        <v-tooltip left>
-                            <template v-slot:activator="{ on, attrs }">
-                                <v-btn
-                                    color="primary"
-                                    absolute
-                                    right
-                                    fab
-                                    @click="openForm()"
-                                    v-bind="attrs"
-                                    v-on="on">
-                                    <v-icon>mdi-plus</v-icon>
-                                </v-btn>
-                            </template>
-                            <span>Create new template</span>
-                        </v-tooltip>
-                    </v-fab-transition>
-                </v-card-text>
-            </v-card>
-        </v-container>
+            <v-card-text style="height: 45px; position: relative">
+                <v-fab-transition>
+                    <v-tooltip left>
+                        <template v-slot:activator="{ on, attrs }">
+                            <v-btn
+                                color="primary"
+                                absolute
+                                right
+                                fab
+                                @click="openForm()"
+                                v-bind="attrs"
+                                v-on="on">
+                                <v-icon>mdi-plus</v-icon>
+                            </v-btn>
+                        </template>
+                        <span>Create new template</span>
+                    </v-tooltip>
+                </v-fab-transition>
+            </v-card-text>
+        </v-card>
+    </v-container>
+{% endblock %}
 
-        <v-container fill-height /> <!-- fills remaining horizontal space, if necessary -->
-
-    </v-app>
-
+{% block script %}
     <script type="text/javascript">
-        
         new Vue({
             el: '#app',
 
@@ -117,6 +98,8 @@
             }),
 
             data: {
+                appBarDropdown: false,
+
                 headers: [
                     {text: ' ', value:'id', sortable: false},
                     {text: 'Resource', value: 'resource'},
@@ -194,6 +177,4 @@
             }
         })
     </script>
-	
-</body>
-</html>
+{% endblock %}
