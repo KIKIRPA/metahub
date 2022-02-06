@@ -113,7 +113,7 @@ async def main():
     #
 
     print("\nDATASET COLLECTION")
-    collection = "dataset"
+    collection = "datasets"
     if options.drop:
         await drop(db, collection)
 
