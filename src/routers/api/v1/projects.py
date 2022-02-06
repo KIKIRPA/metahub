@@ -4,6 +4,7 @@ from fastapi import APIRouter, HTTPException, Query, Path
 from motor.motor_asyncio import AsyncIOMotorClient
 
 import core
+import core.utils.jsonschema
 import models
 import crud
 
@@ -77,11 +78,14 @@ async def create_project(project: dict):
     """
     try:
         # TODO VALIDATION !!!!
+        await core.utils.jsonschema.validate_instance(project)
 
         # create the project
         response = await crud.project.create(
             collection=db.projects,
             data=project)
+    except core.utils.jsonschema.SchemaValidationError as err:
+        raise HTTPException(status_code=422, detail=err.args[0])
     except crud.DuplicateKeyError:
         raise HTTPException(status_code=422, detail="duplicate key (project code, unit)")
     except crud.NotCreatedError:
@@ -100,12 +104,15 @@ async def update_project(
     """
     try:
         # TODO VALIDATION !!!!
+        await core.utils.jsonschema.validate_instance(project)
 
         # update the project
         updated = await crud.project.update(
             collection=db.projects, 
             id=id,
             data=project)
+    except core.utils.jsonschema.SchemaValidationError as err:
+        raise HTTPException(status_code=422, detail=err.args[0])
     except crud.NoResultsError:
         raise HTTPException(status_code=404, detail="project not found")
     except crud.DuplicateKeyError:

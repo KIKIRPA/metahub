@@ -6,7 +6,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 
 import core
 from core.enums import Resource, JsonSchemaVersion
-from models import Project, Dataset, TemplateUpdate
+from models import Project, ProjectUpdate, Dataset, DatasetUpdate, TemplateUpdate
 import crud
 
 
@@ -23,9 +23,33 @@ class SchemaValidationError(Exception):
     pass
 
 
-def get_resource_schema(resource: Resource):
+def get_keys(schema_url: str):
+    if schema_url.startswith(core.settings.json_schema_base_url):
+        url_part = schema_url.replace(core.settings.json_schema_base_url, '')
+        if url_part.startswith("/"): 
+            url_part = url_part[1:]
+        keys = url_part.split("/")
+        if len(keys) == 2 or len(keys) == 3:
+            if len(keys) == 2:
+                keys.append("_default")
+            keys[0] = keys[0].upper()
+            if keys[0] in Resource.__members__:
+                keys[0] = Resource[keys[0]]
+                return keys
+    # if any of the above conditions is not met, raise exception
+    detail = {
+        "type": "Invalid $schema",
+        "msg": "Invalid $schema",
+        "loc": []
+    }
+    raise SchemaValidationError(detail)
+
+
+def get_resource_schema(resource: Resource, update_model: bool = False):
     try: 
         model = resource.name.capitalize()
+        if update_model:
+            model = model + "Update"
         schema = globals()[model].schema()
     except:
         raise HTTPException(status_code=404, detail=f"schema not found: '{resource.value}'")
@@ -51,7 +75,8 @@ async def resolve_schema(
         resource: Resource = None, 
         category: str = None, 
         template: str = "_default", 
-        temporary_template: TemplateUpdate = None):
+        temporary_template: TemplateUpdate = None,
+        update_model: bool = False):
     """
     Resolves a schema.
     - With only a resource, returns the schema of the pydantic model for the resource
@@ -100,7 +125,7 @@ async def resolve_schema(
 
     id_parts.append(resource.value)
     if prevent_inheritance == False:
-        resource_schema = get_resource_schema(resource)
+        resource_schema = get_resource_schema(resource, update_model)
     
     id_base = core.settings.json_schema_base_url
     if id_base[-1] == "/": id_base = id_base[:-1]
@@ -144,5 +169,49 @@ def validate_schema(schema: dict):
         raise SchemaValidationError(detail)
 
 
-def validate_instance(instance: dict):
-    pass
+async def validate_instance(instance: dict, validate_category=True, validate_template=False):
+    if not "$schema" in instance:
+        detail = {
+            "type": "Missing $schema",
+            "msg": "Missing $schema in instance",
+            "loc": []
+        }
+        raise SchemaValidationError(detail)
+    else:
+        resource, category, template = get_keys(instance["$schema"])
+        if validate_category:
+            schema = await resolve_schema(resource, category, update_model=True)
+            try:
+                jsonschema.validate(instance, schema)
+            except jsonschema.exceptions.SchemaError as err:
+                detail = {
+                    "type": f"Invalid JSON Schema: {err.validator} error [{core.settings.json_schema_version}]",
+                    "msg": err.message,
+                    "loc": list(err.path)
+                }
+                raise SchemaValidationError(detail)
+            except jsonschema.exceptions.ValidationError as err:
+                detail = {
+                    "type": f"JSON validator error: {err.validator}",
+                    "msg": err.message,
+                    "loc": list(err.path)
+                }
+                raise SchemaValidationError(detail)
+        if validate_template and not (validate_category and template == "_default"):
+            schema = await resolve_schema(resource, category, template, update_model=True)
+            try:
+                jsonschema.validate(instance, schema)
+            except jsonschema.exceptions.SchemaError as err:
+                detail = {
+                    "type": f"Invalid JSON Schema: {err.validator} error [{core.settings.json_schema_version}]",
+                    "msg": err.message,
+                    "loc": list(err.path)
+                }
+                raise SchemaValidationError(detail)
+            except jsonschema.exceptions.ValidationError as err:
+                detail = {
+                    "type": f"JSON validator error: {err.validator}",
+                    "msg": err.message,
+                    "loc": list(err.path)
+                }
+                raise SchemaValidationError(detail)
