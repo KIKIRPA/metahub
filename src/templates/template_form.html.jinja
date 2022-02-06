@@ -263,10 +263,11 @@
                                     </span>
                                     <div 
                                         class="error--text"
-                                        v-if="!validSchema">
-                                        <p class="font-weight-bold">{{ '{{validSchemaErrorType}}' }}</p>
-                                        <p class="font-weight-regular">{{ '{{validSchemaErrorMsg}}' }}</p>
-                                        <p class="text-caption">{{ '{{validSchemaErrorLoc}}' }}</p>
+                                        v-if="!validSchema"
+                                        v-for="(err, index) in validSchemaErrors">
+                                        <p class="font-weight-bold">{{ '{{ err.type }}' }}</p>
+                                        <p class="font-weight-regular">{{ '{{ err.msg }}' }}</p>
+                                        <p class="text-caption">Location: {{ '{{ err.loc.join(" > ") }}' }}</p>
                                     </div>
                                     <v-spacer></v-spacer>
                                     <v-tooltip bottom>
@@ -466,9 +467,7 @@
                 validJsonError: "",
                 validSchema: null,
                 validSchemaMsg: "",
-                validSchemaErrorType: "",
-                validSchemaErrorMsg: "",
-                validSchemaErrorLoc: "",
+                validSchemaErrors: [],
 
                 computedSchema: {},
                 computedSchemaValid: null,
@@ -549,7 +548,7 @@
                 },
 
                 validateSchema() {
-                    this.validSchemaError = ""
+                    this.validSchemaErrors = []
                     this.alert = false
                     let url = '/api/v1/templates/validate'
                     console.log('Post ' + url)
@@ -558,16 +557,14 @@
                             this.computedSchema = response.data
                             this.validSchema = true
                             this.validSchemaMsg = "The JSON schema is valid. Before saving, thouroughly test the schema and form!"
-                            this.validSchemaErrorType = this.validSchemaErrorMsg = this.validSchemaErrorLoc = ""
+                            this.validSchemaErrors = []
                             this.convertComputedSchemaModelToJson()
                         })
                         .catch(error => {
                             this.validSchema = false
                             this.validSchemaMsg = ""
                             if (error.response && error.response.status == 422) {
-                                this.validSchemaErrorType = error.response.data.detail.type
-                                this.validSchemaErrorMsg = error.response.data.detail.msg
-                                this.validSchemaErrorLoc = "Location: " + error.response.data.detail.loc.join(" > ")
+                                this.validSchemaErrors = error.response.data.detail
                             } else {
                                 this.showAlert("warning", "Unknown error while validating the template.")
                                 console.warn(error)
@@ -688,9 +685,7 @@
                     this.computedSchema = {}
                     this.validSchema = false
                     this.validSchemaMsg = "The template has changed. Manual validation is required."
-                    this.validSchemaErrorType = ""
-                    this.validSchemaErrorMsg = ""
-                    this.validSchemaErrorLoc = ""
+                    this.validSchemaErrors = []
                 },
 
                 saveTemplate() {
