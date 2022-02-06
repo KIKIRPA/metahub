@@ -2,6 +2,7 @@ from typing import Optional, List
 
 from fastapi import APIRouter, HTTPException, Query, Path
 from motor.motor_asyncio import AsyncIOMotorClient
+from pydantic import ValidationError
 
 import core
 import core.utils.jsonschema
@@ -77,13 +78,16 @@ async def create_project(project: dict):
     Create a new project.
     """
     try:
-        # TODO VALIDATION !!!!
-        await core.utils.jsonschema.validate_instance(project)
+        # validate agains resource and category models
+        project_resource_instance = models.ProjectUpdate(**project)
+        await core.utils.jsonschema.validate_instance(project, validate_category=True)
 
         # create the project
         response = await crud.project.create(
             collection=db.projects,
             data=project)
+    except ValidationError as err:
+        raise HTTPException(status_code=422, detail=err.errors())
     except core.utils.jsonschema.SchemaValidationError as err:
         raise HTTPException(status_code=422, detail=err.args[0])
     except crud.DuplicateKeyError:
@@ -103,14 +107,17 @@ async def update_project(
     Update a project.
     """
     try:
-        # TODO VALIDATION !!!!
-        await core.utils.jsonschema.validate_instance(project)
+        # validate agains resource and category models
+        project_resource_instance = models.ProjectUpdate(**project)
+        await core.utils.jsonschema.validate_instance(project, validate_category=True)
 
         # update the project
         updated = await crud.project.update(
             collection=db.projects, 
             id=id,
             data=project)
+    except ValidationError as err:
+        raise HTTPException(status_code=422, detail=err.errors())
     except core.utils.jsonschema.SchemaValidationError as err:
         raise HTTPException(status_code=422, detail=err.args[0])
     except crud.NoResultsError:

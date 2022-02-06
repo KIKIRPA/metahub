@@ -166,7 +166,7 @@ def validate_schema(schema: dict):
             "msg": err.message,
             "loc": list(err.path)
         }
-        raise SchemaValidationError(detail)
+        raise SchemaValidationError([detail])
 
 
 async def validate_instance(instance: dict, validate_category=True, validate_template=False):
@@ -176,7 +176,7 @@ async def validate_instance(instance: dict, validate_category=True, validate_tem
             "msg": "Missing $schema in instance",
             "loc": []
         }
-        raise SchemaValidationError(detail)
+        raise SchemaValidationError([detail])
     else:
         resource, category, template = get_keys(instance["$schema"])
         if validate_category:
@@ -189,14 +189,14 @@ async def validate_instance(instance: dict, validate_category=True, validate_tem
                     "msg": err.message,
                     "loc": list(err.path)
                 }
-                raise SchemaValidationError(detail)
+                raise SchemaValidationError([detail])
             except jsonschema.exceptions.ValidationError as err:
                 detail = {
                     "type": f"JSON validator error: {err.validator}",
                     "msg": err.message,
                     "loc": list(err.path)
                 }
-                raise SchemaValidationError(detail)
+                raise SchemaValidationError([detail])
         if validate_template and not (validate_category and template == "_default"):
             schema = await resolve_schema(resource, category, template, update_model=True)
             try:
@@ -207,11 +207,11 @@ async def validate_instance(instance: dict, validate_category=True, validate_tem
                     "msg": err.message,
                     "loc": list(err.path)
                 }
-                raise SchemaValidationError(detail)
+                raise SchemaValidationError([detail])
             except jsonschema.exceptions.ValidationError as err:
                 detail = {
                     "type": f"JSON validator error: {err.validator}",
                     "msg": err.message,
                     "loc": list(err.path)
                 }
-                raise SchemaValidationError(detail)
+                raise SchemaValidationError([detail])
