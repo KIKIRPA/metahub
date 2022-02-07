@@ -59,7 +59,7 @@
                     </v-icon>
                 </template>
                 <template v-slot:item.$schema="{ item }">
-                    {{ '{{ item.$schema.split("project/", 2)[1].split("/")[0] }}' }}
+                    {{ '{{ getKeys(item.$schema).category }}' }}
                 </template>
             </v-data-table>
 
@@ -162,6 +162,13 @@
                             console.log(error)
                             this.loading = false
                         })
+                },
+
+                getKeys(schemaUrl) {
+                    let parts = schemaUrl.split("project/", 2)[1].split("/")
+                    let category = parts[0]
+                    let template = (parts.length >= 2) ? parts[1] : null
+                    return {category, template} 
                 },
 
                 openForm(item = null) {

@@ -152,22 +152,22 @@
                 options,
                 data: {},
                 schema: {},
-                valid: null
+                valid: null,
+
+                category: null,
+                template: null,
             },
 
             mounted() {
                 this.getData()
-                //this.getSchema()
             },
 
             methods: {
                 getSchema() {
-                    let url = '/project/' + this.schemaAlias + (this.templateAlias !== '' ? '/' + this.templateAlias : '')
-                    axios.get('/schema/project' + url)
+                    let url = '/schema/project/' + this.category + (this.template ? '/' + this.template : '')
+                    axios.get(url)
                         .then(response => {
                             this.schema = response.data
-                            if (id !== "") url += "?id=" + id
-                            window.history.replaceState({}, this.schema.title, url)
                         })
                         .catch(error => {
                             console.log(error)
@@ -179,10 +179,18 @@
                         .then(response => {
                             this.data = response.data
                             this.title = "Project: <i>" + this.data.project_code + " <sub>&commat;" + this.data.unit + "</sub></i>"
+                            this.getKeys(this.data.$schema)
+                            this.getSchema()
                         })
                         .catch(error => {
                             console.log(error)
                         })
+                },
+
+                getKeys(schemaUrl) {
+                    let parts = schemaUrl.split("project/", 2)[1].split("/")
+                    this.category = parts[0]
+                    this.template = (parts.length >= 2) ? parts[1] : null
                 },
 
                 changeProject() {
