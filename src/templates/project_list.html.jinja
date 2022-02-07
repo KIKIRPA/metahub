@@ -58,6 +58,9 @@
                             mdi-file-eye-outline
                     </v-icon>
                 </template>
+                <template v-slot:item.$schema="{ item }">
+                    {{ '{{ item.$schema.split("project/")[1].split("/")[0] }}' }}
+                </template>
             </v-data-table>
 
             <v-card-text style="height: 45px; position: relative">
@@ -106,6 +109,7 @@
                     {text: ' ', value:'id', sortable: false},
                     {text: 'Project', value: 'project_code'},
                     {text: 'Unit', value: 'unit'},
+                    {text: 'Project category', value: '$schema'},
                     {text: 'Subject', value: 'subject'},
                     {text: 'State', value: 'state'},
                     {text: 'Terms', value: 'terms'}
