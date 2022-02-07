@@ -1,93 +1,123 @@
-<!DOCTYPE HTML>
-<html>
-<head>
-    <title>Project form</title>
-    <meta charset="UTF-8">
-    <link rel="shortcut icon" href="/static/images/favicon.ico">
+{% extends "base.html.jinja" %}
 
-    <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+{% block title %}Project form{% endblock %}
 
+{% block head %}
+    {{ super() }}
+    
     <script src="https://cdn.jsdelivr.net/npm/@koumoul/vjsf@2.7.3/dist/main.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@koumoul/vjsf@2.7.3/dist/third-party.js"></script>
-
-    <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.x/css/materialdesignicons.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
-
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@koumoul/vjsf@2.7.3/dist/main.css">
-</head>
-<body>
-    
-    <v-app id="app">
+{% endblock %}
 
-        <v-app-bar color="white" >
-            <img height="45" src="/static/images/logo.svg"/>
-            <v-spacer></v-spacer>
-            <v-app-bar-nav-icon></v-app-bar-nav-icon>
-        </v-app-bar>
+{% block content %}
+    <v-banner color="primary" class="elevation-5 px-10">
+        <span 
+            v-html="title"
+            class="white--text 
+            text-h4 
+            px-10"></span>
+        <template v-slot:actions v-if="!isError">
+            <v-tooltip left v-if="!isNew && isEditable">
+                <template v-slot:activator="{ on, attrs }">
+                    <v-btn
+                        class="mx-2"
+                        color="error"
+                        fab
+                        small
+                        @click="deleteDialog = true"
+                        v-bind="attrs"
+                        v-on="on">
+                        <v-icon>mdi-delete</v-icon>
+                    </v-btn>
+                </template>
+                <span>Delete</span>
+            </v-tooltip>
+            <v-tooltip left v-if="isEditable">
+                <template v-slot:activator="{ on, attrs }">
+                    <v-btn
+                        class="mx-2"
+                        color="success"
+                        fab
+                        small
+                        @click="saveTemplate()"
+                        v-bind="attrs"
+                        v-on="on"
+                        :disabled="!valid">
+                        <v-icon>mdi-content-save</v-icon>
+                    </v-btn>
+                </template>
+                <span>Save</span>
+            </v-tooltip>
+            <v-tooltip left v-if="isEditable">
+                <template v-slot:activator="{ on, attrs }">
+                    <v-btn
+                        class="mx-2"
+                        color="secondary"
+                        fab
+                        @click="initialize()"
+                        v-bind="attrs"
+                        v-on="on">
+                        <v-icon>mdi-cancel</v-icon>
+                    </v-btn>
+                </template>
+                <span>Cancel</span>
+            </v-tooltip>
+            <v-tooltip left v-if="!isEditable">
+                <template v-slot:activator="{ on, attrs }">
+                    <v-btn
+                        class="mx-2"
+                        color="secondary"
+                        fab
+                        @click="isEditable = true"
+                        v-bind="attrs"
+                        v-on="on">
+                        <v-icon>mdi-pencil</v-icon>
+                    </v-btn>
+                </template>
+                <span>Edit template</span>
+            </v-tooltip>
+        </template>
+    </v-banner>
 
-        <v-container>
-            <v-card>
-                <v-card-title class="primary">
-                    <v-row>
-                        <v-col cols="8">
-                            <span class="white--text text-h4">{{ '{{schema.title}}' }}</span>
-                        </v-col>
-                        <v-col cols="2">
-                            <v-select dense dark
-                                :items="schemaList"
-                                item-text="name"
-                                item-value="alias"
-                                label="Project type"
-                                v-model="schemaAlias"
-                                v-on:change="changeProject"/>
-                        </v-col>
-                        <v-col cols="2">
-                            <v-select dense dark
-                                :items="templateList"
-                                item-text="title"
-                                item-value="alias"
-                                label="Template"
-                                v-model="templateAlias"
-                                v-on:change="getSchema"/>
-                        </v-col>
-                </v-card-title>
 
-                <v-tabs background-color="primary" dark grow>
-                    <v-tab>Metadata</v-tab>
-                    <v-tab>Related images</v-tab>
-                    <v-tab>Related samples</v-tab>
-                    <v-tab>Related datasets</v-tab>
-                </v-tabs>
+    <v-container>
+        <v-card>
+            <v-card-title class="primary">
+                <v-row>
+                    <v-col cols="8">
+                        <span class="white--text text-h4">{{ '{{schema.title}}' }}</span>
+                    </v-col>
+            </v-card-title>
 
-                <v-card-text class="white">
-                    <v-form ref="form" v-model="valid">
-                        <v-jsf v-model="model" :schema="schema" :options="options" />
-                    </v-form>
-                </v-card-text>
-                <v-card-actions class="white">
-                    <v-spacer></v-spacer>
-                    <v-btn class="mx-2" color="primary" @click="$refs.form.validate()">Validate</v-btn>
-                </v-card-actions>
-            </v-card>
-            <br/>
+            <v-tabs background-color="primary" dark grow>
+                <v-tab>Metadata</v-tab>
+                <v-tab>Related images</v-tab>
+                <v-tab>Related samples</v-tab>
+                <v-tab>Related datasets</v-tab>
+            </v-tabs>
 
-            <h5>Valid: {{ '{{valid}}' }}</h5>
-            <h5>Model:</h5>
-            <pre>{{ '{{model}}' }}</pre>
-        </v-container>
-        
-        <v-container fill-height /> <!-- fills remaining horizontal space, if necessary -->
-    </v-app>
+            <v-card-text class="white">
+                <v-form ref="form" v-model="valid">
+                    <v-jsf v-model="data" :schema="schema" :options="options" />
+                </v-form>
+            </v-card-text>
+            <v-card-actions class="white">
+                <v-spacer></v-spacer>
+                <v-btn class="mx-2" color="primary" @click="$refs.form.validate()">Validate</v-btn>
+            </v-card-actions>
+        </v-card>
+        <br/>
 
+        <h5>Valid: {{ '{{valid}}' }}</h5>
+        <h5>Model:</h5>
+        <pre>{{ '{{data}}' }}</pre>
+    </v-container>
+{% endblock %}
+
+{% block script %}
     <script type="text/javascript">
         
-        const initialSchemaAlias = "{{ schema_alias }}"
-        const initialTemplateAlias = "{{ template_alias }}"
-        const initialSchemaList = {{ schema_list | safe }}
-        const initialTemplateList = []
         const initialId = "{{ id }}"
         const options =  { 
             "editMode": "inline",
@@ -111,26 +141,29 @@
             }),
 
             data: {
+                appBarDropdown: false,
+
+                title: "Project form (loading)",
+                isError: false,
+                isEditable: false,
+                isNew: false,
+                isDeleted: false,
+
                 options,
-                model: {},
+                data: {},
                 schema: {},
-                schemaAlias: initialSchemaAlias,
-                templateAlias: initialTemplateAlias,
-                schemaList: initialSchemaList,
-                templateList: initialTemplateList,
                 valid: null
             },
 
             mounted() {
                 this.getData()
-                this.getSchema()
-                this.getTemplateList()
+                //this.getSchema()
             },
 
             methods: {
                 getSchema() {
                     let url = '/project/' + this.schemaAlias + (this.templateAlias !== '' ? '/' + this.templateAlias : '')
-                    axios.get('/schema' + url)
+                    axios.get('/schema/project' + url)
                         .then(response => {
                             this.schema = response.data
                             if (id !== "") url += "?id=" + id
@@ -142,20 +175,10 @@
                 },
 
                 getData() {
-                    axios.get('/api/v1/project/' + initialId)
+                    axios.get('/api/v1/projects/' + initialId)
                         .then(response => {
-                            this.model = response.data
-                            this.options.disableAll = true
-                        })
-                        .catch(error => {
-                            console.log(error)
-                        })
-                },
-
-                getTemplateList() {
-                    axios.get('/api/v1/template/' + this.schemaAlias)
-                        .then(response => {
-                            this.templateList = response.data
+                            this.data = response.data
+                            this.title = "Project: <i>" + this.data.project_code + " <sub>&commat;" + this.data.unit + "</sub></i>"
                         })
                         .catch(error => {
                             console.log(error)
@@ -170,6 +193,4 @@
             }
         })
     </script>
-	
-</body>
-</html>
+{% endblock %}

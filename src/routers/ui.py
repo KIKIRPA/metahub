@@ -28,6 +28,10 @@ client = AsyncIOMotorClient(core.settings.mongo_conn_str)
 db = client[core.settings.mongo_db]
 
 
+#
+#   TEMPLATES
+#
+
 @router.get("/", response_class=HTMLResponse)
 def show_root_page(request: Request):
     """
@@ -121,6 +125,10 @@ async def show_template_form_with_keys(
         "id": response["id"]})
 
 
+#
+#   TEMPLATES
+#
+
 @router.get("/projects", response_class=HTMLResponse)
 def show_project_list(request: Request):
     """
@@ -129,6 +137,17 @@ def show_project_list(request: Request):
     return templates.TemplateResponse("project_list.html.jinja", {"request": request})
 
 
+@router.get("/projects/{project_id}", response_class=HTMLResponse)
+def show_project_form_with_id(
+        request: Request, 
+        project_id: str = Path(None, description="Project identifier")):
+    """
+    Displaying a project by its id
+    """
+    return templates.TemplateResponse("project_form.html.jinja", {
+        "request": request,
+        "id": project_id
+    })
 
 
 

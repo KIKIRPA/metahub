@@ -9,7 +9,7 @@
 {% block content %}
 
     <v-banner color="primary" class="elevation-5 px-10">
-        <span class="white--text text-h3 px-10">Projects</span>
+        <span class="white--text text-h4 px-10">Projects</span>
     </v-banner>
 
     <v-container>
@@ -59,7 +59,7 @@
                     </v-icon>
                 </template>
                 <template v-slot:item.$schema="{ item }">
-                    {{ '{{ item.$schema.split("project/")[1].split("/")[0] }}' }}
+                    {{ '{{ item.$schema.split("project/", 2)[1].split("/")[0] }}' }}
                 </template>
             </v-data-table>
 
