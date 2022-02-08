@@ -80,9 +80,25 @@
         </template>
     </v-banner>
 
-
     <v-container>
+        <v-row v-if="alert">
+            <v-col
+                md="6"
+                offset-md="3"
+                class="pb-6">
+                <v-alert class="mb-0"
+                    v-model="alert"
+                    :type="alertType"
+                    elevation="5"
+                    transition="scale-transition"
+                    dismissible>
+                    {{ '{{alertText}}' }}
+                </v-alert>
+            </v-col>
+        </v-row>
+
         <v-tabs
+            v-if="!isError"
             v-model="tab"
             show-arrows
             centered>
@@ -95,7 +111,7 @@
         </v-tabs>
         
         <v-card 
-            v-if="tab === 0"
+            v-if="tab === 0 && !isError"
             class="mt-6" 
             elevation="0" 
             :disabled="!isEditable">
@@ -105,7 +121,7 @@
         </v-card>
 
         <v-card 
-            v-if="tab === 1"
+            v-if="tab === 1 && !isError"
             class="mt-6" 
             elevation="0" 
             :disabled="!isEditable">
@@ -113,7 +129,7 @@
         </v-card>
 
         <v-card 
-            v-if="tab === 2"
+            v-if="tab === 2 && !isError"
             class="mt-6" 
             elevation="0" 
             :disabled="!isEditable">
@@ -121,7 +137,7 @@
         </v-card>
 
         <v-card 
-            v-if="tab === 3"
+            v-if="tab === 3 && !isError"
             class="mt-6" 
             elevation="0" 
             :disabled="!isEditable">
@@ -129,7 +145,7 @@
         </v-card>
 
         <v-card 
-            v-if="tab === 4"
+            v-if="tab === 4 && !isError"
             class="mt-6" 
             elevation="0" 
             :disabled="!isEditable">
@@ -137,7 +153,7 @@
         </v-card>
 
         <v-card 
-            v-if="tab === 5"
+            v-if="tab === 5 && !isError"
             class="mt-6" 
             elevation="0" 
             :disabled="!isEditable">
@@ -211,6 +227,10 @@
                 id: initialId,
                 category: queryParameterCategory,
                 template: queryParameterTemplate,
+
+                alert: false,
+                alertType: "info",
+                alertText: ""
             },
 
             mounted() {
@@ -231,6 +251,8 @@
                                 this.schema = response.data
                             })
                             .catch(error => {
+                                this.isError = true
+                                this.showAlert("error", "Missing schema: " + url)
                                 console.log(error)
                             })
                     }
@@ -250,6 +272,9 @@
                                 this.getSchema()
                             })
                             .catch(error => {
+                                this.title = "Project not found"
+                                this.isError = true
+                                this.showAlert("error", "Could not find the project.")
                                 console.log(error)
                             })
                     } else {
@@ -267,10 +292,10 @@
                     this.template = (parts.length >= 2) ? parts[1] : null
                 },
 
-                changeProject() {
-                    this.templateAlias = ""
-                    this.getSchema()
-                    this.getTemplateList()
+                showAlert(type, text) {
+                    this.alert = true
+                    this.alertType = type
+                    this.alertText = text
                 }
             }
         })
