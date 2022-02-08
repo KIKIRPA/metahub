@@ -12,9 +12,9 @@ class ProjectUpdate(BaseModel):
     subject: Optional[str] = Field(None, description='Subject of the project (e.g. project name or object title)')
     contributors: Optional[List[Contributor]] = Field(None, unique=True)
     state: State = Field(...)
-    terms: Optional[Terms] = Field(None)
-    pid: str = Field(None)
-    path: str = Field(None)
+    terms: Terms = Field(None)
+    persistent_identifier: Optional[str] = Field(None, description='Persistent identifier for the project')
+    path: Optional[str] = Field(None, description='Relative file path where the project data is stored')
 
 
 class _ProjectShort(ProjectUpdate, IdBaseModel):

@@ -1,25 +1,32 @@
-from typing import Optional, List, Set
+from typing import Optional, Literal, List, Set
 from enum import Enum
 from datetime import datetime, date
 
 from pydantic import BaseModel, Field
 
 
-class Unit(str, Enum):          # may need to change to Literal to make it possible to add roles in the UI
+'''
+For some Enums and Literals might be usefull to make them user-configurable at some point.
+This won't work with Enums or Literals as far as I know.
+Alternative solution: work with lists (or any other iterable) and use a custom validator:
+https://stackoverflow.com/questions/65465555/how-to-use-values-from-list-as-pydantic-validator
+'''
+
+class Unit(str, Enum):
     PAINTING_LAB = 'Painting Lab'
     DENDRO_LAB = 'Dendrochrology Lab'
 
 
-class Role(str, Enum):          # may need to change to Literal to make it possible to add roles in the UI
-    MAIN_COORDINATOR = 'Main coordinator'
-    UNIT_COORDINATOR = 'Unit coordinator'
+class Role(str, Enum):
+    COORDINATOR = 'Coordinator'
     COLLABORATOR = 'Collaborator'
     ANALYST = 'Analyst'
     AUTHOR = 'Author'
     OPERATOR = 'Operator'
+    ARCHIVIST = 'Archivist'
 
 
-class State(str, Enum):         # may need to change to Literal to make it possible to add roles in the UI
+class State(str, Enum):
     OPEN = 'Open'
     REQUESTED = 'Closure requested'
     CLOSED = 'Closed'
@@ -46,12 +53,14 @@ class QueryParameters(BaseModel):
     total: int = Field(...)
 
 
-
-
 class Terms(BaseModel):
-    license: str            # may need to change to Literal
-    access: str             # may need to change to Literal
-    embargo: date
+    access: Literal['Public', 
+        'Restricted access',
+        'Private'] = Field('Public', description='Access modalities')
+    license: Literal[
+        'Creative Commons Attribution 4.0 (CC-BY 4.0)', 
+        'Creative Commons Public Domain (CC0)'] = Field('Creative Commons Attribution 4.0 (CC-BY 4.0)', description='The license that describes the terms')
+    embargo: Optional[date] = Field(None, description='Date on which the imposed embargo expires')
 
 
 class Contributor(BaseModel):
