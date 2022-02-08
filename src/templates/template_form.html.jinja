@@ -387,7 +387,7 @@
     <script type="text/javascript">
         // initial settings and data from jinja
         const initialSchema = '{{ schema | safe }}'
-        let initialId = '{{ id }}'
+        const initialId = '{{ id }}'
         const formOptions =  { 
             "locale": "en-gb", 
             "editMode": "inline",
@@ -472,6 +472,7 @@
                 deleteDialog: false,
                 
                 formOptions: formOptions,
+                id: initialId,
                 data: {},
                 schema: {},
                 baseSchemaKey: "",
@@ -499,7 +500,7 @@
             methods: {
                 initialize() {
                     this.transformSchema(initialSchema)
-                    this.getTemplate(initialId)
+                    this.getTemplate(this.id)
                 },
 
                 transformSchema(schemaString) {
@@ -598,7 +599,7 @@
                             // replace data with the returned data
                             this.isNew = false
                             this.isEditable = false
-                            initialId = response.data.id
+                            this.id = response.data.id
                             this.title = "Template: <i>" + response.data.resource + "</i> &#10148; <i>" + response.data.category + "</i>"
                             if (response.data.template !== "_default") this.title += " &#10148; <i>" + response.data.template + "</i>"
                             this.data = response.data

@@ -43,7 +43,7 @@
                         @click="saveTemplate()"
                         v-bind="attrs"
                         v-on="on"
-                        :disabled="!valid">
+                        :disabled="!isValid">
                         <v-icon>mdi-content-save</v-icon>
                     </v-btn>
                 </template>
@@ -99,7 +99,7 @@
             class="mt-6" 
             elevation="0" 
             :disabled="!isEditable">
-            <v-form ref="form" v-model="valid">
+            <v-form ref="form" v-model="isValid">
                 <v-jsf v-model="data" :schema="schema" :options="formOptions" />
             </v-form>
         </v-card>
@@ -142,11 +142,18 @@
             elevation="0" 
             :disabled="!isEditable">
             <h5>Id</h5> {{ '{{id}}' }}<br/><br/>
-            <h5>Valid</h5> {{ '{{valid}}' }}<br/><br/>
             <h5>Data</h5>
             <pre>{{ '{{data}}' }}</pre><br/>
             <h5>Schema</h5>
             <pre>{{ '{{schema}}' }}</pre><br/>
+            <h5>Flags</h5> 
+            <ul>
+                <li>isNew: {{ '{{isNew}}' }}</li>
+                <li>isEditable: {{ '{{isEditable}}' }}</li>
+                <li>isValid: {{ '{{isValid}}' }}</li>
+                <li>isDeleted: {{ '{{isDeleted}}' }}</li>
+                <li>isError: {{ '{{isError}}' }}</li>
+            </ul>
         </v-card>
     </v-container>
 {% endblock %}
@@ -155,6 +162,8 @@
     <script type="text/javascript">
         
         const initialId = "{{ id }}"
+        const queryParameterCategory = "{{ category }}"
+        const queryParameterTemplate = "{{ template }}"
         const formOptions =  { 
             "locale": "en-gb", 
             "editMode": "inline",
@@ -186,21 +195,22 @@
                 appBarDropdown: false,
 
                 title: "Project form (loading)",
-                isError: false,
+
                 isEditable: false,
                 isNew: false,
                 isDeleted: false,
+                isValid: null,
+                isError: false,
 
                 tab: null,
 
                 formOptions,
                 data: {},
                 schema: {},
-                valid: null,
 
-                id: null,
-                category: null,
-                template: null,
+                id: initialId,
+                category: queryParameterCategory,
+                template: queryParameterTemplate,
             },
 
             mounted() {
@@ -209,33 +219,46 @@
 
             methods: {
                 getSchema() {
-                    let url = '/schema/project/' + this.category + (this.template ? '/' + this.template : '')
-                    axios.get(url)
-                        .then(response => {
-                            // remove unnecessary bits from schema (and instance)
-                            ['id', 'created_timestamp', 'created_by_user', 'modified_timestamp', 'modified_by_user'].forEach(e => delete response.data.properties[e])
-                            // hide contributors
-                            response.data.properties.contributors['x-display'] = 'hidden'
-                            this.schema = response.data
-                        })
-                        .catch(error => {
-                            console.log(error)
-                        })
+                    if (this.category !== '') {
+                        let url = '/schema/project/' + this.category + (this.template !== '' ? '/' + this.template : '')
+                        console.log('Get ' + url)
+                        axios.get(url)
+                            .then(response => {
+                                // remove unnecessary bits from schema (and instance)
+                                ['id', 'created_timestamp', 'created_by_user', 'modified_timestamp', 'modified_by_user'].forEach(e => delete response.data.properties[e])
+                                // hide contributors
+                                response.data.properties.contributors['x-display'] = 'hidden'
+                                this.schema = response.data
+                            })
+                            .catch(error => {
+                                console.log(error)
+                            })
+                    }
                 },
 
                 getData() {
-                    axios.get('/api/v1/projects/' + initialId)
-                        .then(response => {
-                            this.data = response.data
-                            this.id = response.data.id
-                            this.title = "Project: <i>" + this.data.project_code + " <small>&commat;" + this.data.unit + "</small></i>"
-                            this.isEditable = false
-                            this.getKeys(this.data.$schema)
-                            this.getSchema()
-                        })
-                        .catch(error => {
-                            console.log(error)
-                        })
+                    if (this.id !== "") {
+                        let url = '/api/v1/projects/' + this.id
+                        console.log('Get ' + url)
+                        axios.get(url)
+                            .then(response => {
+                                this.data = response.data
+                                this.title = "Project: <i>" + this.data.project_code + " <small>&commat;" + this.data.unit + "</small></i>"
+                                this.isEditable = false
+                                this.isNew = false
+                                this.getKeys(this.data.$schema)
+                                this.getSchema()
+                            })
+                            .catch(error => {
+                                console.log(error)
+                            })
+                    } else {
+                        this.title = "New project"
+                        this.data = {}
+                        this.isEditable = true
+                        this.isNew = true
+                        this.getSchema()
+                    }
                 },
 
                 getKeys(schemaUrl) {
