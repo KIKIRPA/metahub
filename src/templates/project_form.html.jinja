@@ -82,36 +82,72 @@
 
 
     <v-container>
-        <v-card>
-            <v-card-title class="primary">
-                <v-row>
-                    <v-col cols="8">
-                        <span class="white--text text-h4">{{ '{{schema.title}}' }}</span>
-                    </v-col>
-            </v-card-title>
-
-            <v-tabs background-color="primary" dark grow>
-                <v-tab>Metadata</v-tab>
-                <v-tab>Related images</v-tab>
-                <v-tab>Related samples</v-tab>
-                <v-tab>Related datasets</v-tab>
-            </v-tabs>
-
-            <v-card-text class="white">
-                <v-form ref="form" v-model="valid">
-                    <v-jsf v-model="data" :schema="schema" :options="options" />
-                </v-form>
-            </v-card-text>
-            <v-card-actions class="white">
-                <v-spacer></v-spacer>
-                <v-btn class="mx-2" color="primary" @click="$refs.form.validate()">Validate</v-btn>
-            </v-card-actions>
+        <v-tabs
+            v-model="tab"
+            show-arrows
+            centered>
+            <v-tab>Project details</v-tab>
+            <v-tab>Contributors</v-tab>
+            <v-tab>Datasets</v-tab>
+            <v-tab>Samples</v-tab>
+            <v-tab>Images</v-tab>
+            <v-tab>Debug</v-tab>
+        </v-tabs>
+        
+        <v-card 
+            v-if="tab === 0"
+            class="mt-6" 
+            elevation="0" 
+            :disabled="!isEditable">
+            <v-form ref="form" v-model="valid">
+                <v-jsf v-model="data" :schema="schema" :options="options" />
+            </v-form>
         </v-card>
-        <br/>
 
-        <h5>Valid: {{ '{{valid}}' }}</h5>
-        <h5>Model:</h5>
-        <pre>{{ '{{data}}' }}</pre>
+        <v-card 
+            v-if="tab === 1"
+            class="mt-6" 
+            elevation="0" 
+            :disabled="!isEditable">
+            <pre>{{ '{{data.contributors}}' }}</pre>
+        </v-card>
+
+        <v-card 
+            v-if="tab === 2"
+            class="mt-6" 
+            elevation="0" 
+            :disabled="!isEditable">
+            <pre>DATASETS</pre>
+        </v-card>
+
+        <v-card 
+            v-if="tab === 3"
+            class="mt-6" 
+            elevation="0" 
+            :disabled="!isEditable">
+            <pre>SAMPLES</pre>
+        </v-card>
+
+        <v-card 
+            v-if="tab === 4"
+            class="mt-6" 
+            elevation="0" 
+            :disabled="!isEditable">
+            <pre>IMAGES</pre>
+        </v-card>
+
+        <v-card 
+            v-if="tab === 5"
+            class="mt-6" 
+            elevation="0" 
+            :disabled="!isEditable">
+            <h5>Id</h5> {{ '{{id}}' }}<br/><br/>
+            <h5>Valid</h5> {{ '{{valid}}' }}<br/><br/>
+            <h5>Data</h5>
+            <pre>{{ '{{data}}' }}</pre><br/>
+            <h5>Schema</h5>
+            <pre>{{ '{{schema}}' }}</pre><br/>
+        </v-card>
     </v-container>
 {% endblock %}
 
@@ -149,11 +185,14 @@
                 isNew: false,
                 isDeleted: false,
 
+                tab: null,
+
                 options,
                 data: {},
                 schema: {},
                 valid: null,
 
+                id: null,
                 category: null,
                 template: null,
             },
@@ -167,6 +206,10 @@
                     let url = '/schema/project/' + this.category + (this.template ? '/' + this.template : '')
                     axios.get(url)
                         .then(response => {
+                            // remove unnecessary bits from schema (and instance)
+                            ['id', 'created_timestamp', 'created_by_user', 'modified_timestamp', 'modified_by_user'].forEach(e => delete response.data.properties[e])
+                            // hide contributors
+                            response.data.properties.contributors['x-display'] = 'hidden'
                             this.schema = response.data
                         })
                         .catch(error => {
@@ -178,7 +221,9 @@
                     axios.get('/api/v1/projects/' + initialId)
                         .then(response => {
                             this.data = response.data
-                            this.title = "Project: <i>" + this.data.project_code + " <sub>&commat;" + this.data.unit + "</sub></i>"
+                            this.id = response.data.id
+                            this.title = "Project: <i>" + this.data.project_code + " <small>&commat;" + this.data.unit + "</small></i>"
+                            this.isEditable = false
                             this.getKeys(this.data.$schema)
                             this.getSchema()
                         })
