@@ -55,7 +55,7 @@
                         class="mx-2"
                         color="secondary"
                         fab
-                        @click="initialize()"
+                        @click="getData()"
                         v-bind="attrs"
                         v-on="on">
                         <v-icon>mdi-cancel</v-icon>
@@ -115,9 +115,21 @@
             class="mt-6" 
             elevation="0" 
             :disabled="!isEditable">
-            <v-form ref="form" v-model="isValid">
-                <v-jsf v-model="data" :schema="schema" :options="formOptions" />
-            </v-form>
+            <v-row>
+                <v-spacer></v-spacer>
+                <v-btn
+                    v-if="isEditable"
+                    @click="templateDialog = true"
+                    color="primary"
+                    dark>
+                    Project category...
+                </v-btn>
+            </v-row>
+            <v-row>
+                <v-form ref="form" v-model="isValid">
+                    <v-jsf v-model="data" :schema="schema" :options="formOptions" />
+                </v-form>
+            </v-row>
         </v-card>
 
         <v-card 
@@ -158,6 +170,7 @@
             elevation="0" 
             :disabled="!isEditable">
             <h5>Id</h5> {{ '{{id}}' }}<br/><br/>
+            <h5>Schema</h5> {{ '{{schemaUrl}}' }}<br/><br/>
             <h5>Data</h5>
             <pre>{{ '{{data}}' }}</pre><br/>
             <h5>Schema</h5>
@@ -172,6 +185,49 @@
             </ul>
         </v-card>
     </v-container>
+
+    <v-dialog
+        v-model="templateDialog"
+        max-width="600">
+        <v-card>
+            <v-card-title class="text-h5">
+                <span v-if="isNew">Select project category</span>
+                <span v-else>Change project category</span>
+            </v-card-title>
+
+            <v-card-text>
+                <v-form 
+                    ref="templateDialogForm" 
+                    v-model="templateDialogFormValid" 
+                    lazy-validation>
+                    <v-text-field
+                        v-model="category"
+                        label="Category"
+                        :rules="categoryRules"
+                        required></v-text-field>
+                    <v-text-field
+                        v-model="template"
+                        label="Template"></v-text-field>
+                </v-form>
+            </v-card-text>
+            <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn
+                    color="primary"
+                    text
+                    @click="templateDialog = false">
+                    Cancel
+                </v-btn>
+                <v-btn
+                    color="primary"
+                    text
+                    :disabled="!templateDialogFormValid"
+                    @click="getSchema()">
+                    Apply
+                </v-btn>
+            </v-card-actions>
+        </v-card>
+    </v-dialog>
 {% endblock %}
 
 {% block script %}
@@ -219,14 +275,20 @@
                 isError: false,
 
                 tab: null,
+                templateDialog: false,
+                templateDialogFormValid: false,
+                categoryRules: [
+                    v => !!v || 'Category is required',
+                ],
 
                 formOptions,
                 data: {},
                 schema: {},
 
                 id: initialId,
-                category: queryParameterCategory,
-                template: queryParameterTemplate,
+                schemaUrl: null,
+                category: (queryParameterCategory !== "") ? queryParameterCategory : null,
+                template: (queryParameterTemplate !== "") ? queryParameterTemplate : null,
 
                 alert: false,
                 alertType: "info",
@@ -239,8 +301,9 @@
 
             methods: {
                 getSchema() {
-                    if (this.category !== '') {
-                        let url = '/schema/project/' + this.category + (this.template !== '' ? '/' + this.template : '')
+                    this.templateDialog = false
+                    if (this.category) {
+                        let url = '/schema/project/' + this.category + (this.template ? '/' + this.template : '')
                         console.log('Get ' + url)
                         axios.get(url)
                             .then(response => {
@@ -249,11 +312,13 @@
                                 // hide contributors
                                 response.data.properties.contributors['x-display'] = 'hidden'
                                 this.schema = response.data
+                                this.schemaUrl = this.schema.$id
                             })
                             .catch(error => {
-                                this.isError = true
                                 this.showAlert("error", "Missing schema: " + url)
                                 console.log(error)
+                                // reset this.category and this.template (if this.schemaUrl is set)
+                                if (this.schemaUrl) this.getKeys()
                             })
                     }
                 },
@@ -268,7 +333,8 @@
                                 this.title = "Project: <i>" + this.data.project_code + " <small>&commat;" + this.data.unit + "</small></i>"
                                 this.isEditable = false
                                 this.isNew = false
-                                this.getKeys(this.data.$schema)
+                                this.schemaUrl = this.data.$schema
+                                this.getKeys()
                                 this.getSchema()
                             })
                             .catch(error => {
@@ -282,14 +348,22 @@
                         this.data = {}
                         this.isEditable = true
                         this.isNew = true
-                        this.getSchema()
+                        // if category (and template) are supplied as query parameters, retrieve schema, 
+                        // if not, show templateDialog 
+                        if (this.category) {
+                            this.getSchema()
+                        } else {
+                            this.templateDialog = true
+                        }
                     }
                 },
 
-                getKeys(schemaUrl) {
-                    let parts = schemaUrl.split("project/", 2)[1].split("/")
-                    this.category = parts[0]
-                    this.template = (parts.length >= 2) ? parts[1] : null
+                getKeys() {
+                    if (this.schemaUrl) {
+                        let parts = this.schemaUrl.split("project/", 2)[1].split("/")
+                        this.category = parts[0]
+                        this.template = (parts.length >= 2) ? parts[1] : null
+                    }
                 },
 
                 showAlert(type, text) {
