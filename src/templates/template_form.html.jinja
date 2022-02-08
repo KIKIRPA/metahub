@@ -119,8 +119,9 @@
                                     @change="convertJson()"
                                     name="json_schema_txt"
                                     label="JSON schema overrides"
-                                    style="font-family:'monospace'"
-                                    rows="10"
+                                    style="font-family:'monospace'; font-size: 70%; white-space: pre;"
+                                    wrap="off"
+                                    auto-grow
                                     filled>
                                 </v-textarea>
                             </v-card>
@@ -136,8 +137,9 @@
                                         v-model="computedSchemaDataJson"
                                         name="json_schema_txt"
                                         label="Data"
-                                        style="font-family:'monospace'"
-                                        rows="10"
+                                        style="font-family:'monospace'; font-size: 70%; white-space: pre;"
+                                        wrap="off"
+                                        auto-grow
                                         filled>
                                     </v-textarea>
                                 </v-card-text>
@@ -304,10 +306,20 @@
                     <v-card-text>
                         <v-tabs-items v-model="tab" >
                             <v-tab-item>
-                                <pre>{{ '{{baseSchema}}' }}</pre>
+                                <v-textarea
+                                    style="font-family:'monospace'; font-size: 70%; white-space: pre;"
+                                    wrap="off"
+                                    auto-grow
+                                    v-text="baseSchema">
+                                </v-textarea>
                             </v-tab-item>
                             <v-tab-item>
-                                <pre>{{ '{{computedSchema}}' }}</pre>
+                                <v-textarea
+                                    style="font-family:'monospace'; font-size: 70%; white-space: pre;"
+                                    wrap="off"
+                                    auto-grow
+                                    v-text="computedSchema">
+                                </v-textarea>
                             </v-tab-item>
                             <v-tab-item>
                                 <v-alert
