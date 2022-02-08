@@ -100,7 +100,7 @@
             elevation="0" 
             :disabled="!isEditable">
             <v-form ref="form" v-model="valid">
-                <v-jsf v-model="data" :schema="schema" :options="options" />
+                <v-jsf v-model="data" :schema="schema" :options="formOptions" />
             </v-form>
         </v-card>
 
@@ -155,10 +155,16 @@
     <script type="text/javascript">
         
         const initialId = "{{ id }}"
-        const options =  { 
+        const formOptions =  { 
+            "locale": "en-gb", 
             "editMode": "inline",
-            "disableAll": false,
-            //"rootDisplay": "expansion-panels"
+            "textareaProps": {
+                "filled": true,
+                "auto-grow": true,
+            },
+            "timePickerProps": {
+                "format": "24hr"
+            }
         }
 
         Vue.component('VJsf', VJsf.default)
@@ -187,7 +193,7 @@
 
                 tab: null,
 
-                options,
+                formOptions,
                 data: {},
                 schema: {},
                 valid: null,
