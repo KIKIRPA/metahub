@@ -40,7 +40,7 @@
                         color="success"
                         fab
                         small
-                        @click="saveTemplate()"
+                        @click="saveData()"
                         v-bind="attrs"
                         v-on="on"
                         :disabled="!isValid">
@@ -333,7 +333,7 @@
                                 this.title = "Project: <i>" + this.data.project_code + " <small>&commat;" + this.data.unit + "</small></i>"
                                 this.isEditable = false
                                 this.isNew = false
-                                this.schemaUrl = this.data.$schema
+                                this.schemaUrl = this.data._schema
                                 this.getKeys()
                                 this.getSchema()
                             })
@@ -354,6 +354,74 @@
                             this.getSchema()
                         } else {
                             this.templateDialog = true
+                        }
+                    }
+                },
+
+                postData() {
+                    this.alert = false
+                    let url = '/api/v1/projects'
+                    console.log('Post ' + url)
+                    let data = {
+                        _schema: this.schemaUrl,
+                        ...this.data
+                    }
+                    axios.post(url, data)
+                        .then(response => {
+                            this.showAlert("success", "The project was successfully saved.")
+                            // replace data with the returned data
+                            this.isNew = false
+                            this.isEditable = false
+                            this.id = response.data.id
+                            this.data = response.data
+                            window.history.replaceState({}, "Project form", "/projects/" + this.id)
+                            this.title = "Project: <i>" + this.data.project_code + " <small>&commat;" + this.data.unit + "</small></i>"
+                        })
+                        .catch(error => {
+                            if (error.response && error.response.status == 422) {
+                                this.showAlert("error", "The project could not be saved: " + error.response.data.detail[0].type)
+                            } else {
+                                this.showAlert("error", "The project could not be saved.")
+                                console.warn(error)
+                            }
+                        })
+                },
+
+                putData() {
+                    this.alert = false
+                    let url = '/api/v1/projects/' + this.id
+                    console.log('Put ' + url)
+                    // prepare data to put
+                    let data = {
+                        _schema: this.schemaUrl,
+                        ...this.data
+                    }
+                    axios.put(url, data)
+                        .then(response => {
+                            this.showAlert("success", "The project was successfully saved.")
+                            // replace data with the returned data
+                            this.isEditable = false
+                            this.id = response.data.id
+                            this.data = response.data
+                            window.history.replaceState({}, "Project form", "/projects/" + this.id)
+                            this.title = "Project: <i>" + this.data.project_code + " <small>&commat;" + this.data.unit + "</small></i>"
+                        })
+                        .catch(error => {
+                            if (error.response && error.response.status == 422) {
+                                this.showAlert("error", "The project could not be saved: " + error.response.data.detail[0].type)
+                            } else {
+                                this.showAlert("error", "The project could not be saved.")
+                                console.warn(error)
+                            }
+                        })
+                },
+
+                saveData() {
+                    if (this.isValid) {
+                        if (this.isNew) {
+                            this.postData()
+                        } else {
+                            this.putData()
                         }
                     }
                 },
