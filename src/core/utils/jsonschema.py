@@ -170,7 +170,7 @@ def validate_schema(schema: dict):
 
 
 async def validate_instance(instance: dict, validate_category=True, validate_template=False):
-    if not "_schema" in instance:
+    if not "$schema" in instance:
         detail = {
             "type": "Missing schema",
             "msg": "Missing schema in instance",
@@ -178,7 +178,7 @@ async def validate_instance(instance: dict, validate_category=True, validate_tem
         }
         raise SchemaValidationError([detail])
     else:
-        resource, category, template = get_keys(instance["_schema"])
+        resource, category, template = get_keys(instance["$schema"])
         if validate_category:
             schema = await resolve_schema(resource, category, update_model=True)
             try:

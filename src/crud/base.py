@@ -7,10 +7,30 @@ from bson import ObjectId
 import pymongo.errors
 
 
-def translate_id(obj: dict):
+def translate_from_mongo(obj: dict):
+    """
+    Changes _id into id as string representation and _schema into $schema,
+    and puts those fields on top
+    """
     if obj is not None:
-        id = obj.pop("_id")
-        obj["id"] = str(id)
+        new_obj = {"id": str(obj.pop("_id"))}
+        if "_schema" in obj:
+            new_obj["$schema"] = obj.pop("_schema")
+        new_obj.update(obj)
+        return new_obj
+    else:
+        return None
+
+
+def translate_to_mongo(obj: dict):
+    """
+    Changes $schema into _schema
+    """
+    if obj is not None:
+        if "$schema" in obj:
+            new_obj = {"_schema": obj.pop("$schema")}
+            new_obj.update(obj)
+            return new_obj
         return obj
     else:
         return None
@@ -64,7 +84,7 @@ class CRUDBase():
             id: str) -> dict:
         result = await collection.find_one({"_id": ObjectId(id)})
         if result is None: raise NoResultsError
-        return translate_id(result)
+        return translate_from_mongo(result)
 
 
     async def search(
@@ -99,8 +119,8 @@ class CRUDBase():
 
         data = await collection.find(find).sort(sort).skip(skip).limit(limit).to_list(None)
 
-        for doc in data:
-            doc = translate_id(doc)
+        for i in range(len(data)):
+            data[i] = translate_from_mongo(data[i])
         
         return {"query_parameters": query_parameters, "data": data}
 
@@ -128,7 +148,7 @@ class CRUDBase():
             data: dict) -> dict:
         # first encode for json, than include a datetime (to be converted to mongo date object)
         #data = data.dict()
-        data = jsonable_encoder(data)
+        data = translate_to_mongo(jsonable_encoder(data))
         data["created_timestamp"] = datetime.now(timezone.utc)
         
         try: 
@@ -139,7 +159,7 @@ class CRUDBase():
         result = await collection.find_one({"_id": insert.inserted_id})
         if result is None: raise NotCreatedError
         
-        return translate_id(result)
+        return translate_from_mongo(result)
 
 
     async def update(
@@ -153,7 +173,7 @@ class CRUDBase():
 
         # first encode for json, than include a datetime (to be converted to mongo date object)
         #data = data.dict()
-        data = jsonable_encoder(data)
+        data = translate_to_mongo(jsonable_encoder(data))
         data["modified_timestamp"] = datetime.now(timezone.utc)
         
         try:
@@ -165,7 +185,7 @@ class CRUDBase():
         result = await collection.find_one({"_id": ObjectId(id)})
         if result is None: raise NoResultsError
         
-        return translate_id(result)
+        return translate_from_mongo(result)
     
 
     async def remove(
@@ -179,4 +199,4 @@ class CRUDBase():
         delete = await collection.delete_one({"_id": ObjectId(id)})
         if delete.deleted_count != 1: raise NotDeletedError
         
-        return translate_id(result)
+        return translate_from_mongo(result)

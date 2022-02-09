@@ -58,8 +58,8 @@
                             mdi-file-eye-outline
                     </v-icon>
                 </template>
-                <template v-slot:item._schema="{ item }">
-                    {{ '{{ getKeys(item._schema).category }}' }}
+                <template v-slot:item.$schema="{ item }">
+                    {{ '{{ getKeys(item.$schema).category }}' }}
                 </template>
             </v-data-table>
 
@@ -109,7 +109,7 @@
                     {text: ' ', value:'id', sortable: false},
                     {text: 'Project', value: 'project_code'},
                     {text: 'Unit', value: 'unit'},
-                    {text: 'Project category', value: '_schema'},
+                    {text: 'Project category', value: '$schema'},
                     {text: 'Subject', value: 'subject'},
                     {text: 'State', value: 'state'},
                     {text: 'Terms', value: 'terms'}
