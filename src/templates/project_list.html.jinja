@@ -43,11 +43,14 @@
 
             <v-data-table
                 :headers="headers"
-                :items="projects"
-                :server-items-length="totalProjects"
+                :items="data"
+                :server-items-length="total"
                 :options.sync="options"
                 :loading="loading"
-                :footer-props="{'items-per-page-options':[10, 50, 100, -1]}">
+                :footer-props="{'items-per-page-options':[10, 50, 100, -1]}"
+                single-expand
+                :expanded.sync="expanded"
+                show-expand>
 
                 <template v-slot:item.id="{ item }">
                     <v-icon
@@ -60,6 +63,11 @@
                 </template>
                 <template v-slot:item.$schema="{ item }">
                     {{ '{{ getKeys(item.$schema).category }}' }}
+                </template>
+                <template v-slot:expanded-item="{ headers, item }">
+                    <td :colspan="headers.length">
+                        <pre>{{'{{ flattenObj(item) }}'}}</pre>
+                    </td>
                 </template>
             </v-data-table>
 
@@ -78,7 +86,7 @@
                                 <v-icon>mdi-plus</v-icon>
                             </v-btn>
                         </template>
-                        <span>Create new template</span>
+                        <span>Create new project</span>
                     </v-tooltip>
                 </v-fab-transition>
             </v-card-text>
@@ -112,15 +120,17 @@
                     {text: 'Project category', value: '$schema'},
                     {text: 'Subject', value: 'subject'},
                     {text: 'State', value: 'state'},
-                    {text: 'Terms', value: 'terms'}
+                    {text: 'Terms', value: 'terms'},
+                    {text: '', value: 'data-table-expand', sortable: false },
                 ],
-                projects: [],
-                totalProjects: 0,
+                data: [],
+                total: 0,
                 options: {
                     sortBy: ['project_code', 'unit'],
                     multiSort: true},
                 search: '',
                 loading: true,
+                expanded: [],
 
                 alert: false,
                 alertType: "info",
@@ -130,14 +140,39 @@
             watch: {
                 options: {
                     handler () {
-                        this.getProjects()
+                        this.getData()
                         },
                     deep: true,
                 },
             },
 
             methods: {
-                getProjects() {
+                flattenObj(obj) {
+                    let result = {}
+                    for (const i in obj) {
+                        // We check the type of the i using typeof() function and recursively call the function again
+                        if ((typeof obj[i]) === 'object' && !Array.isArray(obj[i])) {
+                            const temp = this.flattenObj(obj[i])
+                            for (const j in temp) {
+                                // Store temp in result
+                                if (Array.isArray(temp[j])) {
+                                    temp[j] = JSON.stringify(temp[j])
+                                    temp[j] = temp[j].replace(/{}"/g, '').replace('[', '').replace(']', '')
+                                }
+                                result[i + '.' + j] = temp[j]
+                            }
+                        } else { // Else store obj[i] in result directly
+                                if (Array.isArray(obj[i])) {
+                                    obj[i] = JSON.stringify(obj[i])
+                                    obj[i] = obj[i].replace(/{}"/g, '').replace('[', '').replace(']', '')
+                                }
+                            result[i] = obj[i]
+                        }
+                    }
+                    return result
+                },
+
+                getData() {
                     this.loading = true
                     
                     // query parameters
@@ -153,8 +188,8 @@
                     url = '/api/v1/projects'
                     return axios.get(url, {params: parameters})
                         .then(response => {
-                            this.projects = response.data.data
-                            this.totalProjects = response.data.query_parameters.total
+                            this.data = response.data.data
+                            this.total = response.data.query_parameters.total
                             this.loading = false
                         })
                         .catch(error => {
