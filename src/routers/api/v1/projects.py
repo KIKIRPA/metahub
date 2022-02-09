@@ -100,11 +100,11 @@ async def create_project(project: dict):
 
 
 @router.put("/{id}")
-async def update_project(
+async def replace_project(
         project: dict,
         id: str = Path(None, description="The id of the project")):
     """
-    Update a project.
+    Replace a project (full update).
     """
     try:
         # validate agains resource and category models
@@ -112,7 +112,7 @@ async def update_project(
         await core.utils.jsonschema.validate_instance(project, validate_category=True)
 
         # update the project
-        updated = await crud.project.update(
+        updated = await crud.project.replace(
             collection=db.projects, 
             id=id,
             data=project)

@@ -140,11 +140,11 @@ async def create_template(template: models.TemplateUpdate):
 
 
 @router.put("/{id}", response_model=models.Template)
-async def update_template(
+async def replace_template(
         template: models.TemplateUpdate,
         id: str = Path(None, description="The id of the template")):
     """
-    Update a template.
+    Replace a template (full update).
     """
     try:
         # first validate the schema
@@ -152,7 +152,7 @@ async def update_template(
         core.utils.validate_schema(resolved_schema)
 
         # update the template
-        updated = await crud.template.update(
+        updated = await crud.template.replace(
             collection=db.templates, 
             id=id,
             data=template)

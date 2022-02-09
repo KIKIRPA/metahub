@@ -121,7 +121,7 @@ class CRUDBase():
 
         for i in range(len(data)):
             data[i] = translate_from_mongo(data[i])
-        
+
         return {"query_parameters": query_parameters, "data": data}
 
 
@@ -158,6 +158,34 @@ class CRUDBase():
 
         result = await collection.find_one({"_id": insert.inserted_id})
         if result is None: raise NotCreatedError
+        
+        return translate_from_mongo(result)
+
+
+    async def replace(
+            self,
+            collection: AsyncIOMotorCollection,
+            id: str,
+            *,
+            data: dict) -> dict:
+        result = await collection.find_one({"_id": ObjectId(id)})
+        if result is None: raise NoResultsError
+
+        # first encode for json, than include a datetime (to be converted to mongo date object)
+        #data = data.dict()
+        data = translate_to_mongo(jsonable_encoder(data))
+        if "created_timestamp" in result:
+            data["created_timestamp"] = result["created_timestamp"]
+        data["modified_timestamp"] = datetime.now(timezone.utc)
+        
+        try:
+            update = await collection.replace_one({"_id": ObjectId(id)}, data)
+        except pymongo.errors.DuplicateKeyError:
+            raise DuplicateKeyError
+        
+        if update.modified_count != 1: raise NotUpdatedError
+        result = await collection.find_one({"_id": ObjectId(id)})
+        if result is None: raise NoResultsError
         
         return translate_from_mongo(result)
 
