@@ -607,7 +607,8 @@
                         })
                         .catch(error => {
                             if (error.response && error.response.status == 422) {
-                                this.showAlert("error", "The template could not be saved: " + error.response.data.detail[0].type)
+                                let msg = Array.isArray(error.response.data.detail) ? error.response.data.detail[0].type : error.response.data.detail
+                                this.showAlert("error", "The template could not be saved: " + msg)
                             } else {
                                 this.showAlert("error", "The template could not be saved.")
                                 console.warn(error)
@@ -631,7 +632,8 @@
                         })
                         .catch(error => {
                             if (error.response && error.response.status == 422) {
-                                this.showAlert("error", "The template could not be saved: " + error.response.data.detail[0].type)
+                                let msg = Array.isArray(error.response.data.detail) ? error.response.data.detail[0].type : error.response.data.detail
+                                this.showAlert("error", "The template could not be saved: " + msg)
                             } else {
                                 this.showAlert("error", "The template could not be saved.")
                                 console.warn(error)
@@ -651,7 +653,8 @@
                             .catch(error => {
                                 this.deleteDialog = false
                                 if (error.response && error.response.status == 422) {
-                                    this.showAlert("error", "The template could not be deleted: " + error.response.data.detail[0].type)
+                                    let msg = Array.isArray(error.response.data.detail) ? error.response.data.detail[0].type : error.response.data.detail
+                                    this.showAlert("error", "The template could not be saved: " + msg)
                                 } else {
                                     this.showAlert("error", "The template could not be deleted.")
                                     console.warn(error)

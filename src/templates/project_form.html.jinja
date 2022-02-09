@@ -363,7 +363,7 @@
                     let url = '/api/v1/projects'
                     console.log('Post ' + url)
                     let data = {
-                        _schema: this.schemaUrl,
+                        $schema: this.schemaUrl,
                         ...this.data
                     }
                     axios.post(url, data)
@@ -379,7 +379,8 @@
                         })
                         .catch(error => {
                             if (error.response && error.response.status == 422) {
-                                this.showAlert("error", "The project could not be saved: " + error.response.data.detail[0].type)
+                                let msg = Array.isArray(error.response.data.detail) ? error.response.data.detail[0].type : error.response.data.detail
+                                this.showAlert("error", "The project could not be saved: " + msg)
                             } else {
                                 this.showAlert("error", "The project could not be saved.")
                                 console.warn(error)
@@ -393,7 +394,7 @@
                     console.log('Put ' + url)
                     // prepare data to put
                     let data = {
-                        _schema: this.schemaUrl,
+                        $schema: this.schemaUrl,
                         ...this.data
                     }
                     axios.put(url, data)
@@ -408,12 +409,35 @@
                         })
                         .catch(error => {
                             if (error.response && error.response.status == 422) {
-                                this.showAlert("error", "The project could not be saved: " + error.response.data.detail[0].type)
+                                let msg = Array.isArray(error.response.data.detail) ? error.response.data.detail[0].type : error.response.data.detail
+                                this.showAlert("error", "The project could not be saved: " + msg)
                             } else {
                                 this.showAlert("error", "The project could not be saved.")
                                 console.warn(error)
                             }
                         })
+                },
+
+                deleteData() {
+                    this.alert = false
+                    if (!this.isNew) {
+                        let url = '/api/v1/projects/' + this.id
+                        console.log('Delete ' + url)
+                        axios.delete(url)
+                            .then(response => {
+                                this.isDeleted = true
+                            })
+                            .catch(error => {
+                                this.deleteDialog = false
+                                if (error.response && error.response.status == 422) {
+                                let msg = Array.isArray(error.response.data.detail) ? error.response.data.detail[0].type : error.response.data.detail
+                                this.showAlert("error", "The project could not be saved: " + msg)
+                                } else {
+                                    this.showAlert("error", "The project could not be deleted.")
+                                    console.warn(error)
+                                }
+                            })
+                    }
                 },
 
                 saveData() {
