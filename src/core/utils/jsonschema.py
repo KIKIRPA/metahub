@@ -38,8 +38,8 @@ def get_keys(schema_url: str):
                 return keys
     # if any of the above conditions is not met, raise exception
     detail = {
-        "type": "Invalid $schema",
-        "msg": "Invalid $schema",
+        "type": "Invalid schema",
+        "msg": "Invalid schema",
         "loc": []
     }
     raise SchemaValidationError(detail)
@@ -170,15 +170,15 @@ def validate_schema(schema: dict):
 
 
 async def validate_instance(instance: dict, validate_category=True, validate_template=False):
-    if not "$schema" in instance:
+    if not "_schema" in instance:
         detail = {
-            "type": "Missing $schema",
-            "msg": "Missing $schema in instance",
+            "type": "Missing schema",
+            "msg": "Missing schema in instance",
             "loc": []
         }
         raise SchemaValidationError([detail])
     else:
-        resource, category, template = get_keys(instance["$schema"])
+        resource, category, template = get_keys(instance["_schema"])
         if validate_category:
             schema = await resolve_schema(resource, category, update_model=True)
             try:

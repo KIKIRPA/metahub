@@ -11,7 +11,7 @@ class File(BaseModel):
 
 
 class DatasetUpdate(BaseModel):
-    _schema: HttpUrl = Field(..., alias="$schema")
+    _schema: HttpUrl = Field(...)
     project_id: str = Field(..., title='Project Id')
     object_id: Optional[int] = Field(None, description="Object number to which this dataset belongs")
     contributors: Optional[Set[Contributor]] = Field(...)

@@ -6,7 +6,7 @@ from models.common import IdBaseModel, LoggingBaseModel, QueryParameters, Contri
 
 
 class ProjectUpdate(BaseModel):
-    _schema: HttpUrl = Field(..., alias="$schema") 
+    _schema: HttpUrl = Field(...) 
     project_code: str = Field(..., description='Project code (file number, acronym...)')
     unit: Unit = Field(...)
     subject: Optional[str] = Field(None, description='Subject of the project (e.g. project name or object title)')
