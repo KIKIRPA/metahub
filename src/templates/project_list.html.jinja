@@ -53,20 +53,53 @@
                 show-expand>
 
                 <template v-slot:item.id="{ item }">
-                    <v-icon
-                        small
-                        class="mr-2"
-                        color="primary"
-                        @click="openForm(item)">
-                            mdi-file-eye-outline
-                    </v-icon>
+                    <v-tooltip top>
+                        <template v-slot:activator="{ on, attrs }">
+                            <v-icon
+                                small
+                                class="mr-2"
+                                color="primary"
+                                @click="openForm(item)"
+                                v-bind="attrs"
+                                v-on="on">
+                                mdi-folder-open
+                            </v-icon>
+                        </template>
+                        <span>Open project</span>
+                    </v-tooltip>
                 </template>
                 <template v-slot:item.$schema="{ item }">
                     {{ '{{ getKeys(item.$schema).category }}' }}
                 </template>
                 <template v-slot:expanded-item="{ headers, item }">
                     <td :colspan="headers.length">
-                        <pre>{{'{{ flattenObj(item) }}'}}</pre>
+                        <v-simple-table dense class="my-3">
+                            <template v-slot:default>
+                                <tbody>
+                                    <tr
+                                        v-for="(val, key) in item"
+                                        :key="key">
+                                        <td class="font-weight-bold">{{ '{{ makeColumnName(key) }}' }}</td>
+                                        <td>{{ '{{ val }}' }}</td>
+                                        <td class="text-right">
+                                            <v-tooltip top>
+                                                <template v-slot:activator="{ on, attrs }">
+                                                    <v-icon
+                                                        small
+                                                        color="primary"
+                                                        @click=""
+                                                        v-bind="attrs"
+                                                        v-on="on">
+                                                        mdi-table-column-plus-after
+                                                    </v-icon>
+                                                </template>
+                                                <span>Add column</span>
+                                            </v-tooltip>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </template>
+                        </v-simple-table>
                     </td>
                 </template>
             </v-data-table>
@@ -120,7 +153,7 @@
                     {text: 'Project category', value: '$schema'},
                     {text: 'Subject', value: 'subject'},
                     {text: 'State', value: 'state'},
-                    {text: 'Terms', value: 'terms'},
+                    {text: 'Access', value: 'terms.access'},
                     {text: '', value: 'data-table-expand', sortable: false },
                 ],
                 data: [],
@@ -172,6 +205,18 @@
                     return result
                 },
 
+                makeColumnName(item) {
+                    // split combined
+                    if (item.includes('.')) {
+                        let arr = item.split('.')
+                        item = arr.pop()
+                    }
+                    // replace characters
+                    item = item.replace('$', '').replace('_', ' ')
+                    // capitalize first character
+                    return item.charAt(0).toUpperCase() + item.slice(1);
+                },
+
                 getData() {
                     this.loading = true
                     
@@ -188,7 +233,9 @@
                     url = '/api/v1/projects'
                     return axios.get(url, {params: parameters})
                         .then(response => {
-                            this.data = response.data.data
+                            for (i in response.data.data) {
+                                this.data[i] = this.flattenObj(response.data.data[i])
+                            }
                             this.total = response.data.query_parameters.total
                             this.loading = false
                         })
