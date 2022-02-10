@@ -42,10 +42,10 @@
             </v-card-title>
 
             <v-data-table
-                :headers="headers"
+                :headers="tableConfiguration.headers"
                 :items="data"
                 :server-items-length="total"
-                :options.sync="options"
+                :options.sync="tableConfiguration.options"
                 :loading="loading"
                 :footer-props="{'items-per-page-options':[10, 50, 100, -1]}"
                 single-expand
@@ -146,21 +146,25 @@
             data: {
                 appBarDropdown: false,
 
-                headers: [
-                    {text: ' ', value:'id', sortable: false},
-                    {text: 'Project', value: 'project_code'},
-                    {text: 'Unit', value: 'unit'},
-                    {text: 'Project category', value: '$schema'},
-                    {text: 'Subject', value: 'subject'},
-                    {text: 'State', value: 'state'},
-                    {text: 'Access', value: 'terms.access'},
-                    {text: '', value: 'data-table-expand', sortable: false },
-                ],
+                tableConfiguration: {
+                    headers: [
+                        {text: ' ', value:'id', sortable: false},
+                        {text: 'Project', value: 'project_code'},
+                        {text: 'Unit', value: 'unit'},
+                        {text: 'Project category', value: '$schema'},
+                        {text: 'Subject', value: 'subject'},
+                        {text: 'State', value: 'state'},
+                        {text: 'Access', value: 'terms.access'},
+                        {text: '', value: 'data-table-expand', sortable: false },
+                    ],
+                    options: {
+                        sortBy: ['project_code', 'unit'],
+                        multiSort: true
+                    },
+                },
+
                 data: [],
                 total: 0,
-                options: {
-                    sortBy: ['project_code', 'unit'],
-                    multiSort: true},
                 search: '',
                 loading: true,
                 expanded: [],
@@ -168,6 +172,13 @@
                 alert: false,
                 alertType: "info",
                 alertText: ""
+            },
+
+            created() {
+                let temp = window.localStorage.getItem('projectList')
+                if (temp !== null) {
+                    this.tableConfiguration = JSON.parse(temp)
+                }
             },
 
             watch: {
@@ -218,18 +229,18 @@
                 },
 
                 addColumn(item) {
-                    let position = this.headers.length - 1
-                    this.headers.splice(position, 0, {
+                    let position = this.tableConfiguration.headers.length - 1
+                    this.tableConfiguration.headers.splice(position, 0, {
                         text: this.makeColumnName(item), 
                         value: item
                     })
+                    window.localStorage.setItem('projectList', JSON.stringify(this.tableConfiguration))
                 },
 
                 getData() {
                     this.loading = true
                     
                     // query parameters
-                    //console.log(JSON.stringify(this.options, null, 2)) // DEBUG
                     parameters = {
                         skip: (this.options.page - 1) * this.options.itemsPerPage,
                         limit: this.options.itemsPerPage,
@@ -246,6 +257,7 @@
                             }
                             this.total = response.data.query_parameters.total
                             this.loading = false
+                            window.localStorage.setItem('projectList', JSON.stringify(this.tableConfiguration))
                         })
                         .catch(error => {
                             this.showAlert("error", "Connection failed.")
