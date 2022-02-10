@@ -87,7 +87,7 @@
                                                     <v-icon
                                                         small
                                                         color="primary"
-                                                        @click=""
+                                                        @click="addColumn(key)"
                                                         v-bind="attrs"
                                                         v-on="on">
                                                         mdi-table-column-plus-after
@@ -215,6 +215,14 @@
                     item = item.replace('$', '').replace('_', ' ')
                     // capitalize first character
                     return item.charAt(0).toUpperCase() + item.slice(1);
+                },
+
+                addColumn(item) {
+                    let position = this.headers.length - 1
+                    this.headers.splice(position, 0, {
+                        text: this.makeColumnName(item), 
+                        value: item
+                    })
                 },
 
                 getData() {
