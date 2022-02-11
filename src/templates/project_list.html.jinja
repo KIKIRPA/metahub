@@ -177,16 +177,20 @@
             created() {
                 let temp = window.localStorage.getItem('projectList')
                 if (temp !== null) {
+                    console.log('GET localStorage')
                     this.tableConfiguration = JSON.parse(temp)
                 }
             },
 
+            computed: {
+                options() {
+                    return this.tableConfiguration.options
+                }
+            },
+
             watch: {
-                options: {
-                    handler () {
-                        this.getData()
-                        },
-                    deep: true,
+                options() {
+                    this.getData()
                 },
             },
 
@@ -242,16 +246,18 @@
                     
                     // query parameters
                     parameters = {
-                        skip: (this.options.page - 1) * this.options.itemsPerPage,
-                        limit: this.options.itemsPerPage,
-                        sort_by: this.options.sortBy,
-                        sort_desc: this.options.sortDesc
+                        skip: (this.tableConfiguration.options.page - 1) * this.tableConfiguration.options.itemsPerPage,
+                        limit: this.tableConfiguration.options.itemsPerPage,
+                        sort_by: this.tableConfiguration.options.sortBy,
+                        sort_desc: this.tableConfiguration.options.sortDesc
                     }
                  
                     // api call
                     url = '/api/v1/projects'
+                    console.log('GET ' + url)
                     return axios.get(url, {params: parameters})
                         .then(response => {
+                            this.data = []
                             for (i in response.data.data) {
                                 this.data[i] = this.flattenObj(response.data.data[i])
                             }
