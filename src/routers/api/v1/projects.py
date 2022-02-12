@@ -1,4 +1,5 @@
 from typing import Optional, List
+import json
 
 from fastapi import APIRouter, HTTPException, Query, Path
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -29,16 +30,19 @@ db = client[core.settings.mongo_db]
 async def search_projects(
         skip: Optional[int] = Query(0, description="Skip the x first results"),
         limit: Optional[int] = Query(10, description="Return x results"), 
+        find: Optional[str] = Query(None, description="Mongodb-style find query in JSON"),
         sort_by: Optional[List[str]] = Query(["project_code", "unit"], description="Sorting options (array of strings)"),
-        sort_desc: Optional[List[bool]] = Query([], description="Sort descending (arry of booleans)"),
-        category: Optional[str] = Query(None, description="Filter on category identifier (partial match)"),
-        template: Optional[str] = Query(None, description="Filter on template identifier (partial match)")):
+        sort_desc: Optional[List[bool]] = Query([], description="Sort descending (arry of booleans)")):
     """
     Return all projects.
     """
-    find = {}
-    if category is not None: find['category'] = {'$regex': f'.*{category.lower()}.*'}
-    if template is not None: find['template'] = {'$regex': f'.*{template.lower()}.*'}
+
+    if find is not None:
+        find = json.loads(find)
+    else:
+        find = {}
+    #if category is not None: find['category'] = {'$regex': f'.*{category.lower()}.*'}
+    #if template is not None: find['template'] = {'$regex': f'.*{template.lower()}.*'}
 
     if len(sort_desc) > 0 and len(sort_desc) != len(sort_by):
         raise HTTPException(status_code=422, detail="Unequal number of items in sort_by and sort_desc")
@@ -51,7 +55,7 @@ async def search_projects(
             sort_by=sort_by,
             sort_desc=sort_desc)
     except BaseException as err:
-        raise HTTPException(status_code=400, detail=err)
+        raise HTTPException(status_code=400, detail=str(err))
     return response
 
 
@@ -68,7 +72,7 @@ async def get_project_by_id(
     except crud.NoResultsError:
         raise HTTPException(status_code=404, detail="project not found")
     except BaseException as err:
-        raise HTTPException(status_code=400, detail=err)
+        raise HTTPException(status_code=400, detail=str(err))
     return response
 
 
@@ -95,7 +99,7 @@ async def create_project(project: dict):
     except crud.NotCreatedError:
         raise HTTPException(status_code=400, detail="project was not created")
     except BaseException as err:
-        raise HTTPException(status_code=400, detail=err)
+        raise HTTPException(status_code=400, detail=str(err))
     return response
 
 
@@ -127,7 +131,7 @@ async def replace_project(
     except crud.NotUpdatedError:
         raise HTTPException(status_code=400, detail="project was not updated")
     except BaseException as err:
-        raise HTTPException(status_code=400, detail=err)
+        raise HTTPException(status_code=400, detail=str(err))
     return updated
 
 
@@ -146,5 +150,5 @@ async def delete_project(
     except crud.NotDeletedError:
         raise HTTPException(status_code=400, detail="project was not deleted")
     except BaseException as err:
-        raise HTTPException(status_code=400, detail=err)
+        raise HTTPException(status_code=400, detail=str(err))
     return deleted

@@ -53,7 +53,7 @@ async def search_templates(
             sort_by=sort_by,
             sort_desc=sort_desc)
     except BaseException as err:
-        raise HTTPException(status_code=400, detail=err)
+        raise HTTPException(status_code=400, detail=str(err))
     return response
 
 
@@ -70,7 +70,7 @@ async def get_template_by_id(
     except crud.NoResultsError:
         raise HTTPException(status_code=404, detail="template not found")
     except BaseException as err:
-        raise HTTPException(status_code=400, detail=err)
+        raise HTTPException(status_code=400, detail=str(err))
     return response
 
 
@@ -89,7 +89,7 @@ async def get_default_template_by_keys(
     except crud.NoResultsError:
         raise HTTPException(status_code=404, detail="template not found")
     except BaseException as err:
-        raise HTTPException(status_code=400, detail=err)
+        raise HTTPException(status_code=400, detail=str(err))
     return response
 
 
@@ -110,7 +110,7 @@ async def get_template_by_keys(
     except crud.NoResultsError:
         raise HTTPException(status_code=404, detail="template not found")
     except BaseException as err:
-        raise HTTPException(status_code=400, detail=err)
+        raise HTTPException(status_code=400, detail=str(err))
     return response
 
 
@@ -135,7 +135,7 @@ async def create_template(template: models.TemplateUpdate):
     except crud.NotCreatedError:
         raise HTTPException(status_code=400, detail="template was not created")
     except BaseException as err:
-        raise HTTPException(status_code=400, detail=err)
+        raise HTTPException(status_code=400, detail=str(err))
     return response
 
 
@@ -165,7 +165,7 @@ async def replace_template(
     except crud.NotUpdatedError:
         raise HTTPException(status_code=400, detail="template was not updated")
     except BaseException as err:
-        raise HTTPException(status_code=400, detail=err)
+        raise HTTPException(status_code=400, detail=str(err))
     return updated
 
 
@@ -184,7 +184,7 @@ async def delete_template(
     except crud.NotDeletedError:
         raise HTTPException(status_code=400, detail="template was not deleted")
     except BaseException as err:
-        raise HTTPException(status_code=400, detail=err)
+        raise HTTPException(status_code=400, detail=str(err))
     return deleted
 
 
@@ -199,6 +199,6 @@ async def validate_template(template: models.TemplateUpdate):
     except core.utils.SchemaValidationError as err:
         raise HTTPException(status_code=422, detail=err.args[0])
     except BaseException as err:
-        raise HTTPException(status_code=400, detail=err)
+        raise HTTPException(status_code=400, detail=str(err))
 
     return resolved_schema
