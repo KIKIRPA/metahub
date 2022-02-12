@@ -85,6 +85,7 @@
                                         :key="key">
                                         <td class="font-weight-bold">{{ '{{ makeColumnName(key) }}' }}</td>
                                         <td>{{ '{{ val }}' }}</td>
+                                        <td>{{ '{{ getType(val) }}' }}</td>
                                         <td class="text-right">
                                             <v-tooltip top v-if="key !== 'id' && key !== '$schema'">
                                                 <template v-slot:activator="{ on, attrs }">
@@ -131,7 +132,7 @@
 
         <v-dialog
             v-model="configDialog"
-            width="600">
+            width="800">
             <v-card>
                 <v-card-title class="text-h5 grey lighten-2">
                     Table configuration
@@ -141,11 +142,40 @@
                         <template v-slot:default>
                             <tbody>
                                 <tr
-                                    v-for="(item, index) in tableConfig.headers"
+                                    v-for="(item, index) in tableConfigDialog.headers"
                                     :key="item.value"
                                     v-if="item.show">
-                                    <td class="font-weight-bold">{{ '{{ makeColumnName(item.value) }}' }}</td>
-                                    <td>{{ '{{ index }}' }}</td>
+                                    <td 
+                                        class="font-weight-bold" 
+                                        width="40%">
+                                        {{ '{{ makeColumnName(item.value) }}' }}
+                                    </td>
+                                    <td width="18%">
+                                        <v-select 
+                                            :items="['=', 'contains']"
+                                            v-model="item.filterOperator"></v-select>
+                                        </td>
+                                    <td>
+                                        <v-text-field 
+                                            v-model="item.filterValue"
+                                            label="Filter"
+                                            clearable></v-text-field>
+                                    </td>
+                                    <td class="text-right">
+                                        <v-tooltip top v-if="item.filterable">
+                                            <template v-slot:activator="{ on, attrs }">
+                                                <v-icon
+                                                    small
+                                                    color="primary"
+                                                    @click="removeFilter(index)"
+                                                    v-bind="attrs"
+                                                    v-on="on">
+                                                    mdi-filter-remove
+                                                </v-icon>
+                                            </template>
+                                            <span>Remove filter</span>
+                                        </v-tooltip>
+                                    </td>
                                     <td class="text-right">
                                         <v-tooltip top v-if="item.deletable">
                                             <template v-slot:activator="{ on, attrs }">
@@ -158,7 +188,7 @@
                                                     mdi-table-column-remove
                                                 </v-icon>
                                             </template>
-                                            <span>Add column</span>
+                                            <span>Remove column</span>
                                         </v-tooltip>
                                     </td>
                                 </tr>
@@ -168,18 +198,24 @@
                 </v-card-text>
                 <v-divider></v-divider>
                 <v-card-actions>
+                    <v-btn
+                        color="primary"
+                        text
+                        @click="resetTableConfig()">
+                        Reset to defaults
+                    </v-btn>
                     <v-spacer></v-spacer>
                     <v-btn
                         color="primary"
                         text
-                        @click="resetTableConfig">
-                        Reset to defaults
+                        @click="configDialog = false">
+                        Cancel
                     </v-btn>
                     <v-btn
                         color="primary"
                         text
-                        @click="configDialog = false">
-                        Close
+                        @click="saveTableConfig()">
+                        Apply
                     </v-btn>
                 </v-card-actions>
             </v-card>
@@ -208,16 +244,17 @@
                 appBarDropdown: false,
 
                 tableConfig: {},
+                tableConfigDialog: {},
                 tableConfigDefaults: {
                     headers: [
-                        {text: ' ', value:'id', sortable: false, show: false, filterable: true, deletable: false},
-                        {text: 'Project code', value: 'project_code', sortable: true, show: true, filterable: true, deletable: true},
-                        {text: 'Unit', value: 'unit', sortable: true, show: true, filterable: true, deletable: true},
-                        {text: 'Category', value: 'category', sortable: true, show: true, filterable: true, deletable: true},
-                        {text: 'Subject', value: 'subject', sortable: true, show: true, filterable: true, deletable: true},
-                        {text: 'State', value: 'state', sortable: true, show: true, filterable: true, deletable: true},
-                        {text: 'Access', value: 'terms.access', sortable: true, show: true, filterable: true, deletable: true},
-                        {text: '', value: 'data-table-expand', sortable: false, show: false, filterable: false, deletable: true},
+                        {text: ' ', value:'id', sortable: false, show: false},
+                        {text: 'Project code', value: 'project_code', type: 'string', sortable: true, show: true, filterable: true, deletable: true},
+                        {text: 'Unit', value: 'unit', type: 'string', sortable: true, show: true, filterable: true, deletable: true},
+                        {text: 'Category', value: 'category', type: 'string', sortable: true, show: true, filterable: true, deletable: true},
+                        {text: 'Subject', value: 'subject', type: 'string', sortable: true, show: true, filterable: true, deletable: true},
+                        {text: 'State', value: 'state', type: 'string', sortable: true, show: true, filterable: true, deletable: true},
+                        {text: 'Access', value: 'terms.access', type: 'string', sortable: true, show: true, filterable: true, deletable: true},
+                        {text: '', value: 'data-table-expand', sortable: false, show: false},
                     ],
                     options: {
                         sortBy: ['project_code', 'unit'],
@@ -246,11 +283,17 @@
             computed: {
                 options() {
                     return this.tableConfig.options
+                },
+                find() {
+                    return this.tableConfig.find
                 }
             },
 
             watch: {
                 options() {
+                    this.getData()
+                },
+                find() {
                     this.getData()
                 },
             },
@@ -295,7 +338,8 @@
                         skip: isNaN(skip) ? null : skip,
                         limit: this.tableConfig.options.itemsPerPage,
                         sort_by: this.tableConfig.options.sortBy,
-                        sort_desc: this.tableConfig.options.sortDesc
+                        sort_desc: this.tableConfig.options.sortDesc,
+                        find: this.tableConfig.find
                     }
                  
                     // api call
@@ -338,12 +382,35 @@
 
                 openConfigDialog() {
                     this.configDialog = true
+                    this.tableConfigDialog = this.tableConfig
+                },
+
+                saveTableConfig() {
+                    this.tableConfig = this.tableConfigDialog
+                    
+                    let find = {}
+                    for (i in this.tableConfig.headers) {
+                        let column = this.tableConfig.headers[i]
+                        if (column.show && column.filterable && column.filterOperator && column.filterValue) {
+                            if (column.type === 'string') {
+                                if (column.filterOperator === '=')
+                                    find[column.value] = column.filterValue
+                                else if (column.filterOperator === 'contains')
+                                    find[column.value] = { 
+                                        $regex: column.filterValue,
+                                        $options: 'i'
+                                    }
+                            }
+                        }
+                    }
+                    this.tableConfig.find = JSON.stringify(find)
+
+                    window.localStorage.setItem('projectList', JSON.stringify(this.tableConfig))
+                    this.configDialog = false
                 },
 
                 resetTableConfig() {
-                    this.tableConfig = this.tableConfigDefaults
-                    window.localStorage.setItem('projectList', JSON.stringify(this.tableConfig))
-                    this.configDialog = false
+                    this.tableConfigDialog = this.tableConfigDefaults
                 },
 
                 makeColumnName(item) {
@@ -376,17 +443,25 @@
                     }
                 },
 
-                removeColumn(position) {
+                removeColumn(index) {
                     // remove from header config
-                    let removed = this.tableConfig.headers.splice(position, 1)
+                    let removed = this.tableConfigDialog.headers.splice(index, 1)
                     // check if this item is in sort config, and remove it
-                    var i = this.tableConfig.options.sortBy.indexOf(removed[0].value)
+                    var i = this.tableConfigDialog.options.sortBy.indexOf(removed[0].value)
                     if (i !== -1) {
-                        this.tableConfig.options.sortBy.splice(i, 1)
-                        if (this.tableConfig.options.sortDesc)
-                            this.tableConfig.options.sortDesc.splice(i, 1)
+                        this.tableConfigDialog.options.sortBy.splice(i, 1)
+                        if (this.tableConfigDialog.options.sortDesc)
+                            this.tableConfigDialog.options.sortDesc.splice(i, 1)
                     }
-                    window.localStorage.setItem('projectList', JSON.stringify(this.tableConfig))
+                },
+
+                removeFilter(index) {
+                    this.tableConfigDialog.headers[index].filterOperator = null
+                    this.tableConfigDialog.headers[index].filterValue = null
+                },
+
+                getType(value) {
+                    return typeof value
                 },
             }
         })
