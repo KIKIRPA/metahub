@@ -75,9 +75,6 @@
                         <span>Open project</span>
                     </v-tooltip>
                 </template>
-                <template v-slot:item.$schema="{ item }">
-                    {{ '{{ getKeys(item.$schema).category }}' }}
-                </template>
                 <template v-slot:expanded-item="{ headers, item }">
                     <td :colspan="headers.length">
                         <v-simple-table dense class="my-3">
@@ -89,7 +86,7 @@
                                         <td class="font-weight-bold">{{ '{{ makeColumnName(key) }}' }}</td>
                                         <td>{{ '{{ val }}' }}</td>
                                         <td class="text-right">
-                                            <v-tooltip top v-if="key !== 'id'">
+                                            <v-tooltip top v-if="key !== 'id' && key !== '$schema'">
                                                 <template v-slot:activator="{ on, attrs }">
                                                     <v-icon
                                                         small
@@ -216,7 +213,7 @@
                         {text: ' ', value:'id', sortable: false, show: false, filterable: true, deletable: false},
                         {text: 'Project code', value: 'project_code', sortable: true, show: true, filterable: true, deletable: true},
                         {text: 'Unit', value: 'unit', sortable: true, show: true, filterable: true, deletable: true},
-                        {text: 'Category', value: '$schema', sortable: true, show: true, filterable: true, deletable: true},
+                        {text: 'Category', value: 'category', sortable: true, show: true, filterable: true, deletable: true},
                         {text: 'Subject', value: 'subject', sortable: true, show: true, filterable: true, deletable: true},
                         {text: 'State', value: 'state', sortable: true, show: true, filterable: true, deletable: true},
                         {text: 'Access', value: 'terms.access', sortable: true, show: true, filterable: true, deletable: true},
@@ -277,6 +274,11 @@
                                 if (Array.isArray(obj[i])) {
                                     obj[i] = JSON.stringify(obj[i])
                                     obj[i] = obj[i].replace(/{}"/g, '').replace('[', '').replace(']', '')
+                                } else if (i === '$schema') {
+                                    const temp = this.getKeys(obj[i])
+                                    result['category'] = temp['category']
+                                    if (temp['template'] !== null)
+                                        result['template'] = temp['template']
                                 }
                             result[i] = obj[i]
                         }
