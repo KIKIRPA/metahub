@@ -14,7 +14,7 @@ https://stackoverflow.com/questions/65465555/how-to-use-values-from-list-as-pyda
 
 class Unit(str, Enum):
     PAINTING_LAB = 'Painting Lab'
-    DENDRO_LAB = 'Dendrochrology Lab'
+    DENDRO_LAB = 'Dendrochronology Lab'
 
 
 class Role(str, Enum):
