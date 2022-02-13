@@ -150,9 +150,9 @@
                                         width="40%">
                                         {{ '{{ makeColumnName(item.value) }}' }}
                                     </td>
-                                    <td width="18%">
+                                    <td width="25%">
                                         <v-select 
-                                            :items="['=', 'contains']"
+                                            :items="Object.keys(operators)"
                                             v-model="item.filterOperator"></v-select>
                                         </td>
                                     <td>
@@ -261,6 +261,18 @@
                         sortDesc: [false, false],
                         multiSort: true,
                     },
+                },
+
+                operators: {
+                    '=': null, 
+                    'contains': null, 
+                    '<': '$lt',
+                    '<=': '$lte',
+                    '>': '$gt',
+                    '>=': '$gte',
+                    '!=': '$ne',
+                    'exists': null,
+                    'not exists': null
                 },
 
                 data: [],
@@ -391,15 +403,35 @@
                     let find = {}
                     for (i in this.tableConfig.headers) {
                         let column = this.tableConfig.headers[i]
-                        if (column.show && column.filterable && column.filterOperator && column.filterValue) {
-                            if (column.type === 'string') {
-                                if (column.filterOperator === '=')
-                                    find[column.value] = column.filterValue
-                                else if (column.filterOperator === 'contains')
-                                    find[column.value] = { 
-                                        $regex: column.filterValue,
-                                        $options: 'i'
-                                    }
+                        if (column.show && column.filterable && column.filterOperator) {
+                            switch(column.filterOperator) {
+                                case '=':
+                                    if (column.filterValue) find[column.value] = column.filterValue
+                                    else column.filterOperator = null
+                                    break
+                                case 'contains':
+                                    if (column.filterValue)
+                                        find[column.value] = { 
+                                            $regex: column.filterValue,
+                                            $options: 'i'
+                                        }
+                                    else column.filterOperator = null
+                                    break
+                                case 'exists':
+                                    find[column.value] = {$exists: true}
+                                    break
+                                case 'not exists':
+                                    find[column.value] = {$exists: false}
+                                    break
+                                case '<':
+                                case '<=':
+                                case '>':
+                                case '>=':
+                                case '!=':
+                                    if (column.filterValue)
+                                        find[column.value] = {[this.operators[column.filterOperator]] : column.filterValue}
+                                    else column.filterOperator = null
+                                    break
                             }
                         }
                     }
