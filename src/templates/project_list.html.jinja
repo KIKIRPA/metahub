@@ -92,7 +92,7 @@
                                                     <v-icon
                                                         small
                                                         color="primary"
-                                                        @click="addColumn(key)"
+                                                        @click="addColumn(key, getType(val))"
                                                         v-bind="attrs"
                                                         v-on="on">
                                                         mdi-table-column-plus-after
@@ -154,11 +154,25 @@
                                         <v-select 
                                             :items="Object.keys(operators)"
                                             v-model="item.filterOperator"></v-select>
-                                        </td>
+                                    </td>
                                     <td>
                                         <v-text-field 
+                                            v-if="item.type === 'number'"
                                             v-model="item.filterValue"
-                                            label="Filter"
+                                            type="number"
+                                            label="Number"
+                                            clearable></v-text-field>
+                                        <v-checkbox 
+                                            v-else-if="item.type === 'boolean'"
+                                            v-model="item.filterValue"
+                                            type="checkbox"
+                                            label="True"
+                                            clearable></v-checkbox>
+                                        <v-text-field 
+                                            v-else
+                                            v-model="item.filterValue"
+                                            type="text"
+                                            label="Text"
                                             clearable></v-text-field>
                                     </td>
                                     <td class="text-right">
@@ -404,34 +418,45 @@
                     for (i in this.tableConfig.headers) {
                         let column = this.tableConfig.headers[i]
                         if (column.show && column.filterable && column.filterOperator) {
-                            switch(column.filterOperator) {
-                                case '=':
-                                    if (column.filterValue) find[column.value] = column.filterValue
-                                    else column.filterOperator = null
-                                    break
-                                case 'contains':
-                                    if (column.filterValue)
+                            let value = null
+                            if (column.filterOperator === 'exists' || column.filterOperator === 'not exists') {
+                                value = true //may be anything, except null
+                            } else if (column.filterValue || column.type === 'boolean') {
+                                if (column.type === 'number') {
+                                    if (!isNaN(column.filterValue)) value = Number(column.filterValue)
+                                    else column.filterOperator = column.filterValue = null
+                                } else {
+                                    value = column.filterValue
+                                }
+                            } else {
+                                column.filterOperator = null
+                                column.filterValue = null
+                            }
+                            if (value !== null) {
+                                switch(column.filterOperator) {
+                                    case '=':
+                                        find[column.value] = value
+                                        break
+                                    case 'contains':
                                         find[column.value] = { 
-                                            $regex: column.filterValue,
+                                            $regex: value,
                                             $options: 'i'
                                         }
-                                    else column.filterOperator = null
-                                    break
-                                case 'exists':
-                                    find[column.value] = {$exists: true}
-                                    break
-                                case 'not exists':
-                                    find[column.value] = {$exists: false}
-                                    break
-                                case '<':
-                                case '<=':
-                                case '>':
-                                case '>=':
-                                case '!=':
-                                    if (column.filterValue)
-                                        find[column.value] = {[this.operators[column.filterOperator]] : column.filterValue}
-                                    else column.filterOperator = null
-                                    break
+                                        break
+                                    case 'exists':
+                                        find[column.value] = {$exists: true}
+                                        break
+                                    case 'not exists':
+                                        find[column.value] = {$exists: false}
+                                        break
+                                    case '<':
+                                    case '<=':
+                                    case '>':
+                                    case '>=':
+                                    case '!=':
+                                            find[column.value] = {[this.operators[column.filterOperator]] : value}
+                                        break
+                                }
                             }
                         }
                     }
@@ -457,7 +482,7 @@
                     return item.charAt(0).toUpperCase() + item.slice(1);
                 },
 
-                addColumn(item) {
+                addColumn(item, type = 'string') {
                     // check if this column is already selected
                     let column = this.tableConfig.headers.find(x => x.value === item)
                     if (column === undefined) {
@@ -467,6 +492,7 @@
                             text: this.makeColumnName(item), 
                             value: item,
                             sortable: true, 
+                            type: type,
                             show: true, 
                             filterable: true, 
                             deletable: true
