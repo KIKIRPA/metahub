@@ -34,6 +34,18 @@
         <v-card class="mt-6">
             <v-card-title>
                 <v-spacer></v-spacer>
+                <div>
+                    <v-chip
+                        v-for="column in tableConfig.headers"
+                        :key="column.value"
+                        v-if="column.filterOperator"
+                        small
+                        class="ma-2"
+                        close
+                        @click:close="removeFilter(column.value)">
+                        <span class="font-weight-black">{{'{{column.text}}'}}</span>&nbsp;<span class="font-weight-light font-italic">{{'{{column.filterOperator}}'}}</span>&nbsp;{{'{{column.filterValue}}'}}
+                    </v-chip>
+                </div>
                 <v-tooltip top>
                     <template v-slot:activator="{ on, attrs }">
                         <v-icon
@@ -181,7 +193,7 @@
                                                 <v-icon
                                                     small
                                                     color="primary"
-                                                    @click="removeFilter(index)"
+                                                    @click="resetFilter(index)"
                                                     v-bind="attrs"
                                                     v-on="on">
                                                     mdi-filter-remove
@@ -413,7 +425,15 @@
 
                 saveTableConfig() {
                     this.tableConfig = this.tableConfigDialog
-                    
+                    this.buildFindQuery()
+                    this.configDialog = false
+                },
+
+                resetTableConfig() {
+                    this.tableConfigDialog = this.tableConfigDefaults
+                },
+
+                buildFindQuery() {
                     let find = {}
                     for (i in this.tableConfig.headers) {
                         let column = this.tableConfig.headers[i]
@@ -461,13 +481,7 @@
                         }
                     }
                     this.tableConfig.find = JSON.stringify(find)
-
                     window.localStorage.setItem('projectList', JSON.stringify(this.tableConfig))
-                    this.configDialog = false
-                },
-
-                resetTableConfig() {
-                    this.tableConfigDialog = this.tableConfigDefaults
                 },
 
                 makeColumnName(item) {
@@ -513,9 +527,20 @@
                     }
                 },
 
-                removeFilter(index) {
+                resetFilter(index) {
                     this.tableConfigDialog.headers[index].filterOperator = null
                     this.tableConfigDialog.headers[index].filterValue = null
+                },
+
+                removeFilter(columnName) {
+                    for (i in this.tableConfig.headers) {
+                        if (this.tableConfig.headers[i].value === columnName) {
+                            delete this.tableConfig.headers[i].filterOperator
+                            delete this.tableConfig.headers[i].filterValue
+                            break
+                        }
+                    }
+                    this.buildFindQuery()
                 },
 
                 getType(value) {
