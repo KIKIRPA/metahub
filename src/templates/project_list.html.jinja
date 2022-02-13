@@ -94,17 +94,17 @@
                                 <tbody>
                                     <tr
                                         v-for="(val, key) in item"
+                                        v-if="getType(key, val) !== 'list|empty'"
                                         :key="key">
-                                        <td class="font-weight-bold">{{ '{{ makeColumnName(key) }}' }}</td>
+                                        <td><span class="font-weight-bold">{{ '{{ makeColumnName(key) }}' }}</span>&nbsp;&nbsp;<small class="font-weight-light font-italic">{{ '{{ getType(key, val) }}' }}</small></td>
                                         <td>{{ '{{ val }}' }}</td>
-                                        <td>{{ '{{ getType(val) }}' }}</td>
                                         <td class="text-right">
-                                            <v-tooltip top v-if="key !== 'id' && key !== '$schema'">
+                                            <v-tooltip top v-if="key !== 'id' && key !== '$schema' && getType(key, val) !== 'list|object'">
                                                 <template v-slot:activator="{ on, attrs }">
                                                     <v-icon
                                                         small
                                                         color="primary"
-                                                        @click="addColumn(key, getType(val))"
+                                                        @click="addColumn(key, getType(key, val))"
                                                         v-bind="attrs"
                                                         v-on="on">
                                                         mdi-table-column-plus-after
@@ -157,25 +157,29 @@
                                     v-for="(item, index) in tableConfigDialog.headers"
                                     :key="item.value"
                                     v-if="item.show">
-                                    <td 
-                                        class="font-weight-bold" 
-                                        width="40%">
+                                    <td class="font-weight-bold">
                                         {{ '{{ makeColumnName(item.value) }}' }}
                                     </td>
-                                    <td width="25%">
+                                    <td width="20%">
                                         <v-select 
-                                            :items="Object.keys(operators)"
+                                            :items="(item.type !== 'schema') ? Object.keys(operators) : ['contains']"
                                             v-model="item.filterOperator"></v-select>
                                     </td>
                                     <td>
                                         <v-text-field 
-                                            v-if="item.type === 'number'"
+                                            v-if="item.type === 'number' || item.type === 'list|number'"
                                             v-model="item.filterValue"
                                             type="number"
                                             label="Number"
                                             clearable></v-text-field>
+                                        <v-text-field 
+                                            v-if="item.type === 'datetime'"
+                                            v-model="item.filterValue"
+                                            type="text"
+                                            label="Date/time (2021-12-31T18:30:25)"
+                                            clearable></v-text-field>
                                         <v-checkbox 
-                                            v-else-if="item.type === 'boolean'"
+                                            v-else-if="item.type === 'boolean' || item.type === 'list|boolean'"
                                             v-model="item.filterValue"
                                             type="checkbox"
                                             label="True"
@@ -274,12 +278,12 @@
                 tableConfigDefaults: {
                     headers: [
                         {text: ' ', value:'id', sortable: false, show: false},
-                        {text: 'Project code', value: 'project_code', type: 'string', sortable: true, show: true, filterable: true, deletable: true},
-                        {text: 'Unit', value: 'unit', type: 'string', sortable: true, show: true, filterable: true, deletable: true},
-                        {text: 'Category', value: 'category', type: 'string', sortable: true, show: true, filterable: true, deletable: true},
-                        {text: 'Subject', value: 'subject', type: 'string', sortable: true, show: true, filterable: true, deletable: true},
-                        {text: 'State', value: 'state', type: 'string', sortable: true, show: true, filterable: true, deletable: true},
-                        {text: 'Access', value: 'terms.access', type: 'string', sortable: true, show: true, filterable: true, deletable: true},
+                        {text: 'Project code', value: 'project_code', type: 'text', sortable: true, show: true, filterable: true, deletable: true},
+                        {text: 'Unit', value: 'unit', type: 'text', sortable: true, show: true, filterable: true, deletable: true},
+                        {text: 'Category', value: 'category', type: 'schema', sortable: true, show: true, filterable: true, deletable: true},
+                        {text: 'Subject', value: 'subject', type: 'text', sortable: true, show: true, filterable: true, deletable: true},
+                        {text: 'State', value: 'state', type: 'text', sortable: true, show: true, filterable: true, deletable: true},
+                        {text: 'Access', value: 'terms.access', type: 'text', sortable: true, show: true, filterable: true, deletable: true},
                         {text: '', value: 'data-table-expand', sortable: false, show: false},
                     ],
                     options: {
@@ -344,17 +348,11 @@
                         if ((typeof obj[i]) === 'object' && !Array.isArray(obj[i])) {
                             const temp = this.flattenObj(obj[i])
                             for (const j in temp) {
-                                // Store temp in result
-                                if (Array.isArray(temp[j])) {
-                                    temp[j] = JSON.stringify(temp[j])
-                                    temp[j] = temp[j].replace(/{}"/g, '').replace('[', '').replace(']', '')
-                                }
                                 result[i + '.' + j] = temp[j]
                             }
                         } else { // Else store obj[i] in result directly
                                 if (Array.isArray(obj[i])) {
-                                    obj[i] = JSON.stringify(obj[i])
-                                    obj[i] = obj[i].replace(/{}"/g, '').replace('[', '').replace(']', '')
+                                    obj[i] = obj[i]
                                 } else if (i === '$schema') {
                                     const temp = this.getKeys(obj[i])
                                     result['category'] = temp['category']
@@ -420,20 +418,21 @@
 
                 openConfigDialog() {
                     this.configDialog = true
-                    this.tableConfigDialog = this.tableConfig
+                    this.tableConfigDialog = JSON.parse(JSON.stringify(this.tableConfig))
                 },
 
                 saveTableConfig() {
-                    this.tableConfig = this.tableConfigDialog
+                    this.tableConfig = JSON.parse(JSON.stringify(this.tableConfigDialog))
                     this.buildFindQuery()
                     this.configDialog = false
                 },
 
                 resetTableConfig() {
-                    this.tableConfigDialog = this.tableConfigDefaults
+                    this.tableConfigDialog = JSON.parse(JSON.stringify(this.tableConfigDefaults))
                 },
 
                 buildFindQuery() {
+                    console.log("test")
                     let find = {}
                     for (i in this.tableConfig.headers) {
                         let column = this.tableConfig.headers[i]
@@ -453,29 +452,34 @@
                                 column.filterValue = null
                             }
                             if (value !== null) {
-                                switch(column.filterOperator) {
-                                    case '=':
-                                        find[column.value] = value
-                                        break
-                                    case 'contains':
-                                        find[column.value] = { 
-                                            $regex: value,
-                                            $options: 'i'
-                                        }
-                                        break
-                                    case 'exists':
-                                        find[column.value] = {$exists: true}
-                                        break
-                                    case 'not exists':
-                                        find[column.value] = {$exists: false}
-                                        break
-                                    case '<':
-                                    case '<=':
-                                    case '>':
-                                    case '>=':
-                                    case '!=':
-                                            find[column.value] = {[this.operators[column.filterOperator]] : value}
-                                        break
+                                if (column.value === 'category' || column.value === 'template') {
+                                    column.filterOperator = 'contains'
+                                    find['_schema'] = {$regex: value}
+                                } else {
+                                    switch(column.filterOperator) {
+                                        case '=':
+                                            find[column.value] = value
+                                            break
+                                        case 'contains':
+                                            find[column.value] = { 
+                                                $regex: value,
+                                                $options: 'i'
+                                            }
+                                            break
+                                        case 'exists':
+                                            find[column.value] = {$exists: true}
+                                            break
+                                        case 'not exists':
+                                            find[column.value] = {$exists: false}
+                                            break
+                                        case '<':
+                                        case '<=':
+                                        case '>':
+                                        case '>=':
+                                        case '!=':
+                                                find[column.value] = {[this.operators[column.filterOperator]] : value}
+                                            break
+                                    }
                                 }
                             }
                         }
@@ -496,7 +500,7 @@
                     return item.charAt(0).toUpperCase() + item.slice(1);
                 },
 
-                addColumn(item, type = 'string') {
+                addColumn(item, type = 'text') {
                     // check if this column is already selected
                     let column = this.tableConfig.headers.find(x => x.value === item)
                     if (column === undefined) {
@@ -543,8 +547,23 @@
                     this.buildFindQuery()
                 },
 
-                getType(value) {
-                    return typeof value
+                getType(item, value) {
+                    if (item === 'category' || item === 'template') {
+                        return 'schema'
+                    } else if (item === 'created_timestamp' || item === 'modified_timestamp') {
+                        return 'datetime'
+                    } else if (Array.isArray(value)) {
+                        if (value.length === 0)
+                            return 'list|empty'
+                        else if (typeof value[0] === 'string')
+                            return 'list|text'
+                        else
+                            return 'list|' + typeof value[0]
+                    } else if (typeof value === 'string') {
+                        return 'text'
+                    } else {
+                        return typeof value
+                    }
                 },
             }
         })
