@@ -97,7 +97,30 @@
                                         v-if="getType(key, val) !== 'list|empty'"
                                         :key="key">
                                         <td><span class="font-weight-bold">{{ '{{ makeColumnName(key) }}' }}</span>&nbsp;&nbsp;<small class="font-weight-light font-italic">{{ '{{ getType(key, val) }}' }}</small></td>
-                                        <td>{{ '{{ val }}' }}</td>
+                                        <td v-if="['text', 'number', 'boolean', 'datetime', 'schema'].includes(getType(key, val))">
+                                            <v-chip
+                                                small
+                                                @click="addFilter(key, val)">
+                                                {{ '{{ val }}' }}
+                                            </v-chip>
+                                        </td>
+                                        <td v-else-if="['list|text', 'list|number', 'list|boolean'].includes(getType(key, val))">
+                                            <v-chip
+                                                v-for="v in val"
+                                                :key="v"
+                                                class="mr-2"
+                                                small
+                                                @click="addFilter(key, v)">
+                                                {{ '{{ v }}' }}
+                                            </v-chip>
+                                        </td>
+                                        <td v-else>
+                                            <v-chip
+                                                small
+                                                outlined>
+                                                {{ '{{ val }}' }}
+                                            </v-chip>
+                                        </td>
                                         <td class="text-right">
                                             <v-tooltip top v-if="key !== 'id' && key !== '$schema' && getType(key, val) !== 'list|object'">
                                                 <template v-slot:activator="{ on, attrs }">
@@ -432,11 +455,12 @@
                 },
 
                 buildFindQuery() {
-                    console.log("test")
                     let find = {}
                     for (i in this.tableConfig.headers) {
                         let column = this.tableConfig.headers[i]
                         if (column.show && column.filterable && column.filterOperator) {
+                            
+                            // transform the filter value if necessary
                             let value = null
                             if (column.filterOperator === 'exists' || column.filterOperator === 'not exists') {
                                 value = true //may be anything, except null
@@ -451,8 +475,11 @@
                                 column.filterOperator = null
                                 column.filterValue = null
                             }
+
+                            // build mongo-style find query
                             if (value !== null) {
                                 if (column.value === 'category' || column.value === 'template') {
+                                    // special case: category and template are not stored in mongo, but extracted from $schema
                                     column.filterOperator = 'contains'
                                     find['_schema'] = {$regex: value}
                                 } else {
@@ -484,7 +511,7 @@
                             }
                         }
                     }
-                    this.tableConfig.find = JSON.stringify(find)
+                    this.tableConfig.find = JSON.stringify(find)    // the API expects JSON
                     window.localStorage.setItem('projectList', JSON.stringify(this.tableConfig))
                 },
 
@@ -531,6 +558,21 @@
                     }
                 },
 
+                addFilter(item, value) {
+                    // first add this column (if not already selected)
+                    this.addColumn(item, this.getType(item))
+
+                    // create simple '='-filters, when clicking on a chip
+                    for (i in this.tableConfig.headers) {
+                        if (this.tableConfig.headers[i].value === item) {
+                            this.tableConfig.headers[i].filterOperator = (item === 'category' || item === 'template') ? 'contains' : '='
+                            this.tableConfig.headers[i].filterValue = value
+                            break
+                        }
+                    }
+                    this.buildFindQuery()
+                },
+
                 resetFilter(index) {
                     this.tableConfigDialog.headers[index].filterOperator = null
                     this.tableConfigDialog.headers[index].filterValue = null
@@ -550,6 +592,8 @@
                 getType(item, value) {
                     if (item === 'category' || item === 'template') {
                         return 'schema'
+                    } else if (item === '$schema' || item === 'id') {
+                        return ''
                     } else if (item === 'created_timestamp' || item === 'modified_timestamp') {
                         return 'datetime'
                     } else if (Array.isArray(value)) {
