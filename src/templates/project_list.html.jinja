@@ -196,7 +196,7 @@
                                             label="Number"
                                             clearable></v-text-field>
                                         <v-text-field 
-                                            v-if="item.type === 'datetime'"
+                                            v-else-if="item.type === 'datetime'"
                                             v-model="item.filterValue"
                                             type="text"
                                             label="Date/time (2021-12-31T18:30:25)"
