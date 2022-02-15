@@ -1,6 +1,7 @@
-from mergedeep import merge
-import jsonschema
+from functools import cache
 
+import jsonschema
+from mergedeep import merge
 from fastapi import HTTPException
 from motor.motor_asyncio import AsyncIOMotorClient
 
@@ -71,6 +72,7 @@ async def get_template(resource: Resource, category: str, template: str = "_defa
     return response
 
 
+@cache
 async def get_template_list(resource: Resource, include_non_selectable: bool = False):
     find = {"resource": resource}
 
@@ -112,7 +114,6 @@ async def get_template_list(resource: Resource, include_non_selectable: bool = F
             available_templates[i] = temp[i]
 
     return available_templates
-    
 
 
 async def resolve_schema(
