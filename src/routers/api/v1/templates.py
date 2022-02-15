@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException, Query, Path
 from motor.motor_asyncio import AsyncIOMotorClient
 
 import core
-import core.utils
+import core.utils.jsonschema
 from core.enums import Resource
 import models
 import crud
@@ -22,7 +22,7 @@ db = client[core.settings.mongo_db]
 
 
 #
-#   TEMPLATES
+#   TEMPLATE ROUTES
 #
 
 @router.get("/", response_model=models.TemplateList)
@@ -53,7 +53,7 @@ async def search_templates(
             sort_by=sort_by,
             sort_desc=sort_desc)
     except BaseException as err:
-        raise HTTPException(status_code=400, detail=err)
+        raise HTTPException(status_code=400, detail=str(err))
     return response
 
 
@@ -70,7 +70,7 @@ async def get_template_by_id(
     except crud.NoResultsError:
         raise HTTPException(status_code=404, detail="template not found")
     except BaseException as err:
-        raise HTTPException(status_code=400, detail=err)
+        raise HTTPException(status_code=400, detail=str(err))
     return response
 
 
@@ -89,7 +89,7 @@ async def get_default_template_by_keys(
     except crud.NoResultsError:
         raise HTTPException(status_code=404, detail="template not found")
     except BaseException as err:
-        raise HTTPException(status_code=400, detail=err)
+        raise HTTPException(status_code=400, detail=str(err))
     return response
 
 
@@ -110,7 +110,7 @@ async def get_template_by_keys(
     except crud.NoResultsError:
         raise HTTPException(status_code=404, detail="template not found")
     except BaseException as err:
-        raise HTTPException(status_code=400, detail=err)
+        raise HTTPException(status_code=400, detail=str(err))
     return response
 
 
@@ -121,42 +121,50 @@ async def create_template(template: models.TemplateUpdate):
     """
     try:
         # first validate the schema
-        resolved_schema = await core.utils.resolve_schema(temporary_template=template)
-        core.utils.validate_schema(resolved_schema)
+        resolved_schema = await core.utils.jsonschema.resolve_schema(temporary_template=template)
+        core.utils.jsonschema.validate_schema(resolved_schema)
 
         # create the template
         response = await crud.template.create(
             collection=db.templates,
             data=template)
-    except core.utils.SchemaValidationError as err:
+
+        # clear the cached data
+        core.utils.jsonschema.get_template_list.cache_clear()
+
+    except core.utils.jsonschema.SchemaValidationError as err:
         raise HTTPException(status_code=422, detail=err.args[0])
     except crud.DuplicateKeyError:
         raise HTTPException(status_code=422, detail="duplicate key (resource, category, template)")
     except crud.NotCreatedError:
         raise HTTPException(status_code=400, detail="template was not created")
     except BaseException as err:
-        raise HTTPException(status_code=400, detail=err)
+        raise HTTPException(status_code=400, detail=str(err))
     return response
 
 
 @router.put("/{id}", response_model=models.Template)
-async def update_template(
+async def replace_template(
         template: models.TemplateUpdate,
         id: str = Path(None, description="The id of the template")):
     """
-    Update a template.
+    Replace a template (full update).
     """
     try:
         # first validate the schema
-        resolved_schema = await core.utils.resolve_schema(temporary_template=template)
-        core.utils.validate_schema(resolved_schema)
+        resolved_schema = await core.utils.jsonschema.resolve_schema(temporary_template=template)
+        core.utils.jsonschema.validate_schema(resolved_schema)
 
         # update the template
-        updated = await crud.template.update(
+        updated = await crud.template.replace(
             collection=db.templates, 
             id=id,
             data=template)
-    except core.utils.SchemaValidationError as err:
+
+        # clear the cached data
+        core.utils.jsonschema.get_template_list.cache_clear()
+
+    except core.utils.jsonschema.SchemaValidationError as err:
         raise HTTPException(status_code=422, detail=err.args[0])
     except crud.NoResultsError:
         raise HTTPException(status_code=404, detail="template not found")
@@ -165,7 +173,7 @@ async def update_template(
     except crud.NotUpdatedError:
         raise HTTPException(status_code=400, detail="template was not updated")
     except BaseException as err:
-        raise HTTPException(status_code=400, detail=err)
+        raise HTTPException(status_code=400, detail=str(err))
     return updated
 
 
@@ -179,12 +187,15 @@ async def delete_template(
         deleted = await crud.template.remove(
             collection=db.templates, 
             id=id)
+        
+        # clear the cached data
+        core.utils.jsonschema.get_template_list.cache_clear()
     except crud.NoResultsError:
         raise HTTPException(status_code=404, detail="template not found")
     except crud.NotDeletedError:
         raise HTTPException(status_code=400, detail="template was not deleted")
     except BaseException as err:
-        raise HTTPException(status_code=400, detail=err)
+        raise HTTPException(status_code=400, detail=str(err))
     return deleted
 
 
@@ -194,11 +205,11 @@ async def validate_template(template: models.TemplateUpdate):
     Validate a template.
     """
     try:
-        resolved_schema = await core.utils.resolve_schema(temporary_template=template)
-        core.utils.validate_schema(resolved_schema)
-    except core.utils.SchemaValidationError as err:
+        resolved_schema = await core.utils.jsonschema.resolve_schema(temporary_template=template)
+        core.utils.jsonschema.validate_schema(resolved_schema)
+    except core.utils.jsonschema.SchemaValidationError as err:
         raise HTTPException(status_code=422, detail=err.args[0])
     except BaseException as err:
-        raise HTTPException(status_code=400, detail=err)
+        raise HTTPException(status_code=400, detail=str(err))
 
     return resolved_schema

@@ -9,6 +9,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 
 import core
 from core.enums import Resource
+import core.utils.jsonschema
 import models
 import crud
 
@@ -20,13 +21,16 @@ router = APIRouter(
 )
 
 templates = Jinja2Templates(directory="templates")
-dataset_types_list = json.dumps([{"alias": k, "short": v["short"]} for k, v in core.dataset_types.items()])
-project_types_list = json.dumps([{"alias": k, "name": v["name"]} for k, v in core.project_types.items()])
 
 # Creating a MongoDB client and connect to the relevant collections
 client = AsyncIOMotorClient(core.settings.mongo_conn_str)
 db = client[core.settings.mongo_db]
 
+
+
+#
+#   ROOT PAGE
+#
 
 @router.get("/", response_class=HTMLResponse)
 def show_root_page(request: Request):
@@ -35,6 +39,10 @@ def show_root_page(request: Request):
     """
     return templates.TemplateResponse("root.html.jinja", {"request": request})
 
+
+#
+#   TEMPLATES
+#
 
 @router.get("/templates", response_class=HTMLResponse)
 def show_template_list(request: Request):
@@ -121,12 +129,11 @@ async def show_template_form_with_keys(
         "id": response["id"]})
 
 
+#
+#   PROJECTS
+#
 
-
-
-
-
-@router.get("/project", response_class=HTMLResponse)
+@router.get("/projects", response_class=HTMLResponse)
 def show_project_list(request: Request):
     """
     Displaying the project list
@@ -134,67 +141,34 @@ def show_project_list(request: Request):
     return templates.TemplateResponse("project_list.html.jinja", {"request": request})
 
 
-@router.get("/project/{project_type}", response_class=HTMLResponse)
-def show_project_form(
-        request: Request, 
-        project_type: str = Path(None, description="The type of project"),
-        id: Optional[str] = Query(None, description="The project id")):
+@router.get("/projects/new", response_class=HTMLResponse)
+async def show_project_form_new(
+        request: Request,
+        category: Optional[str] = Query(None, description="Project category"),
+        template: Optional[str] = Query(None, description="Project template")):
     """
-    Displaying the project input form
+    Displaying project form for new data entry
     """
-    
-    if project_type not in core.project_types:
-        raise HTTPException(status_code=404, detail="Project type does not exist")
-    
+    template_list = await core.utils.jsonschema.get_template_list("project")
     return templates.TemplateResponse("project_form.html.jinja", {
-        "request": request, 
-        "schema_alias": project_type, 
-        "template_alias": "",
-        "schema_list": project_types_list,
-        "id": id 
+        "request": request,
+        "id": "",
+        "category": category if category is not None else "",
+        "template": template if template is not None else "",
+        "template_list": json.dumps(template_list)
     })
 
 
-@router.get("/dataset/{dataset_type}", response_class=HTMLResponse)
-async def show_form(
+@router.get("/projects/{project_id}", response_class=HTMLResponse)
+async def show_project_form_with_id(
         request: Request, 
-        dataset_type: str = Path(None, description="The type of report or measurement")):
+        project_id: str = Path(None, description="Project identifier")):
     """
-    Displaying the dataset input form
+    Displaying a project by its id
     """
-    
-    if dataset_type not in core.dataset_types:
-        raise HTTPException(status_code=404, detail="Dataset type does not exist")
-    
-    return templates.TemplateResponse("dataset_form.html.jinja", {
-        "request": request, 
-        "schema_alias": dataset_type, 
-        "template_alias": "",
-        "schema_list": dataset_types_list
-    })
-
-
-@router.get("/dataset/{dataset_type}/{template}", response_class=HTMLResponse)
-async def show_form(
-        request: Request, 
-        dataset_type: str = Path(None, description="The type of report or measurement"),
-        template: str = Path(None, description="Schema template to be applied")):
-    """
-    Displaying the dataset input form
-    """
-    
-    if dataset_type not in core.dataset_types:
-        raise HTTPException(status_code=404, detail="Dataset type does not exist")
-    
-    client = AsyncIOMotorClient(core.settings.mongo_conn_str)
-    db = client[core.settings.mongo_db]
-
-    if (response := await db.templates.find_one({"alias": template, "schemas": dataset_type})) is None:
-        raise HTTPException(status_code=404, detail="Template type does not exist (for the given dataset type)")
-    
-    return templates.TemplateResponse("dataset_form.html.jinja", {
-        "request": request, 
-        "schema_alias": dataset_type, 
-        "template_alias": response["alias"],
-        "schema_list": dataset_types_list
+    template_list = await core.utils.jsonschema.get_template_list("project")
+    return templates.TemplateResponse("project_form.html.jinja", {
+        "request": request,
+        "id": project_id,
+        "template_list": json.dumps(template_list)
     })

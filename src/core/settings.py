@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     admin_email: str = "hescida@kikirpa.be"
 
     mongo_conn_str: str = "mongodb://kikirpa:hescida@localhost:27017/"
-    mongo_db: str = "meta"
+    mongo_db: str = "metahub"
 
     resource_name_project: str = "project"
     resource_name_dataset: str = "dataset"

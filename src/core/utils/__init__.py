@@ -1,2 +1,1 @@
-from core.utils.resolve_schema import resolve_schema
-from core.utils.validate_schema import validate_schema, SchemaValidationError
+from core.utils.jsonschema import resolve_schema, validate_schema, validate_instance, SchemaValidationError

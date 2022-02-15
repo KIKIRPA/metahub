@@ -15,7 +15,7 @@
         <span 
             v-html="title"
             class="white--text 
-            text-h3 
+            text-h4 
             px-10"></span>
         <template v-slot:actions v-if="!isError">
             <v-tooltip left v-if="!isNew && isEditable">
@@ -112,15 +112,16 @@
                         <v-expansion-panel-content>
                             <v-card tile flat :disabled="!isEditable">
                                 <v-form ref="form" v-model="validMeta">
-                                    <v-jsf v-model="model" :schema="schema" :options="options"></v-jsf>
+                                    <v-jsf v-model="data" :schema="schema" :options="formOptions"></v-jsf>
                                 </v-form>
                                 <v-textarea
                                     v-model="jsonSchemaTxt"
                                     @change="convertJson()"
                                     name="json_schema_txt"
                                     label="JSON schema overrides"
-                                    style="font-family:'monospace'"
-                                    rows="10"
+                                    style="font-family:'monospace'; font-size: 70%; white-space: pre;"
+                                    wrap="off"
+                                    auto-grow
                                     filled>
                                 </v-textarea>
                             </v-card>
@@ -133,11 +134,12 @@
                             <v-card tile flat>
                                 <v-card-text>
                                     <v-textarea
-                                        v-model="computedSchemaModelJson"
+                                        v-model="computedSchemaDataJson"
                                         name="json_schema_txt"
                                         label="Data"
-                                        style="font-family:'monospace'"
-                                        rows="10"
+                                        style="font-family:'monospace'; font-size: 70%; white-space: pre;"
+                                        wrap="off"
+                                        auto-grow
                                         filled>
                                     </v-textarea>
                                 </v-card-text>
@@ -263,10 +265,11 @@
                                     </span>
                                     <div 
                                         class="error--text"
-                                        v-if="!validSchema">
-                                        <p class="font-weight-bold">{{ '{{validSchemaErrorType}}' }}</p>
-                                        <p class="font-weight-regular">{{ '{{validSchemaErrorMsg}}' }}</p>
-                                        <p class="text-caption">{{ '{{validSchemaErrorLoc}}' }}</p>
+                                        v-if="!validSchema"
+                                        v-for="(err, index) in validSchemaErrors">
+                                        <p class="font-weight-bold">{{ '{{ err.type }}' }}</p>
+                                        <p class="font-weight-regular">{{ '{{ err.msg }}' }}</p>
+                                        <p class="text-caption">Location: {{ '{{ err.loc.join(" > ") }}' }}</p>
                                     </div>
                                     <v-spacer></v-spacer>
                                     <v-tooltip bottom>
@@ -303,10 +306,20 @@
                     <v-card-text>
                         <v-tabs-items v-model="tab" >
                             <v-tab-item>
-                                <pre>{{ '{{baseSchema}}' }}</pre>
+                                <v-textarea
+                                    style="font-family:'monospace'; font-size: 70%; white-space: pre;"
+                                    wrap="off"
+                                    auto-grow
+                                    v-text="baseSchema">
+                                </v-textarea>
                             </v-tab-item>
                             <v-tab-item>
-                                <pre>{{ '{{computedSchema}}' }}</pre>
+                                <v-textarea
+                                    style="font-family:'monospace'; font-size: 70%; white-space: pre;"
+                                    wrap="off"
+                                    auto-grow
+                                    v-text="computedSchema">
+                                </v-textarea>
                             </v-tab-item>
                             <v-tab-item>
                                 <v-alert
@@ -317,7 +330,7 @@
                                     This form shows the fields exactly as described in the JSON schema, <em>unprocessed</em>. In the specific resource forms, some fields may be rendered differently or hidden.
                                 </v-alert>
                                 <v-form ref="computedSchemaForm" v-model="computedSchemaValid">
-                                    <v-jsf v-model="computedSchemaModel" :schema="computedSchema" :options="computedSchemaOptions"></v-jsf>
+                                    <v-jsf v-model="computedSchemaData" :schema="computedSchema" :options="formOptions"></v-jsf>
                                 </v-form>
                             </v-tab-item>
                         </v-tabs-items>
@@ -330,7 +343,7 @@
 
     <v-dialog
         v-model="deleteDialog"
-        max-width="300"
+        max-width="600"
         :persistent="isDeleted">
         <v-card>
             <v-card-title class="text-h5">
@@ -374,13 +387,17 @@
     <script type="text/javascript">
         // initial settings and data from jinja
         const initialSchema = '{{ schema | safe }}'
-        let initialId = '{{ id }}'
-        const options =  { 
+        const initialId = '{{ id }}'
+        const formOptions =  { 
+            "locale": "en-gb", 
             "editMode": "inline",
             "textareaProps": {
                 "filled": true,
                 "auto-grow": true,
             },
+            "timePickerProps": {
+                "format": "24hr"
+            }
         }
         
         Vue.component('VJsf', VJsf.default)
@@ -405,16 +422,16 @@
             computed: {
                 key() {
                     return {
-                        resource: this.model.resource, 
-                        category: this.model.category, 
-                        template: this.model.template
+                        resource: this.data.resource, 
+                        category: this.data.category, 
+                        template: this.data.template
                     }
                 }
             },
 
             watch: {
                 isEditable: function(val) {
-                    if (val && this.model.hasOwnProperty('resource')) {
+                    if (val && this.data.hasOwnProperty('resource')) {
                         this.$refs.form.validate()  //validate metadata
                         this.validJson = true       //json should be valid
                     }
@@ -422,17 +439,17 @@
                 validMeta: function(val) {this.showStep()},
                 validJson: function(val) {this.showStep()},
                 key: function(val) {
-                    if (this.model.hasOwnProperty('resource')
-                            && this.model.hasOwnProperty('category')
-                            && this.model.hasOwnProperty('template')) {
+                    if (this.data.hasOwnProperty('resource')
+                            && this.data.hasOwnProperty('category')
+                            && this.data.hasOwnProperty('template')) {
                         if (this.baseSchemaKey === "") {
                             //initial situation
                             this.getBaseSchema()
                         } else {
                             //when the template form changes
                             this.eraseComputed()
-                            let newBaseSchemaKey = this.model.resource 
-                                + ((this.model.template !== '_default') ? '/' + this.model.category : '')
+                            let newBaseSchemaKey = this.data.resource 
+                                + ((this.data.template !== '_default') ? '/' + this.data.category : '')
                             if (newBaseSchemaKey !== this.baseSchemaKey) {
                                 this.getBaseSchema()
                             }
@@ -454,8 +471,9 @@
                 tab: null,
                 deleteDialog: false,
                 
-                options,
-                model: {},
+                formOptions: formOptions,
+                id: initialId,
+                data: {},
                 schema: {},
                 baseSchemaKey: "",
                 baseSchema: {},
@@ -466,14 +484,12 @@
                 validJsonError: "",
                 validSchema: null,
                 validSchemaMsg: "",
-                validSchemaErrorType: "",
-                validSchemaErrorMsg: "",
-                validSchemaErrorLoc: "",
+                validSchemaErrors: [],
 
                 computedSchema: {},
                 computedSchemaValid: null,
-                computedSchemaModel: {},
-                computedSchemaModelJson: "",
+                computedSchemaData: {},
+                computedSchemaDataJson: "",
                 computedSchemaOptions: {},
 
                 alert: false,
@@ -484,7 +500,7 @@
             methods: {
                 initialize() {
                     this.transformSchema(initialSchema)
-                    this.getTemplate(initialId)
+                    this.getTemplate(this.id)
                 },
 
                 transformSchema(schemaString) {
@@ -499,8 +515,8 @@
                         console.log('Get ' + url)
                         axios.get(url)
                             .then(response => {
-                                this.model = response.data
-                                this.jsonSchemaTxt = JSON.stringify(this.model.json_schema, null, 2)
+                                this.data = response.data
+                                this.jsonSchemaTxt = JSON.stringify(this.data.json_schema, null, 2)
                                 this.title = "Template: <i>" + response.data.resource + "</i> &#10148; <i>" + response.data.category + "</i>"
                                 if (response.data.template !== "_default") this.title += " &#10148; <i>" + response.data.template + "</i>"
                                 this.isEditable = false
@@ -515,7 +531,7 @@
                             })
                     } else {
                         this.title = "New template"
-                        this.model = {}
+                        this.data = {}
                         this.isEditable = true
                         this.isNew = true
                         this.jsonSchemaTxt = "{}"
@@ -523,11 +539,11 @@
                 },
 
                 getBaseSchema() {
-                    if (this.model.hasOwnProperty('resource')
-                            && this.model.hasOwnProperty('category')
-                            && this.model.hasOwnProperty('template')) { 
-                        let baseSchemaKey = this.model.resource 
-                            + ((this.model.template !== '_default') ? '/' + this.model.category : "")
+                    if (this.data.hasOwnProperty('resource')
+                            && this.data.hasOwnProperty('category')
+                            && this.data.hasOwnProperty('template')) { 
+                        let baseSchemaKey = this.data.resource 
+                            + ((this.data.template !== '_default') ? '/' + this.data.category : "")
                         let url = '/schema/' + baseSchemaKey
                         console.log('Get ' + url)
                         axios.get(url)
@@ -549,25 +565,23 @@
                 },
 
                 validateSchema() {
-                    this.validSchemaError = ""
+                    this.validSchemaErrors = []
                     this.alert = false
                     let url = '/api/v1/templates/validate'
                     console.log('Post ' + url)
-                    axios.post(url, this.model)
+                    axios.post(url, this.data)
                         .then(response => {
                             this.computedSchema = response.data
                             this.validSchema = true
                             this.validSchemaMsg = "The JSON schema is valid. Before saving, thouroughly test the schema and form!"
-                            this.validSchemaErrorType = this.validSchemaErrorMsg = this.validSchemaErrorLoc = ""
+                            this.validSchemaErrors = []
                             this.convertComputedSchemaModelToJson()
                         })
                         .catch(error => {
                             this.validSchema = false
                             this.validSchemaMsg = ""
                             if (error.response && error.response.status == 422) {
-                                this.validSchemaErrorType = error.response.data.detail.type
-                                this.validSchemaErrorMsg = error.response.data.detail.msg
-                                this.validSchemaErrorLoc = "Location: " + error.response.data.detail.loc.join(" > ")
+                                this.validSchemaErrors = error.response.data.detail
                             } else {
                                 this.showAlert("warning", "Unknown error while validating the template.")
                                 console.warn(error)
@@ -579,21 +593,22 @@
                     this.alert = false
                     let url = '/api/v1/templates'
                     console.log('Post ' + url)
-                    axios.post(url, this.model)
+                    axios.post(url, this.data)
                         .then(response => {
                             this.showAlert("success", "The template was successfully saved.")
                             // replace data with the returned data
                             this.isNew = false
                             this.isEditable = false
-                            initialId = response.data.id
+                            this.id = response.data.id
                             this.title = "Template: <i>" + response.data.resource + "</i> &#10148; <i>" + response.data.category + "</i>"
                             if (response.data.template !== "_default") this.title += " &#10148; <i>" + response.data.template + "</i>"
-                            this.model = response.data
+                            this.data = response.data
                             window.history.replaceState({}, "Template form", "/templates/" + response.data.id)
                         })
                         .catch(error => {
                             if (error.response && error.response.status == 422) {
-                                this.showAlert("error", "The template could not be saved: " + error.response.data.detail)
+                                let msg = Array.isArray(error.response.data.detail) ? error.response.data.detail[0].type : error.response.data.detail
+                                this.showAlert("error", "The template could not be saved: " + msg)
                             } else {
                                 this.showAlert("error", "The template could not be saved.")
                                 console.warn(error)
@@ -603,22 +618,22 @@
 
                 putTemplate() {
                     this.alert = false
-                    let url = '/api/v1/templates/' + this.model.id
+                    let url = '/api/v1/templates/' + this.data.id
                     console.log('Put ' + url)
-                    axios.put(url, this.model)
+                    axios.put(url, this.data)
                         .then(response => {
                             this.showAlert("success", "The template was successfully saved.")
                             // replace data with the returned data
                             this.isEditable = false
-                            this.title = "Template: " + response.data.resource + " &#10148; " + response.data.category
                             this.title = "Template: <i>" + response.data.resource + "</i> &#10148; <i>" + response.data.category + "</i>"
                             if (response.data.template !== "_default") this.title += " &#10148; <i>" + response.data.template + "</i>"
-                            this.model = response.data
+                            this.data = response.data
                             window.history.replaceState({}, "Template form", "/templates/" + response.data.id)
                         })
                         .catch(error => {
                             if (error.response && error.response.status == 422) {
-                                this.showAlert("error", "The template could not be saved: " + error.response.data.detail)
+                                let msg = Array.isArray(error.response.data.detail) ? error.response.data.detail[0].type : error.response.data.detail
+                                this.showAlert("error", "The template could not be saved: " + msg)
                             } else {
                                 this.showAlert("error", "The template could not be saved.")
                                 console.warn(error)
@@ -629,7 +644,7 @@
                 deleteTemplate() {
                     this.alert = false
                     if (!this.isNew) {
-                        let url = '/api/v1/templates/' + this.model.id
+                        let url = '/api/v1/templates/' + this.data.id
                         console.log('Delete ' + url)
                         axios.delete(url)
                             .then(response => {
@@ -638,7 +653,8 @@
                             .catch(error => {
                                 this.deleteDialog = false
                                 if (error.response && error.response.status == 422) {
-                                    this.showAlert("error", "The template could not be deleted: " + error.response.data.detail)
+                                    let msg = Array.isArray(error.response.data.detail) ? error.response.data.detail[0].type : error.response.data.detail
+                                    this.showAlert("error", "The template could not be saved: " + msg)
                                 } else {
                                     this.showAlert("error", "The template could not be deleted.")
                                     console.warn(error)
@@ -650,7 +666,7 @@
                 convertJson() {
                     this.eraseComputed()
                     try {
-                        this.model.json_schema = JSON.parse(this.jsonSchemaTxt)
+                        this.data.json_schema = JSON.parse(this.jsonSchemaTxt)
                         this.validJson = true
                     } catch (e) {
                         this.validJsonError = e.toString()
@@ -662,7 +678,7 @@
 
                 convertJsonToComputedSchemaModel() {
                     try {
-                        this.computedSchemaModel = JSON.parse(this.computedSchemaModelJson)
+                        this.computedSchemaData = JSON.parse(this.computedSchemaDataJson)
                     } catch (e) {
                         console.log(e.toString())
                     }
@@ -672,7 +688,7 @@
                     try {
                         if (!this.validSchema)
                             this.$refs.computedSchemaForm.validate()
-                        this.computedSchemaModelJson = JSON.stringify(this.computedSchemaModel, null, 2)
+                        this.computedSchemaDataJson = JSON.stringify(this.computedSchemaData, null, 2)
                     } catch (e) {
                         console.log(e.toString())
                     }
@@ -688,9 +704,7 @@
                     this.computedSchema = {}
                     this.validSchema = false
                     this.validSchemaMsg = "The template has changed. Manual validation is required."
-                    this.validSchemaErrorType = ""
-                    this.validSchemaErrorMsg = ""
-                    this.validSchemaErrorLoc = ""
+                    this.validSchemaErrors = []
                 },
 
                 saveTemplate() {

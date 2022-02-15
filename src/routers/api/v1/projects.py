@@ -1,10 +1,13 @@
 from typing import Optional, List
+import json
 
 from fastapi import APIRouter, HTTPException, Query, Path
 from motor.motor_asyncio import AsyncIOMotorClient
+from pydantic import ValidationError
 
 import core
-import models.projects
+import core.utils.jsonschema
+import models
 import crud
 
 
@@ -19,85 +22,133 @@ client = AsyncIOMotorClient(core.settings.mongo_conn_str)
 db = client[core.settings.mongo_db]
 
 
-@router.get("/", response_model=dict)
-async def get_all_projects(
-    skip: Optional[int] = Query(0),
-    limit: Optional[int] = Query(10), 
-    sort_by: Optional[List[str]] = Query(["project_id", "unit"]),
-    sort_desc: Optional[List[bool]] = Query([])):
+#
+#   PROJECT ROUTES
+#
+
+@router.get("/")
+async def search_projects(
+        skip: Optional[int] = Query(0, description="Skip the x first results"),
+        limit: Optional[int] = Query(10, description="Return x results"), 
+        find: Optional[str] = Query(None, description="Mongodb-style find query in JSON"),
+        sort_by: Optional[List[str]] = Query(["project_code", "unit"], description="Sorting options (array of strings)"),
+        sort_desc: Optional[List[bool]] = Query([], description="Sort descending (arry of booleans)")):
     """
     Return all projects.
     """
+
+    if find is not None:
+        find = json.loads(find)
+    else:
+        find = {}
+    #if category is not None: find['category'] = {'$regex': f'.*{category.lower()}.*'}
+    #if template is not None: find['template'] = {'$regex': f'.*{template.lower()}.*'}
+
     if len(sort_desc) > 0 and len(sort_desc) != len(sort_by):
         raise HTTPException(status_code=422, detail="Unequal number of items in sort_by and sort_desc")
-    response = await crud.project.get_all(
-        collection=db.projects,
-        skip=skip,
-        limit=limit,
-        sort_by=sort_by)
+    try: 
+        response = await crud.project.search(
+            collection=db.projects,
+            find=find,
+            skip=skip,
+            limit=limit,
+            sort_by=sort_by,
+            sort_desc=sort_desc)
+    except BaseException as err:
+        raise HTTPException(status_code=400, detail=str(err))
     return response
 
 
-@router.get("/{id}", response_model=models.projects.Project)
+@router.get("/{id}")
 async def get_project_by_id(
         id: str = Path(None, description="The id of the project")):
     """
     Return a single project by its id.
     """
-    response = await crud.project.get(
-        collection=db.projects, 
-        id=id)
-    if response is None:
-        raise HTTPException(status_code=404, detail="Project not found")
+    try:
+        response = await crud.project.get(
+            collection=db.projects, 
+            id=id)
+    except crud.NoResultsError:
+        raise HTTPException(status_code=404, detail="project not found")
+    except BaseException as err:
+        raise HTTPException(status_code=400, detail=str(err))
     return response
 
 
-@router.post("/", response_model=models.projects.Project)
-async def create_project(project: models.projects.Project):
+@router.post("/")
+async def create_project(project: dict):
     """
     Create a new project.
     """
-    response = await crud.project.create(
-        collection=db.projects,
-        data=project)
+    try:
+        # validate agains resource and category models
+        project_resource_instance = models.ProjectUpdate(**project)
+        await core.utils.jsonschema.validate_instance(project, validate_category=True)
+
+        # create the project
+        response = await crud.project.create(
+            collection=db.projects,
+            data=project)
+    except ValidationError as err:
+        raise HTTPException(status_code=422, detail=err.errors())
+    except core.utils.jsonschema.SchemaValidationError as err:
+        raise HTTPException(status_code=422, detail=err.args[0])
+    except crud.DuplicateKeyError:
+        raise HTTPException(status_code=422, detail="duplicate key (project code, unit)")
+    except crud.NotCreatedError:
+        raise HTTPException(status_code=400, detail="project was not created")
+    except BaseException as err:
+        raise HTTPException(status_code=400, detail=str(err))
     return response
 
 
-@router.put("/{id}", response_model=models.projects.Project)
-async def update_project(
-        project: models.projects.Project,
+@router.put("/{id}")
+async def replace_project(
+        project: dict,
         id: str = Path(None, description="The id of the project")):
     """
-    Update an project.
+    Replace a project (full update).
     """
-    project_from_db = await crud.project.get(
-        collection=db.projects, 
-        id=id)
-    if project_from_db is None:
-        raise HTTPException(status_code=404, detail="Project not found")
-    updated = await crud.project.update(
-        collection=db.projects, 
-        id=id,
-        data=project)
-    if not updated:
-        raise HTTPException(status_code=400, detail="Bad request")
-    return project
+    try:
+        # validate agains resource and category models
+        project_resource_instance = models.ProjectUpdate(**project)
+        await core.utils.jsonschema.validate_instance(project, validate_category=True)
+
+        # update the project
+        updated = await crud.project.replace(
+            collection=db.projects, 
+            id=id,
+            data=project)
+    except ValidationError as err:
+        raise HTTPException(status_code=422, detail=err.errors())
+    except core.utils.jsonschema.SchemaValidationError as err:
+        raise HTTPException(status_code=422, detail=err.args[0])
+    except crud.NoResultsError:
+        raise HTTPException(status_code=404, detail="project not found")
+    except crud.DuplicateKeyError:
+        raise HTTPException(status_code=422, detail="duplicate key (project code, unit)")
+    except crud.NotUpdatedError:
+        raise HTTPException(status_code=400, detail="project was not updated")
+    except BaseException as err:
+        raise HTTPException(status_code=400, detail=str(err))
+    return updated
 
 
-@router.delete("/{id}", response_model=models.projects.Project)
+@router.delete("/{id}")
 async def delete_project(
         id: str = Path(None, description="The id of the project")):
     """
-    Delete an project.
+    Delete a project.
     """
-    project = await crud.project.get(
-        collection=db.projects, 
-        id=id)
-    if project is None:
-        raise HTTPException(status_code=404, detail="Project not found")
-    deleted = await crud.project.remove(
-        collection=db.projects, 
-        id=id)
-    if not deleted:
-        raise HTTPException(status_code=400, detail="Bad request")
-    return project
+    try:
+        deleted = await crud.project.remove(
+            collection=db.projects, 
+            id=id)
+    except crud.NoResultsError:
+        raise HTTPException(status_code=404, detail="project not found")
+    except crud.NotDeletedError:
+        raise HTTPException(status_code=400, detail="project was not deleted")
+    except BaseException as err:
+        raise HTTPException(status_code=400, detail=str(err))
+    return deleted

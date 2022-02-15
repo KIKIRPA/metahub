@@ -1,0 +1,527 @@
+{% extends "base.html.jinja" %}
+
+{% block title %}Project form{% endblock %}
+
+{% block head %}
+    {{ super() }}
+    
+    <script src="https://cdn.jsdelivr.net/npm/@koumoul/vjsf@2.7.3/dist/main.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@koumoul/vjsf@2.7.3/dist/third-party.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@koumoul/vjsf@2.7.3/dist/main.css">
+{% endblock %}
+
+{% block content %}
+    <v-banner color="primary" class="elevation-5 px-10">
+        <span 
+            v-html="title"
+            class="white--text 
+            text-h4 
+            px-10"></span>
+        <template v-slot:actions v-if="!isError">
+            <v-tooltip left v-if="!isNew && isEditable">
+                <template v-slot:activator="{ on, attrs }">
+                    <v-btn
+                        class="mx-2"
+                        color="error"
+                        fab
+                        small
+                        @click="deleteDialog = true"
+                        v-bind="attrs"
+                        v-on="on">
+                        <v-icon>mdi-delete</v-icon>
+                    </v-btn>
+                </template>
+                <span>Delete</span>
+            </v-tooltip>
+            <v-tooltip left v-if="isEditable">
+                <template v-slot:activator="{ on, attrs }">
+                    <v-btn
+                        class="mx-2"
+                        color="success"
+                        fab
+                        small
+                        @click="saveData()"
+                        v-bind="attrs"
+                        v-on="on"
+                        :disabled="!isValid">
+                        <v-icon>mdi-content-save</v-icon>
+                    </v-btn>
+                </template>
+                <span>Save</span>
+            </v-tooltip>
+            <v-tooltip left v-if="isEditable">
+                <template v-slot:activator="{ on, attrs }">
+                    <v-btn
+                        class="mx-2"
+                        color="secondary"
+                        fab
+                        @click="getData()"
+                        v-bind="attrs"
+                        v-on="on">
+                        <v-icon>mdi-cancel</v-icon>
+                    </v-btn>
+                </template>
+                <span>Cancel</span>
+            </v-tooltip>
+            <v-tooltip left v-if="!isEditable">
+                <template v-slot:activator="{ on, attrs }">
+                    <v-btn
+                        class="mx-2"
+                        color="secondary"
+                        fab
+                        @click="isEditable = true"
+                        v-bind="attrs"
+                        v-on="on">
+                        <v-icon>mdi-pencil</v-icon>
+                    </v-btn>
+                </template>
+                <span>Edit template</span>
+            </v-tooltip>
+        </template>
+    </v-banner>
+
+    <v-container>
+        <v-row v-if="alert">
+            <v-col
+                md="6"
+                offset-md="3"
+                class="pb-6">
+                <v-alert class="mb-0"
+                    v-model="alert"
+                    :type="alertType"
+                    elevation="5"
+                    transition="scale-transition"
+                    dismissible>
+                    {{ '{{alertText}}' }}
+                </v-alert>
+            </v-col>
+        </v-row>
+
+        <v-tabs
+            v-if="!isError"
+            v-model="tab"
+            show-arrows
+            centered>
+            <v-tab>Project details</v-tab>
+            <v-tab>Contributors</v-tab>
+            <v-tab>Datasets</v-tab>
+            <v-tab>Samples</v-tab>
+            <v-tab>Images</v-tab>
+            <v-tab>Debug</v-tab>
+        </v-tabs>
+        
+        <v-card 
+            v-if="tab === 0 && !isError"
+            class="mt-6" 
+            elevation="0" 
+            :disabled="!isEditable">
+            <v-row>
+                <v-spacer></v-spacer>
+                <v-btn
+                    v-if="isEditable"
+                    @click="templateDialog = true"
+                    color="primary"
+                    dark>
+                    Project category...
+                </v-btn>
+            </v-row>
+            <v-row>
+                <v-form ref="form" v-model="isValid">
+                    <v-jsf v-model="data" :schema="schema" :options="formOptions" />
+                </v-form>
+            </v-row>
+        </v-card>
+
+        <v-card 
+            v-if="tab === 1 && !isError"
+            class="mt-6" 
+            elevation="0" 
+            :disabled="!isEditable">
+            <pre>{{ '{{data.contributors}}' }}</pre>
+        </v-card>
+
+        <v-card 
+            v-if="tab === 2 && !isError"
+            class="mt-6" 
+            elevation="0" 
+            :disabled="!isEditable">
+            <pre>DATASETS</pre>
+        </v-card>
+
+        <v-card 
+            v-if="tab === 3 && !isError"
+            class="mt-6" 
+            elevation="0" 
+            :disabled="!isEditable">
+            <pre>SAMPLES</pre>
+        </v-card>
+
+        <v-card 
+            v-if="tab === 4 && !isError"
+            class="mt-6" 
+            elevation="0" 
+            :disabled="!isEditable">
+            <pre>IMAGES</pre>
+        </v-card>
+
+        <v-card 
+            v-if="tab === 5 && !isError"
+            class="mt-6" 
+            elevation="0" 
+            :disabled="!isEditable">
+            <h5>Id</h5> {{ '{{id}}' }}<br/><br/>
+            <h5>Schema</h5> {{ '{{schemaUrl}}' }}<br/><br/>
+            <h5>Data</h5>
+            <pre>{{ '{{data}}' }}</pre><br/>
+            <h5>Schema</h5>
+            <pre>{{ '{{schema}}' }}</pre><br/>
+            <h5>Flags</h5> 
+            <ul>
+                <li>isNew: {{ '{{isNew}}' }}</li>
+                <li>isEditable: {{ '{{isEditable}}' }}</li>
+                <li>isValid: {{ '{{isValid}}' }}</li>
+                <li>isDeleted: {{ '{{isDeleted}}' }}</li>
+                <li>isError: {{ '{{isError}}' }}</li>
+            </ul>
+        </v-card>
+    </v-container>
+
+    <v-dialog
+        v-model="templateDialog"
+        max-width="600">
+        <v-card>
+            <v-card-title class="text-h5">
+                <span v-if="isNew">Select project category</span>
+                <span v-else>Change project category</span>
+            </v-card-title>
+
+            <v-card-text>
+                <v-form 
+                    ref="templateDialogForm" 
+                    v-model="templateDialogFormValid" 
+                    lazy-validation>
+                    <v-select
+                        v-model="category"
+                        :items="categories"
+                        item-text="name"
+                        item-value="value"
+                        label="Category"
+                        :rules="templateDialogFormRules"
+                        required></v-select>
+                    <v-select
+                        v-model="template"
+                        :items="templates"
+                        item-text="name"
+                        item-value="value"
+                        label="Template"
+                        :rules="templateDialogFormRules"
+                        required></v-select>
+                </v-form>
+            </v-card-text>
+            <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn
+                    color="primary"
+                    text
+                    @click="templateDialog = false">
+                    Cancel
+                </v-btn>
+                <v-btn
+                    color="primary"
+                    text
+                    :disabled="!templateDialogFormValid"
+                    @click="getSchema()">
+                    Apply
+                </v-btn>
+            </v-card-actions>
+        </v-card>
+    </v-dialog>
+
+    <v-dialog
+        v-model="deleteDialog"
+        max-width="600"
+        :persistent="isDeleted">
+        <v-card>
+            <v-card-title class="text-h5">
+                Delete project
+            </v-card-title>
+            <v-card-text v-if="!isDeleted">
+                Are you sure you want to delete this project? This action cannot be undone.
+            </v-card-text>
+            <v-card-text v-if="isDeleted">
+                The project is deleted.
+            </v-card-text>
+            <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn
+                    v-if="!isDeleted"
+                    color="primary"
+                    text
+                    @click="deleteDialog = false">
+                    Cancel
+                </v-btn>
+                <v-btn
+                    v-if="!isDeleted"
+                    color="primary"
+                    text
+                    @click="deleteData()">
+                    Delete
+                </v-btn>
+                <v-btn
+                    v-if="isDeleted"
+                    color="primary"
+                    text
+                    href="/projects">
+                    OK
+                </v-btn>
+            </v-card-actions>
+        </v-card>
+    </v-dialog>
+{% endblock %}
+
+{% block script %}
+    <script type="text/javascript">
+        
+        const initialId = "{{ id }}"
+        const queryParameterCategory = "{{ category }}"
+        const queryParameterTemplate = "{{ template }}"
+        const templateList = {{ template_list | safe }}
+        const formOptions =  { 
+            "locale": "en-gb", 
+            "editMode": "inline",
+            "textareaProps": {
+                "filled": true,
+                "auto-grow": true,
+            },
+            "timePickerProps": {
+                "format": "24hr"
+            }
+        }
+
+        Vue.component('VJsf', VJsf.default)
+
+        new Vue({
+            el: '#app',
+
+            vuetify: new Vuetify({
+                theme: {
+                    themes: {
+                        light: {
+                            primary: '#af8d55'
+                        },
+                    },
+                },
+            }),
+
+            data: {
+                appBarDropdown: false,
+
+                title: "Project form (loading)",
+                id: initialId,
+                schemaUrl: null,
+                category: (queryParameterCategory !== "") ? queryParameterCategory : null,
+                template: (queryParameterTemplate !== "") ? queryParameterTemplate : null,
+
+                isEditable: false,
+                isNew: false,
+                isDeleted: false,
+                isValid: null,
+                isError: false,
+
+                tab: null,
+                templateDialog: false,
+                templateDialogFormValid: false,
+                categories: Object.values(templateList),
+                templates: [],
+                templateDialogFormRules: [
+                    v => !!v || 'This field is required',
+                ],
+                deleteDialog: false,
+
+                formOptions,
+                data: {},
+                schema: {},
+
+                alert: false,
+                alertType: "info",
+                alertText: ""
+            },
+
+            mounted() {
+                this.getData()
+            },
+
+            watch: {
+                category: function () {
+                    this.templates = (this.category) ? templateList[this.category]['templates'] : []
+                }
+            },
+
+            methods: {
+                getSchema() {
+                    this.templateDialog = false
+                    if (this.category) {
+                        let url = '/schema/project/' + this.category + (this.template !== '_default' ? '/' + this.template : '')
+                        console.log('Get ' + url)
+                        axios.get(url)
+                            .then(response => {
+                                // remove unnecessary bits from schema (and instance)
+                                ['id', 'created_timestamp', 'created_by_user', 'modified_timestamp', 'modified_by_user'].forEach(e => delete response.data.properties[e])
+                                // hide contributors
+                                response.data.properties.contributors['x-display'] = 'hidden'
+                                this.schema = response.data
+                                this.schemaUrl = this.schema.$id
+                            })
+                            .catch(error => {
+                                this.showAlert("error", "Missing schema: " + url)
+                                console.log(error)
+                                // reset this.category and this.template (if this.schemaUrl is set)
+                                if (this.schemaUrl) this.getKeys()
+                            })
+                    }
+                },
+
+                getData() {
+                    if (this.id !== "") {
+                        let url = '/api/v1/projects/' + this.id
+                        console.log('Get ' + url)
+                        axios.get(url)
+                            .then(response => {
+                                this.data = response.data
+                                this.title = "Project: <i>" + this.data.project_code + " <small>&commat;" + this.data.unit + "</small></i>"
+                                this.isEditable = false
+                                this.isNew = false
+                                this.schemaUrl = this.data.$schema
+                                this.getKeys()
+                                this.getSchema()
+                            })
+                            .catch(error => {
+                                this.title = "Project not found"
+                                this.isError = true
+                                this.showAlert("error", "Could not find the project.")
+                                console.log(error)
+                            })
+                    } else {
+                        this.title = "New project"
+                        this.data = {}
+                        this.isEditable = true
+                        this.isNew = true
+                        // if category (and template) are supplied as query parameters, retrieve schema, 
+                        // if not, show templateDialog 
+                        if (this.category) {
+                            this.getSchema()
+                        } else {
+                            this.templateDialog = true
+                        }
+                    }
+                },
+
+                postData() {
+                    this.alert = false
+                    let url = '/api/v1/projects'
+                    console.log('Post ' + url)
+                    let data = {
+                        $schema: this.schemaUrl,
+                        ...this.data
+                    }
+                    axios.post(url, data)
+                        .then(response => {
+                            this.showAlert("success", "The project was successfully saved.")
+                            // replace data with the returned data
+                            this.isNew = false
+                            this.isEditable = false
+                            this.id = response.data.id
+                            this.data = response.data
+                            window.history.replaceState({}, "Project form", "/projects/" + this.id)
+                            this.title = "Project: <i>" + this.data.project_code + " <small>&commat;" + this.data.unit + "</small></i>"
+                        })
+                        .catch(error => {
+                            if (error.response && error.response.status == 422) {
+                                let msg = Array.isArray(error.response.data.detail) ? error.response.data.detail[0].type : error.response.data.detail
+                                this.showAlert("error", "The project could not be saved: " + msg)
+                            } else {
+                                this.showAlert("error", "The project could not be saved.")
+                                console.warn(error)
+                            }
+                        })
+                },
+
+                putData() {
+                    this.alert = false
+                    let url = '/api/v1/projects/' + this.id
+                    console.log('Put ' + url)
+                    // prepare data to put
+                    let data = {
+                        $schema: this.schemaUrl,
+                        ...this.data
+                    }
+                    axios.put(url, data)
+                        .then(response => {
+                            this.showAlert("success", "The project was successfully saved.")
+                            // replace data with the returned data
+                            this.isEditable = false
+                            this.id = response.data.id
+                            this.data = response.data
+                            window.history.replaceState({}, "Project form", "/projects/" + this.id)
+                            this.title = "Project: <i>" + this.data.project_code + " <small>&commat;" + this.data.unit + "</small></i>"
+                        })
+                        .catch(error => {
+                            if (error.response && error.response.status == 422) {
+                                let msg = Array.isArray(error.response.data.detail) ? error.response.data.detail[0].type : error.response.data.detail
+                                this.showAlert("error", "The project could not be saved: " + msg)
+                            } else {
+                                this.showAlert("error", "The project could not be saved.")
+                                console.warn(error)
+                            }
+                        })
+                },
+
+                deleteData() {
+                    this.alert = false
+                    if (!this.isNew) {
+                        let url = '/api/v1/projects/' + this.id
+                        console.log('Delete ' + url)
+                        axios.delete(url)
+                            .then(response => {
+                                this.isDeleted = true
+                            })
+                            .catch(error => {
+                                this.deleteDialog = false
+                                if (error.response && error.response.status == 422) {
+                                let msg = Array.isArray(error.response.data.detail) ? error.response.data.detail[0].type : error.response.data.detail
+                                this.showAlert("error", "The project could not be saved: " + msg)
+                                } else {
+                                    this.showAlert("error", "The project could not be deleted.")
+                                    console.warn(error)
+                                }
+                            })
+                    }
+                },
+
+                saveData() {
+                    if (this.isValid) {
+                        if (this.isNew) {
+                            this.postData()
+                        } else {
+                            this.putData()
+                        }
+                    }
+                },
+
+                getKeys() {
+                    if (this.schemaUrl) {
+                        let parts = this.schemaUrl.split("project/", 2)[1].split("/")
+                        this.category = parts[0]
+                        this.template = (parts.length >= 2) ? parts[1] : '_default'
+                    }
+                },
+
+                showAlert(type, text) {
+                    this.alert = true
+                    this.alertType = type
+                    this.alertText = text
+                }
+            }
+        })
+    </script>
+{% endblock %}
