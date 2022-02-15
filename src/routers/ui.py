@@ -9,6 +9,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 
 import core
 from core.enums import Resource
+import core.utils.jsonschema
 import models
 import crud
 
@@ -143,31 +144,35 @@ def show_project_list(request: Request):
 
 
 @router.get("/projects/new", response_class=HTMLResponse)
-def show_project_form_new(
+async def show_project_form_new(
         request: Request,
         category: Optional[str] = Query(None, description="Project category"),
         template: Optional[str] = Query(None, description="Project template")):
     """
     Displaying project form for new data entry
     """
+    template_list = await core.utils.jsonschema.get_template_list("project")
     return templates.TemplateResponse("project_form.html.jinja", {
         "request": request,
         "id": "",
         "category": category if category is not None else "",
-        "template": template if template is not None else ""
+        "template": template if template is not None else "",
+        "template_list": json.dumps(template_list)
     })
 
 
 @router.get("/projects/{project_id}", response_class=HTMLResponse)
-def show_project_form_with_id(
+async def show_project_form_with_id(
         request: Request, 
         project_id: str = Path(None, description="Project identifier")):
     """
     Displaying a project by its id
     """
+    template_list = await core.utils.jsonschema.get_template_list("project")
     return templates.TemplateResponse("project_form.html.jinja", {
         "request": request,
-        "id": project_id
+        "id": project_id,
+        "template_list": json.dumps(template_list)
     })
 
 

@@ -71,6 +71,50 @@ async def get_template(resource: Resource, category: str, template: str = "_defa
     return response
 
 
+async def get_template_list(resource: Resource, include_non_selectable: bool = False):
+    find = {"resource": resource}
+
+    try:
+        response = await crud.template.search(
+            collection=db.templates,
+            find=find,
+            skip=0,
+            limit=0,
+            sort_by=["category"])
+    except BaseException as err:
+        raise HTTPException(status_code=400, detail=str(err))
+
+    # select only the required data in a dict, hierarchically structured
+    temp = {}
+    for item in response["data"]:
+        if item["template"] == "_default":
+            temp[item["category"]] = {
+                "name": item["short_name"],
+                "value": item["category"],
+                "templates": []
+            }
+            if include_non_selectable == True or item["selectable"] == True:
+                temp[item["category"]]["templates"].append({
+                    "name": "(Default)",
+                    "value": "_default"
+                })
+        elif item["category"] in temp:
+            if include_non_selectable == True or item["selectable"] == True:
+                temp[item["category"]]["templates"].append({
+                    "name": item["short_name"],
+                    "value": item["template"]
+                })
+
+    # remove categories that have zero templates
+    available_templates = {}
+    for i in temp:
+        if len(temp[i]["templates"]) > 0:
+            available_templates[i] = temp[i]
+
+    return available_templates
+    
+
+
 async def resolve_schema(
         resource: Resource = None, 
         category: str = None, 

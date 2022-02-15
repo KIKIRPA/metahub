@@ -200,14 +200,22 @@
                     ref="templateDialogForm" 
                     v-model="templateDialogFormValid" 
                     lazy-validation>
-                    <v-text-field
+                    <v-select
                         v-model="category"
+                        :items="categories"
+                        item-text="name"
+                        item-value="value"
                         label="Category"
-                        :rules="categoryRules"
-                        required></v-text-field>
-                    <v-text-field
+                        :rules="templateDialogFormRules"
+                        required></v-select>
+                    <v-select
                         v-model="template"
-                        label="Template"></v-text-field>
+                        :items="templates"
+                        item-text="name"
+                        item-value="value"
+                        label="Template"
+                        :rules="templateDialogFormRules"
+                        required></v-select>
                 </v-form>
             </v-card-text>
             <v-card-actions>
@@ -277,6 +285,7 @@
         const initialId = "{{ id }}"
         const queryParameterCategory = "{{ category }}"
         const queryParameterTemplate = "{{ template }}"
+        const templateList = {{ template_list | safe }}
         const formOptions =  { 
             "locale": "en-gb", 
             "editMode": "inline",
@@ -308,6 +317,10 @@
                 appBarDropdown: false,
 
                 title: "Project form (loading)",
+                id: initialId,
+                schemaUrl: null,
+                category: (queryParameterCategory !== "") ? queryParameterCategory : null,
+                template: (queryParameterTemplate !== "") ? queryParameterTemplate : null,
 
                 isEditable: false,
                 isNew: false,
@@ -318,19 +331,16 @@
                 tab: null,
                 templateDialog: false,
                 templateDialogFormValid: false,
-                categoryRules: [
-                    v => !!v || 'Category is required',
+                categories: Object.values(templateList),
+                templates: [],
+                templateDialogFormRules: [
+                    v => !!v || 'This field is required',
                 ],
                 deleteDialog: false,
 
                 formOptions,
                 data: {},
                 schema: {},
-
-                id: initialId,
-                schemaUrl: null,
-                category: (queryParameterCategory !== "") ? queryParameterCategory : null,
-                template: (queryParameterTemplate !== "") ? queryParameterTemplate : null,
 
                 alert: false,
                 alertType: "info",
@@ -341,11 +351,17 @@
                 this.getData()
             },
 
+            watch: {
+                category: function () {
+                    this.templates = (this.category) ? templateList[this.category]['templates'] : []
+                }
+            },
+
             methods: {
                 getSchema() {
                     this.templateDialog = false
                     if (this.category) {
-                        let url = '/schema/project/' + this.category + (this.template ? '/' + this.template : '')
+                        let url = '/schema/project/' + this.category + (this.template !== '_default' ? '/' + this.template : '')
                         console.log('Get ' + url)
                         axios.get(url)
                             .then(response => {
@@ -496,7 +512,7 @@
                     if (this.schemaUrl) {
                         let parts = this.schemaUrl.split("project/", 2)[1].split("/")
                         this.category = parts[0]
-                        this.template = (parts.length >= 2) ? parts[1] : null
+                        this.template = (parts.length >= 2) ? parts[1] : '_default'
                     }
                 },
 
