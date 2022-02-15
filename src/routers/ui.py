@@ -21,8 +21,6 @@ router = APIRouter(
 )
 
 templates = Jinja2Templates(directory="templates")
-dataset_types_list = json.dumps([{"alias": k, "short": v["short"]} for k, v in core.dataset_types.items()])
-project_types_list = json.dumps([{"alias": k, "name": v["name"]} for k, v in core.project_types.items()])
 
 # Creating a MongoDB client and connect to the relevant collections
 client = AsyncIOMotorClient(core.settings.mongo_conn_str)
@@ -173,74 +171,4 @@ async def show_project_form_with_id(
         "request": request,
         "id": project_id,
         "template_list": json.dumps(template_list)
-    })
-
-
-
-
-
-
-@router.get("/project/{project_type}", response_class=HTMLResponse)
-def show_project_form(
-        request: Request, 
-        project_type: str = Path(None, description="The type of project"),
-        id: Optional[str] = Query(None, description="The project id")):
-    """
-    Displaying the project input form
-    """
-    
-    if project_type not in core.project_types:
-        raise HTTPException(status_code=404, detail="Project type does not exist")
-    
-    return templates.TemplateResponse("project_form.html.jinja", {
-        "request": request, 
-        "schema_alias": project_type, 
-        "template_alias": "",
-        "schema_list": project_types_list,
-        "id": id 
-    })
-
-
-@router.get("/dataset/{dataset_type}", response_class=HTMLResponse)
-async def show_form(
-        request: Request, 
-        dataset_type: str = Path(None, description="The type of report or measurement")):
-    """
-    Displaying the dataset input form
-    """
-    
-    if dataset_type not in core.dataset_types:
-        raise HTTPException(status_code=404, detail="Dataset type does not exist")
-    
-    return templates.TemplateResponse("dataset_form.html.jinja", {
-        "request": request, 
-        "schema_alias": dataset_type, 
-        "template_alias": "",
-        "schema_list": dataset_types_list
-    })
-
-
-@router.get("/dataset/{dataset_type}/{template}", response_class=HTMLResponse)
-async def show_form(
-        request: Request, 
-        dataset_type: str = Path(None, description="The type of report or measurement"),
-        template: str = Path(None, description="Schema template to be applied")):
-    """
-    Displaying the dataset input form
-    """
-    
-    if dataset_type not in core.dataset_types:
-        raise HTTPException(status_code=404, detail="Dataset type does not exist")
-    
-    client = AsyncIOMotorClient(core.settings.mongo_conn_str)
-    db = client[core.settings.mongo_db]
-
-    if (response := await db.templates.find_one({"alias": template, "schemas": dataset_type})) is None:
-        raise HTTPException(status_code=404, detail="Template type does not exist (for the given dataset type)")
-    
-    return templates.TemplateResponse("dataset_form.html.jinja", {
-        "request": request, 
-        "schema_alias": dataset_type, 
-        "template_alias": response["alias"],
-        "schema_list": dataset_types_list
     })
