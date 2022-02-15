@@ -172,3 +172,16 @@ async def show_project_form_with_id(
         "id": project_id,
         "template_list": json.dumps(template_list)
     })
+
+
+
+#
+#   DATASETS
+#
+
+@router.get("/datasets", response_class=HTMLResponse)
+def show_dataset_list(request: Request):
+    """
+    Displaying the dataset list
+    """
+    return templates.TemplateResponse("dataset_list.html.jinja", {"request": request})

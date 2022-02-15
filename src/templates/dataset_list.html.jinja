@@ -1,0 +1,614 @@
+{% extends "base.html.jinja" %}
+
+{% block title %}Datasets{% endblock %}
+
+{% block head %}
+    {{ super() }}
+{% endblock %}
+
+{% block content %}
+
+    <v-banner color="primary" class="elevation-5 px-10">
+        <span class="white--text text-h4 px-10">Datasets</span>
+    </v-banner>
+
+    <v-container>
+        <v-row 
+            v-if="alert" 
+            class="pb-0">
+            <v-col
+                md="6"
+                offset-md="3"
+                class="pb-0">
+                <v-alert class="mb-0"
+                    v-model="alert"
+                    :type="alertType"
+                    elevation="5"
+                    transition="scale-transition"
+                    dismissible>
+                    {{ '{{alertText}}' }}
+                </v-alert>
+            </v-col>
+        </v-row>
+
+        <v-card class="mt-6">
+            <v-card-title>
+                <v-spacer></v-spacer>
+                <div>
+                    <v-chip
+                        v-for="column in tableConfig.headers"
+                        :key="column.value"
+                        v-if="column.filterOperator"
+                        small
+                        class="ma-2"
+                        close
+                        @click:close="removeFilter(column.value)">
+                        <span class="font-weight-black">{{'{{column.text}}'}}</span>&nbsp;<span class="font-weight-light font-italic">{{'{{column.filterOperator}}'}}</span>&nbsp;{{'{{column.filterValue}}'}}
+                    </v-chip>
+                </div>
+                <v-tooltip top>
+                    <template v-slot:activator="{ on, attrs }">
+                        <v-icon
+                            color="primary"
+                            @click="openConfigDialog"
+                            v-bind="attrs"
+                            v-on="on">
+                            mdi-cog
+                        </v-icon>
+                    </template>
+                    <span>Table configuration</span>
+                </v-tooltip>
+            </v-card-title>
+
+            <v-data-table
+                :headers="tableConfig.headers"
+                :items="data"
+                :server-items-length="total"
+                :options.sync="tableConfig.options"
+                :loading="loading"
+                :footer-props="{'items-per-page-options':[10, 50, 100, -1]}"
+                single-expand
+                :expanded.sync="expanded"
+                show-expand>
+
+                <template v-slot:item.id="{ item }">
+                    <v-tooltip top>
+                        <template v-slot:activator="{ on, attrs }">
+                            <v-icon
+                                small
+                                class="mr-2"
+                                color="primary"
+                                @click="openForm(item)"
+                                v-bind="attrs"
+                                v-on="on">
+                                mdi-folder-open
+                            </v-icon>
+                        </template>
+                        <span>Open dataset</span>
+                    </v-tooltip>
+                </template>
+                <template v-slot:expanded-item="{ headers, item }">
+                    <td :colspan="headers.length">
+                        <v-simple-table dense class="my-3">
+                            <template v-slot:default>
+                                <tbody>
+                                    <tr
+                                        v-for="(val, key) in item"
+                                        v-if="getType(key, val) !== 'list|empty'"
+                                        :key="key">
+                                        <td><span class="font-weight-bold">{{ '{{ makeColumnName(key) }}' }}</span>&nbsp;&nbsp;<small class="font-weight-light font-italic">{{ '{{ getType(key, val) }}' }}</small></td>
+                                        <td v-if="['text', 'number', 'boolean', 'datetime', 'schema'].includes(getType(key, val))">
+                                            <v-chip
+                                                small
+                                                @click="addFilter(key, val)">
+                                                {{ '{{ val }}' }}
+                                            </v-chip>
+                                        </td>
+                                        <td v-else-if="['list|text', 'list|number', 'list|boolean'].includes(getType(key, val))">
+                                            <v-chip
+                                                v-for="v in val"
+                                                :key="v"
+                                                class="mr-2"
+                                                small
+                                                @click="addFilter(key, v)">
+                                                {{ '{{ v }}' }}
+                                            </v-chip>
+                                        </td>
+                                        <td v-else>
+                                            <v-chip
+                                                small
+                                                outlined>
+                                                {{ '{{ val }}' }}
+                                            </v-chip>
+                                        </td>
+                                        <td class="text-right">
+                                            <v-tooltip top v-if="key !== 'id' && key !== '$schema' && getType(key, val) !== 'list|object'">
+                                                <template v-slot:activator="{ on, attrs }">
+                                                    <v-icon
+                                                        small
+                                                        color="primary"
+                                                        @click="addColumn(key, getType(key, val))"
+                                                        v-bind="attrs"
+                                                        v-on="on">
+                                                        mdi-table-column-plus-after
+                                                    </v-icon>
+                                                </template>
+                                                <span>Add column</span>
+                                            </v-tooltip>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </template>
+                        </v-simple-table>
+                    </td>
+                </template>
+            </v-data-table>
+
+            <v-card-text style="height: 45px; position: relative">
+                <v-fab-transition>
+                    <v-tooltip left>
+                        <template v-slot:activator="{ on, attrs }">
+                            <v-btn
+                                color="primary"
+                                absolute
+                                right
+                                fab
+                                @click="openForm()"
+                                v-bind="attrs"
+                                v-on="on">
+                                <v-icon>mdi-plus</v-icon>
+                            </v-btn>
+                        </template>
+                        <span>Create new dataset</span>
+                    </v-tooltip>
+                </v-fab-transition>
+            </v-card-text>
+        </v-card>
+
+        <v-dialog
+            v-model="configDialog"
+            width="800">
+            <v-card>
+                <v-card-title class="text-h5 grey lighten-2">
+                    Table configuration
+                </v-card-title>
+                <v-card-text>
+                    <v-simple-table dense class="my-3">
+                        <template v-slot:default>
+                            <tbody>
+                                <tr
+                                    v-for="(item, index) in tableConfigDialog.headers"
+                                    :key="item.value"
+                                    v-if="item.show">
+                                    <td class="font-weight-bold">
+                                        {{ '{{ makeColumnName(item.value) }}' }}
+                                    </td>
+                                    <td width="20%">
+                                        <v-select 
+                                            :items="(item.type !== 'schema') ? Object.keys(operators) : ['contains']"
+                                            v-model="item.filterOperator"></v-select>
+                                    </td>
+                                    <td>
+                                        <v-text-field 
+                                            v-if="item.type === 'number' || item.type === 'list|number'"
+                                            v-model="item.filterValue"
+                                            type="number"
+                                            label="Number"
+                                            clearable></v-text-field>
+                                        <v-text-field 
+                                            v-else-if="item.type === 'datetime'"
+                                            v-model="item.filterValue"
+                                            type="text"
+                                            label="Date/time (2021-12-31T18:30:25)"
+                                            clearable></v-text-field>
+                                        <v-checkbox 
+                                            v-else-if="item.type === 'boolean' || item.type === 'list|boolean'"
+                                            v-model="item.filterValue"
+                                            type="checkbox"
+                                            label="True"
+                                            clearable></v-checkbox>
+                                        <v-text-field 
+                                            v-else
+                                            v-model="item.filterValue"
+                                            type="text"
+                                            label="Text"
+                                            clearable></v-text-field>
+                                    </td>
+                                    <td class="text-right">
+                                        <v-tooltip top v-if="item.filterable">
+                                            <template v-slot:activator="{ on, attrs }">
+                                                <v-icon
+                                                    small
+                                                    color="primary"
+                                                    @click="resetFilter(index)"
+                                                    v-bind="attrs"
+                                                    v-on="on">
+                                                    mdi-filter-remove
+                                                </v-icon>
+                                            </template>
+                                            <span>Remove filter</span>
+                                        </v-tooltip>
+                                    </td>
+                                    <td class="text-right">
+                                        <v-tooltip top v-if="item.deletable">
+                                            <template v-slot:activator="{ on, attrs }">
+                                                <v-icon
+                                                    small
+                                                    color="primary"
+                                                    @click="removeColumn(index)"
+                                                    v-bind="attrs"
+                                                    v-on="on">
+                                                    mdi-table-column-remove
+                                                </v-icon>
+                                            </template>
+                                            <span>Remove column</span>
+                                        </v-tooltip>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </template>
+                    </v-simple-table>
+                </v-card-text>
+                <v-divider></v-divider>
+                <v-card-actions>
+                    <v-btn
+                        color="primary"
+                        text
+                        @click="resetTableConfig()">
+                        Reset to defaults
+                    </v-btn>
+                    <v-spacer></v-spacer>
+                    <v-btn
+                        color="primary"
+                        text
+                        @click="configDialog = false">
+                        Cancel
+                    </v-btn>
+                    <v-btn
+                        color="primary"
+                        text
+                        @click="saveTableConfig()">
+                        Apply
+                    </v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
+
+    </v-container>
+{% endblock %}
+
+{% block script %}
+    <script type="text/javascript">
+        
+        new Vue({
+            el: '#app',
+
+            vuetify: new Vuetify({
+                theme: {
+                    themes: {
+                        light: {
+                            primary: '#af8d55'
+                        },
+                    },
+                },
+            }),
+
+            data: {
+                appBarDropdown: false,
+
+                tableConfig: {},
+                tableConfigDialog: {},
+                tableConfigDefaults: {
+                    headers: [
+                        {text: ' ', value:'id', sortable: false, show: false},
+                        {text: 'Dataset code', value: 'dataset_code', type: 'text', sortable: true, show: true, filterable: true, deletable: true},
+                        {text: 'Category', value: 'category', type: 'schema', sortable: true, show: true, filterable: true, deletable: true},
+                        {text: 'Project', value: 'project_id', type: 'text', sortable: true, show: true, filterable: true, deletable: true},
+                        {text: 'Object ID', value: 'object_id', type: 'text', sortable: true, show: true, filterable: true, deletable: true},
+                        {text: 'Access', value: 'terms.access', type: 'text', sortable: true, show: true, filterable: true, deletable: true},
+                        {text: '', value: 'data-table-expand', sortable: false, show: false},
+                    ],
+                    options: {
+                        sortBy: ['dataset_code'],
+                        sortDesc: [false],
+                        multiSort: true,
+                    },
+                },
+
+                operators: {
+                    '=': null, 
+                    'contains': null, 
+                    '<': '$lt',
+                    '<=': '$lte',
+                    '>': '$gt',
+                    '>=': '$gte',
+                    '!=': '$ne',
+                    'exists': null,
+                    'not exists': null
+                },
+
+                data: [],
+                total: 0,
+                search: '',
+                loading: true,
+                expanded: [],
+                configDialog: false,
+
+                alert: false,
+                alertType: "info",
+                alertText: ""
+            },
+
+            created() {
+                let temp = window.localStorage.getItem('datasetList')
+                this.tableConfig = (temp !== null) ? JSON.parse(temp) : this.tableConfigDefaults
+            },
+
+            computed: {
+                options() {
+                    return this.tableConfig.options
+                },
+                find() {
+                    return this.tableConfig.find
+                }
+            },
+
+            watch: {
+                options() {
+                    this.getData()
+                },
+                find() {
+                    this.getData()
+                },
+            },
+
+            methods: {
+                flattenObj(obj) {
+                    let result = {}
+                    for (const i in obj) {
+                        // We check the type of the i using typeof() function and recursively call the function again
+                        if ((typeof obj[i]) === 'object' && !Array.isArray(obj[i])) {
+                            const temp = this.flattenObj(obj[i])
+                            for (const j in temp) {
+                                result[i + '.' + j] = temp[j]
+                            }
+                        } else { // Else store obj[i] in result directly
+                                if (Array.isArray(obj[i])) {
+                                    obj[i] = obj[i]
+                                } else if (i === '$schema') {
+                                    const temp = this.getKeys(obj[i])
+                                    result['category'] = temp['category']
+                                    if (temp['template'] !== null)
+                                        result['template'] = temp['template']
+                                }
+                            result[i] = obj[i]
+                        }
+                    }
+                    return result
+                },
+
+                getData() {
+                    this.loading = true
+                    
+                    // query parameters
+                    let skip = (this.tableConfig.options.page - 1) * this.tableConfig.options.itemsPerPage
+                    parameters = {
+                        skip: isNaN(skip) ? null : skip,
+                        limit: this.tableConfig.options.itemsPerPage,
+                        sort_by: this.tableConfig.options.sortBy,
+                        sort_desc: this.tableConfig.options.sortDesc,
+                        find: this.tableConfig.find
+                    }
+                 
+                    // api call
+                    url = '/api/v1/datasets'
+                    console.log('GET ' + url)
+                    return axios.get(url, {params: parameters})
+                        .then(response => {
+                            this.data = []
+                            for (i in response.data.data) {
+                                this.data[i] = this.flattenObj(response.data.data[i])
+                            }
+                            this.total = response.data.query_parameters.total
+                            this.loading = false
+                            window.localStorage.setItem('datasetList', JSON.stringify(this.tableConfig))
+                        })
+                        .catch(error => {
+                            this.showAlert("error", "Connection failed.")
+                            console.log(error)
+                            this.loading = false
+                        })
+                },
+
+                getKeys(schemaUrl) {
+                    let parts = schemaUrl.split("dataset/", 2)[1].split("/")
+                    let category = parts[0]
+                    let template = (parts.length >= 2) ? parts[1] : null
+                    return {category, template} 
+                },
+
+                openForm(item = null) {
+                    url = "/datasets/" + (item ? item.id : "new")
+                    window.open(url, "_self")
+                },
+
+                showAlert(type, text) {
+                    this.alert = true
+                    this.alertType = type
+                    this.alertText = text
+                },
+
+                openConfigDialog() {
+                    this.configDialog = true
+                    this.tableConfigDialog = JSON.parse(JSON.stringify(this.tableConfig))
+                },
+
+                saveTableConfig() {
+                    this.tableConfig = JSON.parse(JSON.stringify(this.tableConfigDialog))
+                    this.buildFindQuery()
+                    this.configDialog = false
+                },
+
+                resetTableConfig() {
+                    this.tableConfigDialog = JSON.parse(JSON.stringify(this.tableConfigDefaults))
+                },
+
+                buildFindQuery() {
+                    let find = {}
+                    for (i in this.tableConfig.headers) {
+                        let column = this.tableConfig.headers[i]
+                        if (column.show && column.filterable && column.filterOperator) {
+                            
+                            // transform the filter value if necessary
+                            let value = null
+                            if (column.filterOperator === 'exists' || column.filterOperator === 'not exists') {
+                                value = true //may be anything, except null
+                            } else if (column.filterValue || column.type === 'boolean') {
+                                if (column.type === 'number') {
+                                    if (!isNaN(column.filterValue)) value = Number(column.filterValue)
+                                    else column.filterOperator = column.filterValue = null
+                                } else {
+                                    value = column.filterValue
+                                }
+                            } else {
+                                column.filterOperator = null
+                                column.filterValue = null
+                            }
+
+                            // build mongo-style find query
+                            if (value !== null) {
+                                if (column.value === 'category' || column.value === 'template') {
+                                    // special case: category and template are not stored in mongo, but extracted from $schema
+                                    column.filterOperator = 'contains'
+                                    find['_schema'] = {$regex: value}
+                                } else {
+                                    switch(column.filterOperator) {
+                                        case '=':
+                                            find[column.value] = value
+                                            break
+                                        case 'contains':
+                                            find[column.value] = { 
+                                                $regex: value,
+                                                $options: 'i'
+                                            }
+                                            break
+                                        case 'exists':
+                                            find[column.value] = {$exists: true}
+                                            break
+                                        case 'not exists':
+                                            find[column.value] = {$exists: false}
+                                            break
+                                        case '<':
+                                        case '<=':
+                                        case '>':
+                                        case '>=':
+                                        case '!=':
+                                                find[column.value] = {[this.operators[column.filterOperator]] : value}
+                                            break
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    this.tableConfig.find = JSON.stringify(find)    // the API expects JSON
+                    window.localStorage.setItem('datasetList', JSON.stringify(this.tableConfig))
+                },
+
+                makeColumnName(item) {
+                    // split combined
+                    if (item.includes('.')) {
+                        let arr = item.split('.')
+                        item = arr.pop()
+                    }
+                    // replace characters
+                    item = item.replace('$', '').replace('_', ' ')
+                    // capitalize first character
+                    return item.charAt(0).toUpperCase() + item.slice(1);
+                },
+
+                addColumn(item, type = 'text') {
+                    // check if this column is already selected
+                    let column = this.tableConfig.headers.find(x => x.value === item)
+                    if (column === undefined) {
+                        // add in the last-but-one position (the last column is the dropdown icon)
+                        let position = this.tableConfig.headers.length - 1
+                        this.tableConfig.headers.splice(position, 0, {
+                            text: this.makeColumnName(item), 
+                            value: item,
+                            sortable: true, 
+                            type: type,
+                            show: true, 
+                            filterable: true, 
+                            deletable: true
+                        })
+                        window.localStorage.setItem('datasetList', JSON.stringify(this.tableConfig))
+                    }
+                },
+
+                removeColumn(index) {
+                    // remove from header config
+                    let removed = this.tableConfigDialog.headers.splice(index, 1)
+                    // check if this item is in sort config, and remove it
+                    var i = this.tableConfigDialog.options.sortBy.indexOf(removed[0].value)
+                    if (i !== -1) {
+                        this.tableConfigDialog.options.sortBy.splice(i, 1)
+                        if (this.tableConfigDialog.options.sortDesc)
+                            this.tableConfigDialog.options.sortDesc.splice(i, 1)
+                    }
+                },
+
+                addFilter(item, value) {
+                    // first add this column (if not already selected)
+                    this.addColumn(item, this.getType(item))
+
+                    // create simple '='-filters, when clicking on a chip
+                    for (i in this.tableConfig.headers) {
+                        if (this.tableConfig.headers[i].value === item) {
+                            this.tableConfig.headers[i].filterOperator = (item === 'category' || item === 'template') ? 'contains' : '='
+                            this.tableConfig.headers[i].filterValue = value
+                            break
+                        }
+                    }
+                    this.buildFindQuery()
+                },
+
+                resetFilter(index) {
+                    this.tableConfigDialog.headers[index].filterOperator = null
+                    this.tableConfigDialog.headers[index].filterValue = null
+                },
+
+                removeFilter(columnName) {
+                    for (i in this.tableConfig.headers) {
+                        if (this.tableConfig.headers[i].value === columnName) {
+                            delete this.tableConfig.headers[i].filterOperator
+                            delete this.tableConfig.headers[i].filterValue
+                            break
+                        }
+                    }
+                    this.buildFindQuery()
+                },
+
+                getType(item, value) {
+                    if (item === 'category' || item === 'template') {
+                        return 'schema'
+                    } else if (item === '$schema' || item === 'id') {
+                        return ''
+                    } else if (item === 'created_timestamp' || item === 'modified_timestamp') {
+                        return 'datetime'
+                    } else if (Array.isArray(value)) {
+                        if (value.length === 0)
+                            return 'list|empty'
+                        else if (typeof value[0] === 'string')
+                            return 'list|text'
+                        else
+                            return 'list|' + typeof value[0]
+                    } else if (typeof value === 'string') {
+                        return 'text'
+                    } else {
+                        return typeof value
+                    }
+                },
+            }
+        })
+    </script>
+{% endblock %}
