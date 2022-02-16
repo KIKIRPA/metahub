@@ -282,6 +282,7 @@
 {% block script %}
     <script type="text/javascript">
         
+        const primaryColor = '{{ primary_color }}'
         const initialId = "{{ id }}"
         const queryParameterCategory = "{{ category }}"
         const queryParameterTemplate = "{{ template }}"
@@ -307,7 +308,7 @@
                 theme: {
                     themes: {
                         light: {
-                            primary: '#af8d55'
+                            primary: primaryColor
                         },
                     },
                 },

@@ -26,6 +26,7 @@ templates = Jinja2Templates(directory="templates")
 client = AsyncIOMotorClient(core.settings.mongo_conn_str)
 db = client[core.settings.mongo_db]
 
+primary_color = core.settings.ui_primary_color
 
 
 #
@@ -37,7 +38,10 @@ def show_root_page(request: Request):
     """
     Displaying the root page
     """
-    return templates.TemplateResponse("root.html.jinja", {"request": request})
+    return templates.TemplateResponse("root.html.jinja", {
+        "request": request,
+        "primary_color": primary_color
+    })
 
 
 #
@@ -49,7 +53,10 @@ def show_template_list(request: Request):
     """
     Displaying the template list
     """
-    return templates.TemplateResponse("template_list.html.jinja", {"request": request})
+    return templates.TemplateResponse("template_list.html.jinja", {
+        "request": request,
+        "primary_color": primary_color
+    })
 
 
 @router.get("/templates/new", response_class=HTMLResponse)
@@ -60,7 +67,8 @@ def show_template_form_new(request: Request):
     return templates.TemplateResponse("template_form.html.jinja", {
         "request": request,
         "schema": models.TemplateUpdate.schema_json(),
-        "id": ""
+        "id": "",
+        "primary_color": primary_color
     })
 
 
@@ -74,7 +82,8 @@ def show_template_form_with_id(
     return templates.TemplateResponse("template_form.html.jinja", {
         "request": request,
         "schema": models.TemplateUpdate.schema_json(),
-        "id": template_id
+        "id": template_id,
+        "primary_color": primary_color
     })
 
 
@@ -100,7 +109,9 @@ async def show_default_template_form_with_keys(
     return templates.TemplateResponse("template_form.html.jinja", {
         "request": request,
         "schema": models.TemplateUpdate.schema_json(),
-        "id": response["id"]})
+        "id": response["id"],
+        "primary_color": primary_color
+    })
 
 
 @router.get("/templates/{resource}/{category}/{template}", response_class=HTMLResponse)
@@ -126,7 +137,9 @@ async def show_template_form_with_keys(
     return templates.TemplateResponse("template_form.html.jinja", {
         "request": request,
         "schema": models.TemplateUpdate.schema_json(),
-        "id": response["id"]})
+        "id": response["id"],
+        "primary_color": primary_color
+    })
 
 
 #
@@ -155,7 +168,8 @@ async def show_project_form_new(
         "id": "",
         "category": category if category is not None else "",
         "template": template if template is not None else "",
-        "template_list": json.dumps(template_list)
+        "template_list": json.dumps(template_list),
+        "primary_color": primary_color
     })
 
 
@@ -170,7 +184,8 @@ async def show_project_form_with_id(
     return templates.TemplateResponse("project_form.html.jinja", {
         "request": request,
         "id": project_id,
-        "template_list": json.dumps(template_list)
+        "template_list": json.dumps(template_list),
+        "primary_color": primary_color
     })
 
 
@@ -184,4 +199,7 @@ def show_dataset_list(request: Request):
     """
     Displaying the dataset list
     """
-    return templates.TemplateResponse("dataset_list.html.jinja", {"request": request})
+    return templates.TemplateResponse("dataset_list.html.jinja", {
+        "request": request,
+        "primary_color": primary_color
+    })
