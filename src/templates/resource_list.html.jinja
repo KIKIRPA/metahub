@@ -84,7 +84,7 @@
                                 mdi-folder-open
                             </v-icon>
                         </template>
-                        <span>Open {{'{{ resource }}'}}</span>
+                        <span>Open {{'{{ resource.toLowerCase() }}'}}</span>
                     </v-tooltip>
                 </template>
                 <template v-slot:expanded-item="{ headers, item }">
@@ -159,7 +159,7 @@
                                 <v-icon>mdi-plus</v-icon>
                             </v-btn>
                         </template>
-                        <span>Create new {{'{{ resource }}'}}</span>
+                        <span>Create new {{'{{ resource.toLowerCase() }}'}}</span>
                     </v-tooltip>
                 </v-fab-transition>
             </v-card-text>
@@ -332,7 +332,7 @@
             },
 
             created() {
-                let temp = window.localStorage.getItem(this.resource + 'List')
+                let temp = window.localStorage.getItem(this.resource.toLowerCase() + 'List')
                 this.tableConfig = (temp !== null) ? JSON.parse(temp) : JSON.parse(tableConfigDefaults)
             },
 
@@ -402,7 +402,7 @@
                             }
                             this.total = response.data.query_parameters.total
                             this.loading = false
-                            window.localStorage.setItem(this.resource + 'List', JSON.stringify(this.tableConfig))
+                            window.localStorage.setItem(this.resource.toLowerCase() + 'List', JSON.stringify(this.tableConfig))
                         })
                         .catch(error => {
                             this.showAlert("error", "Connection failed.")
@@ -412,7 +412,7 @@
                 },
 
                 getKeys(schemaUrl) {
-                    let parts = schemaUrl.split(this.resource + "/", 2)[1].split("/")
+                    let parts = schemaUrl.split(this.resource.toLowerCase() + "/", 2)[1].split("/")
                     let category = parts[0]
                     let template = (parts.length >= 2) ? parts[1] : null
                     return {category, template} 
@@ -502,7 +502,7 @@
                         }
                     }
                     this.tableConfig.find = JSON.stringify(find)    // the API expects JSON
-                    window.localStorage.setItem(this.resource + 'List', JSON.stringify(this.tableConfig))
+                    window.localStorage.setItem(this.resource.toLowerCase() + 'List', JSON.stringify(this.tableConfig))
                 },
 
                 makeColumnName(item) {
@@ -532,7 +532,7 @@
                             filterable: true, 
                             deletable: true
                         })
-                        window.localStorage.setItem(this.resource + 'List', JSON.stringify(this.tableConfig))
+                        window.localStorage.setItem(this.resource.toLowerCase() + 'List', JSON.stringify(this.tableConfig))
                     }
                 },
 

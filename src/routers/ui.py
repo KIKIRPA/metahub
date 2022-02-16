@@ -173,7 +173,7 @@ def show_project_list(request: Request):
         "request": request,
         "primary_color": primary_color,
         "title": "Projects",
-        "resource": "project",
+        "resource": Resource.PROJECT.value.capitalize(),
         "ui_endpoint": "/projects",
         "api_endpoint": "/api/v1/projects",
         "table_config": json.dumps(table_config)
@@ -266,7 +266,7 @@ def show_dataset_list(request: Request):
         "request": request,
         "primary_color": primary_color,
         "title": "Datasets",
-        "resource": "dataset",
+        "resource": Resource.DATASET.value.capitalize(),
         "ui_endpoint": "/datasets",
         "api_endpoint": "/api/v1/datasets",
         "table_config": json.dumps(table_config)
