@@ -151,7 +151,33 @@ def show_project_list(request: Request):
     """
     Displaying the project list
     """
-    return templates.TemplateResponse("project_list.html.jinja", {"request": request})
+    table_config = {
+        "headers": [
+            {"text": " ", "value":'id', "sortable": False, "show": False},
+            {"text": 'Project code', "value": 'project_code', "type": 'text', "sortable": True, "show": True, "filterable": True, "deletable": True},
+            {"text": 'Unit', "value": 'unit', "type": 'text', "sortable": True, "show": True, "filterable": True, "deletable": True},
+            {"text": 'Category', "value": 'category', "type": 'schema', "sortable": True, "show": True, "filterable": True, "deletable": True},
+            {"text": 'Subject', "value": 'subject', "type": 'text', "sortable": True, "show": True, "filterable": True, "deletable": True},
+            {"text": 'State', "value": 'state', "type": 'text', "sortable": True, "show": True, "filterable": True, "deletable": True},
+            {"text": 'Access', "value": 'terms.access', "type": 'text', "sortable": True, "show": True, "filterable": True, "deletable": True},
+            {"text": '', "value": 'data-table-expand', "sortable": False, "show": False},
+        ],
+        "options": {
+            "sortBy": ['project_code', 'unit'],
+            "sortDesc": [False, False],
+            "multiSort": True,
+        },
+    }
+
+    return templates.TemplateResponse("resource_list.html.jinja", {
+        "request": request,
+        "primary_color": primary_color,
+        "title": "Projects",
+        "resource": "project",
+        "ui_endpoint": "/projects",
+        "api_endpoint": "/api/v1/projects",
+        "table_config": json.dumps(table_config)
+    })
 
 
 @router.get("/projects/new", response_class=HTMLResponse)
@@ -199,7 +225,29 @@ def show_dataset_list(request: Request):
     """
     Displaying the dataset list
     """
-    return templates.TemplateResponse("dataset_list.html.jinja", {
+    table_config = {
+        "headers": [
+            {"text": " ", "value":'id', "sortable": False, "show": False},
+            {"text": 'Dataset code', "value": 'dataset_code', "type": 'text', "sortable": True, "show": True, "filterable": True, "deletable": True},
+            {"text": 'Category', "value": 'category', "type": 'schema', "sortable": True, "show": True, "filterable": True, "deletable": True},
+            {"text": 'Project', "value": 'project_id', "type": 'text', "sortable": True, "show": True, "filterable": True, "deletable": True},
+            {"text": 'Object ID', "value": 'object_id', "type": 'text', "sortable": True, "show": True, "filterable": True, "deletable": True},
+            {"text": 'Access', "value": 'terms.access', "type": 'text', "sortable": True, "show": True, "filterable": True, "deletable": True},
+            {"text": '', "value": 'data-table-expand', "sortable": False, "show": False},
+        ],
+        "options": {
+            "sortBy": ['dataset_code'],
+            "sortDesc": [False],
+            "multiSort": True,
+        },
+    }
+
+    return templates.TemplateResponse("resource_list.html.jinja", {
         "request": request,
-        "primary_color": primary_color
+        "primary_color": primary_color,
+        "title": "Datasets",
+        "resource": "dataset",
+        "ui_endpoint": "/datasets",
+        "api_endpoint": "/api/v1/datasets",
+        "table_config": json.dumps(table_config)
     })

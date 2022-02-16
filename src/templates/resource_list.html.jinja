@@ -1,6 +1,6 @@
 {% extends "base.html.jinja" %}
 
-{% block title %}Projects{% endblock %}
+{% block title %}{{ title }}{% endblock %}
 
 {% block head %}
     {{ super() }}
@@ -9,7 +9,7 @@
 {% block content %}
 
     <v-banner color="primary" class="elevation-5 px-10">
-        <span class="white--text text-h4 px-10">Projects</span>
+        <span class="white--text text-h4 px-10">{{'{{ title }}'}}</span>
     </v-banner>
 
     <v-container>
@@ -84,7 +84,7 @@
                                 mdi-folder-open
                             </v-icon>
                         </template>
-                        <span>Open project</span>
+                        <span>Open {{'{{ resource }}'}}</span>
                     </v-tooltip>
                 </template>
                 <template v-slot:expanded-item="{ headers, item }">
@@ -159,7 +159,7 @@
                                 <v-icon>mdi-plus</v-icon>
                             </v-btn>
                         </template>
-                        <span>Create new project</span>
+                        <span>Create new {{'{{ resource }}'}}</span>
                     </v-tooltip>
                 </v-fab-transition>
             </v-card-text>
@@ -280,6 +280,11 @@
 {% block script %}
     <script type="text/javascript">
         const primaryColor = '{{ primary_color }}'
+        const title = '{{ title }}'                 //'Datasets'
+        const resource = '{{ resource }}'           //'dataset'
+        const uiEndpoint = '{{ ui_endpoint }}'      // 'datasets'
+        const apiEndpoint = '{{ api_endpoint }}'    // '/api/v1/datasets'
+        const tableConfigDefaults = '{{ table_config | safe }}'
 
         new Vue({
             el: '#app',
@@ -296,26 +301,11 @@
 
             data: {
                 appBarDropdown: false,
+                title: title,
+                resource: resource,
 
                 tableConfig: {},
                 tableConfigDialog: {},
-                tableConfigDefaults: {
-                    headers: [
-                        {text: ' ', value:'id', sortable: false, show: false},
-                        {text: 'Project code', value: 'project_code', type: 'text', sortable: true, show: true, filterable: true, deletable: true},
-                        {text: 'Unit', value: 'unit', type: 'text', sortable: true, show: true, filterable: true, deletable: true},
-                        {text: 'Category', value: 'category', type: 'schema', sortable: true, show: true, filterable: true, deletable: true},
-                        {text: 'Subject', value: 'subject', type: 'text', sortable: true, show: true, filterable: true, deletable: true},
-                        {text: 'State', value: 'state', type: 'text', sortable: true, show: true, filterable: true, deletable: true},
-                        {text: 'Access', value: 'terms.access', type: 'text', sortable: true, show: true, filterable: true, deletable: true},
-                        {text: '', value: 'data-table-expand', sortable: false, show: false},
-                    ],
-                    options: {
-                        sortBy: ['project_code', 'unit'],
-                        sortDesc: [false, false],
-                        multiSort: true,
-                    },
-                },
 
                 operators: {
                     '=': null, 
@@ -342,8 +332,8 @@
             },
 
             created() {
-                let temp = window.localStorage.getItem('projectList')
-                this.tableConfig = (temp !== null) ? JSON.parse(temp) : this.tableConfigDefaults
+                let temp = window.localStorage.getItem(this.resource + 'List')
+                this.tableConfig = (temp !== null) ? JSON.parse(temp) : JSON.parse(tableConfigDefaults)
             },
 
             computed: {
@@ -403,9 +393,8 @@
                     }
                  
                     // api call
-                    url = '/api/v1/projects'
-                    console.log('GET ' + url)
-                    return axios.get(url, {params: parameters})
+                    console.log('GET ' + apiEndpoint)
+                    return axios.get(apiEndpoint, {params: parameters})
                         .then(response => {
                             this.data = []
                             for (i in response.data.data) {
@@ -413,7 +402,7 @@
                             }
                             this.total = response.data.query_parameters.total
                             this.loading = false
-                            window.localStorage.setItem('projectList', JSON.stringify(this.tableConfig))
+                            window.localStorage.setItem(this.resource + 'List', JSON.stringify(this.tableConfig))
                         })
                         .catch(error => {
                             this.showAlert("error", "Connection failed.")
@@ -423,14 +412,14 @@
                 },
 
                 getKeys(schemaUrl) {
-                    let parts = schemaUrl.split("project/", 2)[1].split("/")
+                    let parts = schemaUrl.split(this.resource + "/", 2)[1].split("/")
                     let category = parts[0]
                     let template = (parts.length >= 2) ? parts[1] : null
                     return {category, template} 
                 },
 
                 openForm(item = null) {
-                    url = "/projects/" + (item ? item.id : "new")
+                    url = uiEndpoint + "/" + (item ? item.id : "new")
                     window.open(url, "_self")
                 },
 
@@ -452,7 +441,7 @@
                 },
 
                 resetTableConfig() {
-                    this.tableConfigDialog = JSON.parse(JSON.stringify(this.tableConfigDefaults))
+                    this.tableConfigDialog = JSON.parse(tableConfigDefaults)
                 },
 
                 buildFindQuery() {
@@ -513,7 +502,7 @@
                         }
                     }
                     this.tableConfig.find = JSON.stringify(find)    // the API expects JSON
-                    window.localStorage.setItem('projectList', JSON.stringify(this.tableConfig))
+                    window.localStorage.setItem(this.resource + 'List', JSON.stringify(this.tableConfig))
                 },
 
                 makeColumnName(item) {
@@ -543,7 +532,7 @@
                             filterable: true, 
                             deletable: true
                         })
-                        window.localStorage.setItem('projectList', JSON.stringify(this.tableConfig))
+                        window.localStorage.setItem(this.resource + 'List', JSON.stringify(this.tableConfig))
                     }
                 },
 
