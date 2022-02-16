@@ -1,5 +1,4 @@
-from functools import cache
-
+from async_lru import alru_cache
 import jsonschema
 from mergedeep import merge
 from fastapi import HTTPException
@@ -72,7 +71,7 @@ async def get_template(resource: Resource, category: str, template: str = "_defa
     return response
 
 
-@cache
+@alru_cache(maxsize=32)
 async def get_template_list(resource: Resource, include_non_selectable: bool = False):
     find = {"resource": resource}
 
