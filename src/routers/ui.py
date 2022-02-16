@@ -190,7 +190,7 @@ async def show_project_form_new(
     """
     template_list = await core.utils.jsonschema.get_template_list(Resource.PROJECT.name.lower())
     title_parts = ["project_code", "unit"]
-    tabs = ['Project details', 'Contributors', 'Datasets', 'Samples', 'Images', 'Debug']
+    tabs = ['Project details', 'Contributors', 'Datasets', 'Samples', 'Images']
 
     return templates.TemplateResponse("resource_form.html.jinja", {
         "request": request,
@@ -218,7 +218,7 @@ async def show_project_form_with_id(
     """
     template_list = await core.utils.jsonschema.get_template_list(Resource.PROJECT.name.lower())
     title_parts = ["project_code", "unit"]
-    tabs = ['Project details', 'Contributors', 'Datasets', 'Samples', 'Images', 'Debug']
+    tabs = ['Project details', 'Contributors', 'Datasets', 'Samples', 'Images']
     
     return templates.TemplateResponse("resource_form.html.jinja", {
         "request": request,
@@ -270,4 +270,59 @@ def show_dataset_list(request: Request):
         "ui_endpoint": "/datasets",
         "api_endpoint": "/api/v1/datasets",
         "table_config": json.dumps(table_config)
+    })
+
+
+@router.get("/datasets/new", response_class=HTMLResponse)
+async def show_dataset_form_new(
+        request: Request,
+        category: Optional[str] = Query(None, description="Dataset category"),
+        template: Optional[str] = Query(None, description="Dataset template")):
+    """
+    Displaying dataset form for new data entry
+    """
+    template_list = await core.utils.jsonschema.get_template_list(Resource.DATASET.name.lower())
+    title_parts = ["dataset_code"]
+    tabs = ['Dataset details', 'Contributors', 'Files', 'Samples']
+
+    return templates.TemplateResponse("resource_form.html.jinja", {
+        "request": request,
+        "id": "",
+        "category": category if category is not None else "",
+        "template": template if template is not None else "",
+        "template_list": json.dumps(template_list),
+        "primary_color": primary_color,
+        "title": "Dataset form",
+        "title_parts": json.dumps(title_parts),
+        "tabs": json.dumps(tabs),
+        "resource": Resource.DATASET.value.capitalize(),
+        "ui_endpoint": "/datasets",
+        "api_endpoint": "/api/v1/datasets",
+        "schema_endpoint": "/schema/dataset",
+    })
+
+
+@router.get("/datasets/{dataset_id}", response_class=HTMLResponse)
+async def show_dataset_form_with_id(
+        request: Request, 
+        dataset_id: str = Path(None, description="Dataset identifier")):
+    """
+    Displaying a dataset by its id
+    """
+    template_list = await core.utils.jsonschema.get_template_list(Resource.DATASET.name.lower())
+    title_parts = ["dataset_code"]
+    tabs = ['Dataset details', 'Contributors', 'Files', 'Samples']
+    
+    return templates.TemplateResponse("resource_form.html.jinja", {
+        "request": request,
+        "id": dataset_id,
+        "template_list": json.dumps(template_list),
+        "primary_color": primary_color,
+        "title": "Dataset form",
+        "title_parts": json.dumps(title_parts),
+        "tabs": json.dumps(tabs),
+        "resource": Resource.DATASET.value.capitalize(),
+        "ui_endpoint": "/datasets",
+        "api_endpoint": "/api/v1/datasets",
+        "schema_endpoint": "/schema/dataset",
     })
