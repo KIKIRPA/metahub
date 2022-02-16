@@ -188,14 +188,24 @@ async def show_project_form_new(
     """
     Displaying project form for new data entry
     """
-    template_list = await core.utils.jsonschema.get_template_list("project")
-    return templates.TemplateResponse("project_form.html.jinja", {
+    template_list = await core.utils.jsonschema.get_template_list(Resource.PROJECT.name.lower())
+    title_parts = ["project_code", "unit"]
+    tabs = ['Project details', 'Contributors', 'Datasets', 'Samples', 'Images', 'Debug']
+
+    return templates.TemplateResponse("resource_form.html.jinja", {
         "request": request,
         "id": "",
         "category": category if category is not None else "",
         "template": template if template is not None else "",
         "template_list": json.dumps(template_list),
-        "primary_color": primary_color
+        "primary_color": primary_color,
+        "title": "Project form",
+        "title_parts": json.dumps(title_parts),
+        "tabs": json.dumps(tabs),
+        "resource": Resource.PROJECT.value.capitalize(),
+        "ui_endpoint": "/projects",
+        "api_endpoint": "/api/v1/projects",
+        "schema_endpoint": "/schema/project",
     })
 
 
@@ -206,12 +216,22 @@ async def show_project_form_with_id(
     """
     Displaying a project by its id
     """
-    template_list = await core.utils.jsonschema.get_template_list("project")
-    return templates.TemplateResponse("project_form.html.jinja", {
+    template_list = await core.utils.jsonschema.get_template_list(Resource.PROJECT.name.lower())
+    title_parts = ["project_code", "unit"]
+    tabs = ['Project details', 'Contributors', 'Datasets', 'Samples', 'Images', 'Debug']
+    
+    return templates.TemplateResponse("resource_form.html.jinja", {
         "request": request,
         "id": project_id,
         "template_list": json.dumps(template_list),
-        "primary_color": primary_color
+        "primary_color": primary_color,
+        "title": "Project form",
+        "title_parts": json.dumps(title_parts),
+        "tabs": json.dumps(tabs),
+        "resource": Resource.PROJECT.value.capitalize(),
+        "ui_endpoint": "/projects",
+        "api_endpoint": "/api/v1/projects",
+        "schema_endpoint": "/schema/project",
     })
 
 
