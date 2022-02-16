@@ -428,10 +428,11 @@
                             window.history.replaceState(
                                 {}, 
                                 this.resource + " form", 
-                                uiEndpoint + "/" + this.id)
+                                uiEndpoint + "/" + this.id
+                            )
+                            let arr = []
                             this.titleParts.forEach(k => arr.push(this.data[k]))
                             this.title = this.resource + ": <i>" + arr.join(" &sdot; ")
-                            this.title = this.resource + ": <i>" + titleParts.join(" &sdot; ")
                         })
                         .catch(error => {
                             if (error.response && error.response.status == 422) {
@@ -463,10 +464,11 @@
                             window.history.replaceState(
                                 {}, 
                                 this.resource + " form", 
-                                uiEndpoint + "/" + this.id)
-                                this.titleParts.forEach(k => arr.push(this.data[k]))
-                                this.title = this.resource + ": <i>" + arr.join(" &sdot; ")
-                                this.title = this.resource + ": <i>" + titleParts.join(" &sdot; ")
+                                uiEndpoint + "/" + this.id
+                            )
+                            let arr = []
+                            this.titleParts.forEach(k => arr.push(this.data[k]))
+                            this.title = this.resource + ": <i>" + arr.join(" &sdot; ")
                         })
                         .catch(error => {
                             if (error.response && error.response.status == 422) {
