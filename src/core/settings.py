@@ -4,8 +4,10 @@ from typing import Literal
 from pydantic import BaseSettings
 
 class Settings(BaseSettings):
-    app_name: str = "Meta"
+    app_name: str = "Metahub"
     admin_email: str = "hescida@kikirpa.be"
+
+    ui_primary_color: str = '#af8d55'
 
     mongo_conn_str: str = "mongodb://kikirpa:hescida@localhost:27017/"
     mongo_db: str = "metahub"

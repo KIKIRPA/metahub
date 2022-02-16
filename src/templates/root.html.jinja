@@ -14,6 +14,8 @@
 
 {% block script %}
     <script type="text/javascript">
+        const primaryColor = '{{ primary_color }}'
+
         new Vue({
             el: '#app',
 
@@ -21,7 +23,7 @@
                 theme: {
                     themes: {
                         light: {
-                            primary: '#af8d55'
+                            primary: primaryColor
                         },
                     },
                 },
