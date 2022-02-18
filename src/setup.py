@@ -118,8 +118,8 @@ async def main():
         await drop(db, collection)
 
     try:
-        await db.create_collection(collection)
-        print(f" - Created collection '{collection}'")
+        await db[collection].create_index([('dataset_code', pymongo.ASCENDING)], unique=True)
+        print(f" - Created collection '{collection}' and an index with a unique restraint")
     except:
         print(f" ! Error in creating collection '{collection}'")
 

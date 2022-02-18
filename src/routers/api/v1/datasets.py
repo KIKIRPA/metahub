@@ -95,7 +95,7 @@ async def create_dataset(dataset: dict):
     except core.utils.jsonschema.SchemaValidationError as err:
         raise HTTPException(status_code=422, detail=err.args[0])
     except crud.DuplicateKeyError:
-        raise HTTPException(status_code=422, detail="duplicate key (dataset code, unit)")
+        raise HTTPException(status_code=422, detail="duplicate key (dataset code)")
     except crud.NotCreatedError:
         raise HTTPException(status_code=400, detail="dataset was not created")
     except BaseException as err:
@@ -127,7 +127,7 @@ async def replace_dataset(
     except crud.NoResultsError:
         raise HTTPException(status_code=404, detail="dataset not found")
     except crud.DuplicateKeyError:
-        raise HTTPException(status_code=422, detail="duplicate key (dataset code, unit)")
+        raise HTTPException(status_code=422, detail="duplicate key (dataset code)")
     except crud.NotUpdatedError:
         raise HTTPException(status_code=400, detail="dataset was not updated")
     except BaseException as err:

@@ -17,7 +17,7 @@ class DatasetUpdate(BaseModel):
     object_id: Optional[int] = Field(None, description="Object number to which this dataset belongs")
     contributors: Optional[Set[Contributor]] = Field(...)
     terms: Optional[Terms] = Field(None)
-    pid: str = Field(...)
+    persistent_identifier: Optional[str] = Field(None, description='Persistent identifier for the dataset')
     files: Optional[Set[File]] = Field(...)
 
 
