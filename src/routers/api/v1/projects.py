@@ -41,8 +41,6 @@ async def search_projects(
         find = json.loads(find)
     else:
         find = {}
-    #if category is not None: find['category'] = {'$regex': f'.*{category.lower()}.*'}
-    #if template is not None: find['template'] = {'$regex': f'.*{template.lower()}.*'}
 
     if len(sort_desc) > 0 and len(sort_desc) != len(sort_by):
         raise HTTPException(status_code=422, detail="Unequal number of items in sort_by and sort_desc")
