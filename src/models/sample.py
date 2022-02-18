@@ -8,6 +8,7 @@ from models.common import IdBaseModel, LoggingBaseModel, QueryParameters, Terms,
 class SampleUpdate(BaseModel):
     _schema: HttpUrl = Field(...)
     sample_code: str = Field(..., description='Sample code')
+    collection_id: str = Field(..., description='Sample collection Id')
     parent_sample_code: Optional[str] = Field(None, description='Parent sample code')
     description: str = Field(..., description='Description of the sample')
     contributors: Optional[Set[Contributor]] = Field(...)
