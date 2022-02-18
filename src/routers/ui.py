@@ -326,3 +326,96 @@ async def show_dataset_form_with_id(
         "api_endpoint": "/api/v1/datasets",
         "schema_endpoint": "/schema/dataset",
     })
+
+
+
+#
+#   COLLECTIONS
+#
+
+@router.get("/collections", response_class=HTMLResponse)
+def show_collection_list(request: Request):
+    """
+    Displaying the collection list
+    """
+    table_config = {
+        "headers": [
+            {"text": " ", "value":'id', "sortable": False, "show": False},
+            {"text": 'Collection code', "value": 'collection_code', "type": 'text', "sortable": True, "show": True, "filterable": True, "deletable": True},
+            {"text": 'Category', "value": 'category', "type": 'schema', "sortable": True, "show": True, "filterable": True, "deletable": True},
+            {"text": 'Name', "value": 'name', "type": 'text', "sortable": True, "show": True, "filterable": True, "deletable": True},
+            {"text": 'Storage location', "value": 'storage_location', "type": 'text', "sortable": True, "show": True, "filterable": True, "deletable": True},
+            {"text": 'Access', "value": 'terms.access', "type": 'text', "sortable": True, "show": True, "filterable": True, "deletable": True},
+            {"text": '', "value": 'data-table-expand', "sortable": False, "show": False},
+        ],
+        "options": {
+            "sortBy": ['collection_code'],
+            "sortDesc": [False],
+            "multiSort": True,
+        },
+    }
+
+    return templates.TemplateResponse("resource_list.html.jinja", {
+        "request": request,
+        "primary_color": primary_color,
+        "title": "Collections",
+        "resource": Resource.DATASET.value.capitalize(),
+        "ui_endpoint": "/collections",
+        "api_endpoint": "/api/v1/collections",
+        "table_config": json.dumps(table_config)
+    })
+
+
+@router.get("/collections/new", response_class=HTMLResponse)
+async def show_collection_form_new(
+        request: Request,
+        category: Optional[str] = Query(None, description="Collection category"),
+        template: Optional[str] = Query(None, description="Collection template")):
+    """
+    Displaying collection form for new data entry
+    """
+    template_list = await core.utils.jsonschema.get_template_list(Resource.DATASET.name.lower())
+    title_parts = ["collection_code"]
+    tabs = ['Collection details', 'Contributors', 'Samples']
+
+    return templates.TemplateResponse("resource_form.html.jinja", {
+        "request": request,
+        "id": "",
+        "category": category if category is not None else "",
+        "template": template if template is not None else "",
+        "template_list": json.dumps(template_list),
+        "primary_color": primary_color,
+        "title": "Collection form",
+        "title_parts": json.dumps(title_parts),
+        "tabs": json.dumps(tabs),
+        "resource": Resource.DATASET.value.capitalize(),
+        "ui_endpoint": "/collections",
+        "api_endpoint": "/api/v1/collections",
+        "schema_endpoint": "/schema/collection",
+    })
+
+
+@router.get("/collections/{collection_id}", response_class=HTMLResponse)
+async def show_collection_form_with_id(
+        request: Request, 
+        collection_id: str = Path(None, description="Collection identifier")):
+    """
+    Displaying a collection by its id
+    """
+    template_list = await core.utils.jsonschema.get_template_list(Resource.DATASET.name.lower())
+    title_parts = ["collection_code"]
+    tabs = ['Collection details', 'Contributors', 'Samples']
+    
+    return templates.TemplateResponse("resource_form.html.jinja", {
+        "request": request,
+        "id": collection_id,
+        "template_list": json.dumps(template_list),
+        "primary_color": primary_color,
+        "title": "Collection form",
+        "title_parts": json.dumps(title_parts),
+        "tabs": json.dumps(tabs),
+        "resource": Resource.DATASET.value.capitalize(),
+        "ui_endpoint": "/collections",
+        "api_endpoint": "/api/v1/collections",
+        "schema_endpoint": "/schema/collection",
+    })
