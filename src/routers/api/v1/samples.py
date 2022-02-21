@@ -46,7 +46,7 @@ async def search_samples(
         raise HTTPException(status_code=422, detail="Unequal number of items in sort_by and sort_desc")
     try: 
         response = await crud.sample.search(
-            sample=db.samples,
+            collection=db.samples,
             find=find,
             skip=skip,
             limit=limit,
@@ -65,7 +65,7 @@ async def get_sample_by_id(
     """
     try:
         response = await crud.sample.get(
-            sample=db.samples, 
+            collection=db.samples, 
             id=id)
     except crud.NoResultsError:
         raise HTTPException(status_code=404, detail="sample not found")
@@ -86,7 +86,7 @@ async def create_sample(sample: dict):
 
         # create the sample
         response = await crud.sample.create(
-            sample=db.samples,
+            collection=db.samples,
             data=sample)
     except ValidationError as err:
         raise HTTPException(status_code=422, detail=err.errors())
@@ -115,7 +115,7 @@ async def replace_sample(
 
         # update the sample
         updated = await crud.sample.replace(
-            sample=db.samples, 
+            collection=db.samples, 
             id=id,
             data=sample)
     except ValidationError as err:
@@ -141,7 +141,7 @@ async def delete_sample(
     """
     try:
         deleted = await crud.sample.remove(
-            sample=db.samples, 
+            collection=db.samples, 
             id=id)
     except crud.NoResultsError:
         raise HTTPException(status_code=404, detail="sample not found")
