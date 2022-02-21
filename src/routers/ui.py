@@ -419,3 +419,96 @@ async def show_collection_form_with_id(
         "api_endpoint": "/api/v1/collections",
         "schema_endpoint": "/schema/collection",
     })
+
+
+
+#
+#   SAMPLES
+#
+
+@router.get("/samples", response_class=HTMLResponse)
+def show_sample_list(request: Request):
+    """
+    Displaying the sample list
+    """
+    table_config = {
+        "headers": [
+            {"text": " ", "value":'id', "sortable": False, "show": False},
+            {"text": 'Sample code', "value": 'sample_code', "type": 'text', "sortable": True, "show": True, "filterable": True, "deletable": True},
+            {"text": 'Category', "value": 'category', "type": 'schema', "sortable": True, "show": True, "filterable": True, "deletable": True},
+            {"text": 'Name', "value": 'name', "type": 'text', "sortable": True, "show": True, "filterable": True, "deletable": True},
+            {"text": 'Storage location', "value": 'storage_location', "type": 'text', "sortable": True, "show": True, "filterable": True, "deletable": True},
+            {"text": 'Access', "value": 'terms.access', "type": 'text', "sortable": True, "show": True, "filterable": True, "deletable": True},
+            {"text": '', "value": 'data-table-expand', "sortable": False, "show": False},
+        ],
+        "options": {
+            "sortBy": ['sample_code'],
+            "sortDesc": [False],
+            "multiSort": True,
+        },
+    }
+
+    return templates.TemplateResponse("resource_list.html.jinja", {
+        "request": request,
+        "primary_color": primary_color,
+        "title": "Samples",
+        "resource": Resource.SAMPLE.value.capitalize(),
+        "ui_endpoint": "/samples",
+        "api_endpoint": "/api/v1/samples",
+        "table_config": json.dumps(table_config)
+    })
+
+
+@router.get("/samples/new", response_class=HTMLResponse)
+async def show_sample_form_new(
+        request: Request,
+        category: Optional[str] = Query(None, description="Sample category"),
+        template: Optional[str] = Query(None, description="Sample template")):
+    """
+    Displaying sample form for new data entry
+    """
+    template_list = await core.utils.jsonschema.get_template_list(Resource.SAMPLE.name.lower())
+    title_parts = ["sample_code"]
+    tabs = ['Sample details', 'Contributors', 'Collection', 'Datasets']
+
+    return templates.TemplateResponse("resource_form.html.jinja", {
+        "request": request,
+        "id": "",
+        "category": category if category is not None else "",
+        "template": template if template is not None else "",
+        "template_list": json.dumps(template_list),
+        "primary_color": primary_color,
+        "title": "Sample form",
+        "title_parts": json.dumps(title_parts),
+        "tabs": json.dumps(tabs),
+        "resource": Resource.SAMPLE.value.capitalize(),
+        "ui_endpoint": "/samples",
+        "api_endpoint": "/api/v1/samples",
+        "schema_endpoint": "/schema/sample",
+    })
+
+
+@router.get("/samples/{sample_id}", response_class=HTMLResponse)
+async def show_sample_form_with_id(
+        request: Request, 
+        sample_id: str = Path(None, description="Sample identifier")):
+    """
+    Displaying a sample by its id
+    """
+    template_list = await core.utils.jsonschema.get_template_list(Resource.SAMPLE.name.lower())
+    title_parts = ["sample_code"]
+    tabs = ['Sample details', 'Contributors', 'Samples']
+    
+    return templates.TemplateResponse("resource_form.html.jinja", {
+        "request": request,
+        "id": sample_id,
+        "template_list": json.dumps(template_list),
+        "primary_color": primary_color,
+        "title": "Sample form",
+        "title_parts": json.dumps(title_parts),
+        "tabs": json.dumps(tabs),
+        "resource": Resource.SAMPLE.value.capitalize(),
+        "ui_endpoint": "/samples",
+        "api_endpoint": "/api/v1/samples",
+        "schema_endpoint": "/schema/sample",
+    })
