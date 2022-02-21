@@ -58,6 +58,8 @@ async def main():
     parser.add_option("-T", "--seed-templates", action="append", dest="seed_templates", help="Seed templates")
     parser.add_option("-P", "--seed-projects", action="append", dest="seed_projects", help="Seed projects")
     parser.add_option("-D", "--seed-datasets", action="append", dest="seed_datasets", help="Seed datasets")
+    parser.add_option("-C", "--seed-collections", action="append", dest="seed_collections", help="Seed collections")
+    parser.add_option("-S", "--seed-samples", action="append", dest="seed_samples", help="Seed samples")
     (options, args) = parser.parse_args()
     
     # MONGO CONNECTION
@@ -65,67 +67,67 @@ async def main():
     db = client[core.settings.mongo_db]
 
 
-    #
-    # TEMPLATE COLLECTION
-    #
+    mongo_collections = [
+        {
+            "name": "templates",
+            "unique_index": [
+                ('resource', pymongo.ASCENDING),
+                ('category', pymongo.ASCENDING),
+                ('template', pymongo.ASCENDING)
+            ],
+            "seed_templates": options.seed_templates,
+            "model": models.TemplateUpdate
+        },
+        {
+            "name": "projects",
+            "unique_index": [
+                ('project_code', pymongo.ASCENDING),
+                ('unit', pymongo.ASCENDING)
+            ],
+            "seed_templates": options.seed_projects,
+            "model": None
+        },
+        {
+            "name": "datasets",
+            "unique_index": [
+                ('dataset_code', pymongo.ASCENDING)
+            ],
+            "seed_templates": options.seed_datasets,
+            "model": None
+        },
+        {
+            "name": "collections",
+            "unique_index": [
+                ('collection_code', pymongo.ASCENDING)
+            ],
+            "seed_templates": options.seed_collections,
+            "model": None
+        },
+        {
+            "name": "samples",
+            "unique_index": [
+                ('sample_code', pymongo.ASCENDING),
+                ('collection_id', pymongo.ASCENDING),
+            ],
+            "seed_templates": options.seed_samples,
+            "model": None
+        }
+    ]
 
-    print("\nTEMPLATE COLLECTION")
-    collection = "templates"
-    if options.drop:
-        await drop(db, collection)
+    for collection in mongo_collections:
+        print(f"\n{collection['name'].upper()} COLLECTION")
 
-    try:
-        await db[collection].create_index([
-            ('resource', pymongo.ASCENDING),
-            ('category', pymongo.ASCENDING),
-            ('template', pymongo.ASCENDING)], unique=True)
-        print(f" - Created collection '{collection}' and an index with a unique restraint")
-    except:
-        print(f" ! Error in creating collection '{collection}' and an index with a unique restraint")
+        if options.drop:
+            await drop(db, collection['name'])
 
-    if options.seed_templates is not None:
-        await seed(db, collection, options.seed_templates, models.TemplateUpdate)
+        try:
+            await db[collection['name']].create_index(collection['unique_index'], unique=True)
+            print(f" - Created collection '{collection['name']}' and an index with a unique restraint")
+        except:
+            print(f" ! Error in creating collection '{collection['name']}' and an index with a unique restraint")
 
-
-    #
-    # PROJECT COLLECTION
-    #
-
-    print("\nPROJECT COLLECTION")
-    collection = "projects"
-    if options.drop:
-        await drop(db, collection)
-
-    try:
-        await db[collection].create_index([
-            ('project_code', pymongo.ASCENDING),
-            ('unit', pymongo.ASCENDING)], unique=True)
-        print(f" - Created collection '{collection}' and an index with a unique restraint")
-    except:
-        print(f" ! Error in creating collection '{collection}' and an index with a unique restraint")
-
-    if options.seed_projects is not None:
-        await seed(db, collection, options.seed_projects)
-
-
-    #
-    # DATASET COLLECTION
-    #
-
-    print("\nDATASET COLLECTION")
-    collection = "datasets"
-    if options.drop:
-        await drop(db, collection)
-
-    try:
-        await db[collection].create_index([('dataset_code', pymongo.ASCENDING)], unique=True)
-        print(f" - Created collection '{collection}' and an index with a unique restraint")
-    except:
-        print(f" ! Error in creating collection '{collection}'")
-
-    if options.seed_datasets is not None:
-        await seed(db, collection, options.seed_datasets)
-
+        if options.seed_templates is not None:
+            await seed(db, collection['name'], collection['seed_templates'], collection['model'])
 
     print("\n")
 

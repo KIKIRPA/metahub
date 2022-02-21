@@ -26,7 +26,7 @@ db = client[core.settings.mongo_db]
 #   PROJECT ROUTES
 #
 
-@router.get("/")
+@router.get("")
 async def search_projects(
         skip: Optional[int] = Query(0, description="Skip the x first results"),
         limit: Optional[int] = Query(10, description="Return x results"), 
@@ -41,8 +41,6 @@ async def search_projects(
         find = json.loads(find)
     else:
         find = {}
-    #if category is not None: find['category'] = {'$regex': f'.*{category.lower()}.*'}
-    #if template is not None: find['template'] = {'$regex': f'.*{template.lower()}.*'}
 
     if len(sort_desc) > 0 and len(sort_desc) != len(sort_by):
         raise HTTPException(status_code=422, detail="Unequal number of items in sort_by and sort_desc")
@@ -76,7 +74,7 @@ async def get_project_by_id(
     return response
 
 
-@router.post("/")
+@router.post("")
 async def create_project(project: dict):
     """
     Create a new project.

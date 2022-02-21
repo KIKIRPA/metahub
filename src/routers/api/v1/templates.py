@@ -25,7 +25,7 @@ db = client[core.settings.mongo_db]
 #   TEMPLATE ROUTES
 #
 
-@router.get("/", response_model=models.TemplateList)
+@router.get("", response_model=models.TemplateList)
 async def search_templates(
         skip: Optional[int] = Query(0, description="Skip the x first results"),
         limit: Optional[int] = Query(10, description="Return x results"), 
@@ -114,7 +114,7 @@ async def get_template_by_keys(
     return response
 
 
-@router.post("/", response_model=models.Template)
+@router.post("", response_model=models.Template)
 async def create_template(template: models.TemplateUpdate):
     """
     Create a new template.

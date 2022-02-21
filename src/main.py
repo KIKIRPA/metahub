@@ -1,21 +1,31 @@
-import re
-
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from starlette.datastructures import QueryParams
 
+import core
 import routers
 import routers.api.v1
 
 # Main API application
-app = FastAPI()
+app = FastAPI(
+    title=core.settings.app_name,
+    description=core.settings.app_description,
+    version=core.settings.app_version,
+    contact={
+        "name": core.settings.contact_name,
+        "url": core.settings.contact_url,
+        "email": core.settings.contact_email,
+    }
+)
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Adding some routes to our main application
-app.include_router(routers.api.v1.templates.router)
 app.include_router(routers.api.v1.projects.router)
 app.include_router(routers.api.v1.datasets.router)
+app.include_router(routers.api.v1.collections.router)
+app.include_router(routers.api.v1.samples.router)
+app.include_router(routers.api.v1.templates.router)
 app.include_router(routers.schema.router)
 app.include_router(routers.ui.router)
 
