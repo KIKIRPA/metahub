@@ -359,7 +359,7 @@ def show_collection_list(request: Request):
         "request": request,
         "primary_color": primary_color,
         "title": "Collections",
-        "resource": Resource.DATASET.value.capitalize(),
+        "resource": Resource.COLLECTION.value.capitalize(),
         "ui_endpoint": "/collections",
         "api_endpoint": "/api/v1/collections",
         "table_config": json.dumps(table_config)
@@ -374,7 +374,7 @@ async def show_collection_form_new(
     """
     Displaying collection form for new data entry
     """
-    template_list = await core.utils.jsonschema.get_template_list(Resource.DATASET.name.lower())
+    template_list = await core.utils.jsonschema.get_template_list(Resource.COLLECTION.name.lower())
     title_parts = ["collection_code"]
     tabs = ['Collection details', 'Contributors', 'Samples']
 
@@ -388,7 +388,7 @@ async def show_collection_form_new(
         "title": "Collection form",
         "title_parts": json.dumps(title_parts),
         "tabs": json.dumps(tabs),
-        "resource": Resource.DATASET.value.capitalize(),
+        "resource": Resource.COLLECTION.value.capitalize(),
         "ui_endpoint": "/collections",
         "api_endpoint": "/api/v1/collections",
         "schema_endpoint": "/schema/collection",
@@ -402,7 +402,7 @@ async def show_collection_form_with_id(
     """
     Displaying a collection by its id
     """
-    template_list = await core.utils.jsonschema.get_template_list(Resource.DATASET.name.lower())
+    template_list = await core.utils.jsonschema.get_template_list(Resource.COLLECTION.name.lower())
     title_parts = ["collection_code"]
     tabs = ['Collection details', 'Contributors', 'Samples']
     
@@ -414,7 +414,7 @@ async def show_collection_form_with_id(
         "title": "Collection form",
         "title_parts": json.dumps(title_parts),
         "tabs": json.dumps(tabs),
-        "resource": Resource.DATASET.value.capitalize(),
+        "resource": Resource.COLLECTION.value.capitalize(),
         "ui_endpoint": "/collections",
         "api_endpoint": "/api/v1/collections",
         "schema_endpoint": "/schema/collection",
