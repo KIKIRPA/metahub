@@ -26,7 +26,7 @@ db = client[core.settings.mongo_db]
 #   PROJECT ROUTES
 #
 
-@router.get("/")
+@router.get("")
 async def search_projects(
         skip: Optional[int] = Query(0, description="Skip the x first results"),
         limit: Optional[int] = Query(10, description="Return x results"), 
@@ -74,7 +74,7 @@ async def get_project_by_id(
     return response
 
 
-@router.post("/")
+@router.post("")
 async def create_project(project: dict):
     """
     Create a new project.

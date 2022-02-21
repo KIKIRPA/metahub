@@ -26,7 +26,7 @@ db = client[core.settings.mongo_db]
 #   DATASET ROUTES
 #
 
-@router.get("/")
+@router.get("")
 async def search_datasets(
         skip: Optional[int] = Query(0, description="Skip the x first results"),
         limit: Optional[int] = Query(10, description="Return x results"), 
@@ -74,7 +74,7 @@ async def get_dataset_by_id(
     return response
 
 
-@router.post("/")
+@router.post("")
 async def create_dataset(dataset: dict):
     """
     Create a new dataset.
