@@ -1,0 +1,41 @@
+{
+    "resource": "dataset",
+    "category": "dendro",
+    "template": "kikirpa",
+    "short_name": "DENDRO @kikirpa",
+    "title": "Dendrochronology analysis (KIK-IRPA defaults)",
+    "selectable": true,
+    "independent_schema": false,
+    "json_schema": {
+        "properties": {
+            "measurement_parameters": {
+                "properties": {
+                    "image_scale_calibration": {
+                        "default": 0.01
+                    },
+                    "image_processing_software": {
+                        "items": {
+                            "examples": [
+                                "Photoshop CC",
+                                "Illustrator CC",
+                                "Inkscape"
+                            ]
+                        }
+                    },
+                    "dendrochronology_dating_software": {
+                        "items": {
+                            "examples": [
+                                "CooRecorder",
+                                "Dendron IV"
+                            ]
+                        }
+                    }
+                },
+                "required": [
+                    "image_processing_software",
+                    "dendrochronology_dating_software"
+                ]
+            }
+        }
+    }
+}

@@ -1,0 +1,228 @@
+{
+    "resource": "dataset",
+    "category": "dendro",
+    "template": "_default",
+    "short_name": "DENDRO",
+    "title": "Dendrochronology analysis",
+    "selectable": true,
+    "independent_schema": false,
+    "json_schema": {
+        "properties": {
+            "measurement_id": {
+                "title": "Measurement Identifier",
+                "type": "object",
+                "properties": {
+                    "measurement_technique": {
+                        "title": "Analytical technique code",
+                        "type": "string"
+                    },
+                    "measurement_date": {
+                        "title": "Measurement date",
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "measurement_index": {
+                        "title": "Measurement index",
+                        "type": "string"
+                    }
+                }
+            },
+            "measurement_parameters": {
+                "title": "Measurement parameters",
+                "type": "object",
+                "properties": {
+                    "taxon": {
+                        "title": "Taxon",
+                        "description": "An enumeration.",
+                        "enum": [
+                            "Abies alba Mill.",
+                            "Acer campestre L.",
+                            "Acer platanoides L.",
+                            "Acer pseudoplatanus L.",
+                            "Aesculus hippocastanum L.",
+                            "Alnus glutinosa Gaertn.",
+                            "Alnus incana DC.",
+                            "Alnus viridis DC.",
+                            "Amelanchier ovalis Med.",
+                            "Berberis vulgaris L.",
+                            "Betula alba (B. pendula / B. pubescens)",
+                            "Betula humilis S",
+                            "Betula nana L.",
+                            "Betula pendula Roth",
+                            "Betula pubescens Erh.",
+                            "Buxus sempervirens L.",
+                            "Carpinus betulus L.",
+                            "Castanea sativa Gaertn.",
+                            "Clematis vitalba L.",
+                            "Cornus mas L.",
+                            "Cornus sanguinea L.",
+                            "Corylus avellana L.",
+                            "Cotoneaster integerrima Med.",
+                            "Cotoneaster tomentosa Lindley",
+                            "Crataegus monogyna",
+                            "Crataegus oxyacantha",
+                            "Cydonia oblonga L.",
+                            "Daphne alpina L.",
+                            "Daphne cneorum L.",
+                            "Daphne laureola L.",
+                            "Daphne mezereum L.",
+                            "Daphne striata Tratt.",
+                            "Euonymus europaeus L.",
+                            "Euonymus latifolius (L.) Mill.",
+                            "Fagus sylvatica L.",
+                            "Frangula alnus Mill.",
+                            "Fraxinus excelsior L.",
+                            "Hedera helix L.",
+                            "Hippophae rhamnoides L.",
+                            "Ilex aquifolium L.",
+                            "Juglans regia L.",
+                            "Juniperus communis L.",
+                            "Juniperus nana Syme",
+                            "Juniperus sabina L.",
+                            "Laburnum alpinum (Mill.) Prest.",
+                            "Laburnum anagyroides Med.",
+                            "Larix decidua Mill.",
+                            "Ligustrum vulgare L.",
+                            "Lonicera alpigena L.",
+                            "Lonicera caprifolium L.",
+                            "Lonicera coerulea L.",
+                            "Lonicera nigra L.",
+                            "Lonicera periclymenum L.",
+                            "Lonicera xylosteum L.",
+                            "Mespilus germanica L.",
+                            "Ostrya carpinifolia Scop.",
+                            "Picea abies Karsten",
+                            "Pinus cembra L.",
+                            "Pinus strobus L.",
+                            "Pinus mugo Turra",
+                            "Pinus nigra Arnold",
+                            "Pinus silvestris L.",
+                            "Pirus communis L.",
+                            "Pirus malus L.",
+                            "Platanus orientalis L. / P. occidentalis L.",
+                            "Populus alba L.",
+                            "Populus italica L.",
+                            "Populus nigra L.",
+                            "Populus tremula L.",
+                            "Prunus armeniaca L.",
+                            "Prunus avium L.",
+                            "Prunus cerasifera Ehrh.",
+                            "Prunus cerasus L.",
+                            "Prunus domestica L.",
+                            "Prunus insititia Julsen",
+                            "Prunus mahaleb L.",
+                            "Prunus padus L.",
+                            "Prunus persica (L.) Batsch",
+                            "Prunus spinosa L.",
+                            "Pseudotsuga menziesii (Mirb.) Franco",
+                            "Quercus petraea Liebl.",
+                            "Quercus pubescens Willd.",
+                            "Quercus robur L.",
+                            "Rhamnus cathartica L.",
+                            "Ribes alpinum L.",
+                            "Ribes nigrum L.",
+                            "Ribes petraeum Wulf.",
+                            "Ribes rubrum L.",
+                            "Ribes uva-crispa L.",
+                            "Robinia pseudoacacia L.",
+                            "Rosa arvensis Hudson",
+                            "Rosa canina L.",
+                            "Rosa glauca Pourret",
+                            "Rosa pendulina L.",
+                            "Rosa villosa L.",
+                            "Salix alba L.",
+                            "Salix appendiculata Vill.",
+                            "Salix arbuscula",
+                            "Salix aurita L.",
+                            "Salix breviserrata Flod.",
+                            "Salix caprea L.",
+                            "Salix cinerea L.",
+                            "Salix daphnoides Vill.",
+                            "Salix glabra Scop.",
+                            "Salix glaucosericea Flod.",
+                            "Salix hastata L.",
+                            "Salix helvetica Vill.",
+                            "Salix herbacea L.",
+                            "Salix incana",
+                            "Salix myrsinifolia Salisb.",
+                            "Salix purpurea L.",
+                            "Salix repens L.",
+                            "Salix reticulata L.",
+                            "Salix retusa L.",
+                            "Salix viminalis L.",
+                            "Salix waldsteiniana Willd.",
+                            "Sambucus nigra L.",
+                            "Sambucus racemosa L.",
+                            "Sorbus aria L.",
+                            "Sorbus aucuparia L.",
+                            "Sorbus chamaemespilus Crantz",
+                            "Sorbus domestica L.",
+                            "Sorbus torminalis L.",
+                            "Taxus baccata L.",
+                            "Tilia cordata Mill.",
+                            "Tilia platyphyllos Scop.",
+                            "Ulmus campestris L.",
+                            "Ulmus laevis Pallas",
+                            "Ulmus scabra Mill.",
+                            "Viburnum lantana L.",
+                            "Viburnum opulus L.",
+                            "Viscum album L.",
+                            "Vitis vinifera L."
+                        ],
+                        "type": "string"
+                    },
+                    "image_scale_calibration": {
+                        "title": "Image scale calibration",
+                        "description": "Smallest distance on scale card in mm",
+                        "type": "number"
+                    },
+                    "image_processing_software": {
+                        "title": "Image Processing Software",
+                        "description": "Image processing software packages used",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "uniqueItems": true
+                    },
+                    "dendrochronology_dating_software": {
+                        "title": "Dendrochronology Dating Software",
+                        "description": "Dendrochronology dating software packages used",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "uniqueItems": true
+                    }
+                },
+                "required": [
+                    "image_processing_software",
+                    "dendrochronology_dating_software"
+                ]
+            },
+            "measurement_results": {
+                "title": "Measurement results",
+                "type": "object",
+                "properties": {
+                    "dating_youngest_ring": {
+                        "title": "Date of the youngest ring",
+                        "type": "string"
+                    },
+                    "dating_last_ring": {
+                        "title": "Date of the oldest ring",
+                        "type": "string"
+                    },
+                    "number_of_rings": {
+                        "title": "Number of rings",
+                        "type": "integer"
+                    },
+                    "comments": {
+                        "title": "Comments",
+                        "description": "Comments with regards to generated research data",
+                        "type": "string"
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,83 @@
+{
+    "resource": "dataset",
+    "category": "drms",
+    "template": "_default",
+    "short_name": "DRMS",
+    "title": "Drilling resistance measurement",
+    "selectable": true,
+    "independent_schema": false,
+    "json_schema": {
+        "properties": {
+            "measurement_id": {
+                "title": "Measurement Identifier",
+                "type": "object",
+                "properties": {
+                    "measurement_technique": {
+                        "title": "Analytical technique code",
+                        "type": "string"
+                    },
+                    "measurement_date": {
+                        "title": "Measurement date",
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "measurement_index": {
+                        "title": "Measurement index",
+                        "type": "string"
+                    }
+                }
+            },
+            "measurement_parameters": {
+                "title": "Measurement parameters",
+                "type": "object",
+                "properties": {
+                    "instrument": {
+                        "title": "Instrument",
+                        "description": "Name and specifications of the instrument used",
+                        "type": "string"
+                    },
+                    "software": {
+                        "title": "Software",
+                        "description": "Acquisition and data treatment software used",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "uniqueItems": true
+                    },
+                    "drill_type": {
+                        "title": "Drill Type",
+                        "description": "Type of drill used",
+                        "type": "string"
+                    },
+                    "radius": {
+                        "title": "Radius",
+                        "description": "Radius of the drilled hole in mm",
+                        "type": "number"
+                    },
+                    "rotation_speed": {
+                        "title": "Rotation Speed",
+                        "description": "Constant rotation speed of the drilling motor in rpm",
+                        "type": "integer"
+                    },
+                    "penetration_rate": {
+                        "title": "Penetration Rate",
+                        "description": "Penetration rate in mm/min ",
+                        "type": "integer"
+                    }
+                }
+            },
+            "measurement_results": {
+                "title": "Measurement results",
+                "type": "object",
+                "properties": {
+                    "comments": {
+                        "title": "Comments",
+                        "description": "Comments with regards to generated research data",
+                        "type": "string"
+                    }
+                }
+            }
+        }
+    }
+}
