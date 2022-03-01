@@ -277,7 +277,7 @@
                     color="primary"
                     text
                     :disabled="!relatedProjectDialogFormValid"
-                    @click="console.log('relatedProjectDialogForm apply')">
+                    @click="getRelatedProject(null, relatedProjectDialogProjectCode, relatedProjectDialogUnit)">
                     Apply
                 </v-btn>
             </v-card-actions>
@@ -433,7 +433,9 @@
                             && this.relatedProject === null
                             && this.hasData 
                             && !this.Error) {
-                        this.getRelatedProject()
+                        if (Object.keys(this.data.project).length !== 0) {
+                            this.getRelatedProject(this.data.project.project_id)
+                        }
                     }
                 },
             },
@@ -596,13 +598,29 @@
                     }
                 },
 
-                getRelatedProject() {
-                    if (Object.keys(this.data.project).length !== 0) {
-                        let url = '/api/v1/projects/' + this.data.project.project_id
+                getRelatedProject(project_id, project_code = null, unit = null) {
+                    let url = null                    
+                    if (project_id !== null) {
+                        url = '/api/v1/projects/' + project_id
+                    } else if (project_code !== null && unit !== null) {
+                        url = '/api/v1/projects/keys?project_code=' + project_code + '&unit=' + unit
+                    }
+                    if (url !== null) {
                         console.log('Get ' + url)
                         axios.get(url)
                             .then(response => {
                                 this.relatedProject = response.data
+                                // update dataset if changed
+                                if (Object.keys(this.data.project).length === 0 
+                                        || this.relatedProject.id !== this.data.project.project_id) {
+                                    this.data.project['project_id'] = this.relatedProject.id
+                                    this.data.project['project_code'] = this.relatedProject.project_code
+                                    this.data.project['unit'] = this.relatedProject.unit
+                                }
+                                // prefill form data
+                                this.relatedProjectDialogProjectCode = this.relatedProject.project_code
+                                this.relatedProjectDialogUnit = this.relatedProject.unit
+                                this.relatedProjectDialog = false
                             })
                             .catch(error => {
                                 this.showAlert("error", "Could not find the related project")
