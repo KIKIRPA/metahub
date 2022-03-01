@@ -135,7 +135,30 @@
         </v-card>
 
         <v-card 
-            v-if="tabItems[tab] === 'Contributors' && !isError"
+            v-if="tabItems[tab] === 'Project' && hasData && !isError"
+            class="mt-6" 
+            elevation="0" 
+            :disabled="!isEditable">
+            <v-row>
+                <v-spacer></v-spacer>
+                <v-btn
+                    v-if="isEditable"
+                    @click="relatedProjectDialog = true"
+                    color="primary"
+                    dark>
+                    Connect a project...
+                </v-btn>
+            </v-row>
+            <v-row>
+                <pre v-text="data.project"></pre>
+            </v-row>
+            <v-row>
+                <pre v-text="relatedProject"></pre>
+            </v-row>
+        </v-card>
+
+        <v-card 
+            v-if="tabItems[tab] === 'Contributors' && hasData && !isError"
             class="mt-6" 
             elevation="0" 
             :disabled="!isEditable">
@@ -143,7 +166,7 @@
         </v-card>
 
         <v-card 
-            v-if="tabItems[tab] === 'Datasets' && !isError"
+            v-if="tabItems[tab] === 'Datasets' && hasData && !isError"
             class="mt-6" 
             elevation="0" 
             :disabled="!isEditable">
@@ -151,7 +174,7 @@
         </v-card>
 
         <v-card 
-            v-if="tabItems[tab] === 'Samples' && !isError"
+            v-if="tabItems[tab] === 'Samples' && hasData && !isError"
             class="mt-6" 
             elevation="0" 
             :disabled="!isEditable">
@@ -159,7 +182,7 @@
         </v-card>
 
         <v-card 
-            v-if="tabItems[tab] === 'Images' && !isError"
+            v-if="tabItems[tab] === 'Images' && hasData && !isError"
             class="mt-6" 
             elevation="0" 
             :disabled="!isEditable">
@@ -179,15 +202,14 @@
             <v-card-text>
                 <v-form 
                     ref="templateDialogForm" 
-                    v-model="templateDialogFormValid" 
-                    lazy-validation>
+                    v-model="templateDialogFormValid">
                     <v-select
                         v-model="category"
                         :items="categories"
                         item-text="name"
                         item-value="value"
                         label="Category"
-                        :rules="templateDialogFormRules"
+                        :rules="requiredRule"
                         required></v-select>
                     <v-select
                         v-model="template"
@@ -195,7 +217,7 @@
                         item-text="name"
                         item-value="value"
                         label="Template"
-                        :rules="templateDialogFormRules"
+                        :rules="requiredRule"
                         required></v-select>
                 </v-form>
             </v-card-text>
@@ -212,6 +234,50 @@
                     text
                     :disabled="!templateDialogFormValid"
                     @click="getSchema()">
+                    Apply
+                </v-btn>
+            </v-card-actions>
+        </v-card>
+    </v-dialog>
+
+    <v-dialog
+        v-model="relatedProjectDialog"
+        max-width="600">
+        <v-card>
+            <v-card-title class="text-h5">
+                <span>Connect a project</span>
+            </v-card-title>
+
+            <v-card-text>
+                <v-form 
+                    ref="relatedProjectDialogForm" 
+                    v-model="relatedProjectDialogFormValid">
+                    <v-text-field
+                        v-model="relatedProjectDialogProjectCode"
+                        label="Project code"
+                        :rules="requiredRule"
+                        required></v-text-field>
+                    <v-select
+                        v-model="relatedProjectDialogUnit"
+                        :items="units"
+                        label="Unit"
+                        :rules="requiredRule"
+                        required></v-select>
+                </v-form>
+            </v-card-text>
+            <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn
+                    color="primary"
+                    text
+                    @click="templateDialog = false">
+                    Cancel
+                </v-btn>
+                <v-btn
+                    color="primary"
+                    text
+                    :disabled="!relatedProjectDialogFormValid"
+                    @click="console.log('relatedProjectDialogForm apply')">
                     Apply
                 </v-btn>
             </v-card-actions>
@@ -274,6 +340,7 @@
         const queryParameterCategory = '{{ category }}'
         const queryParameterTemplate = '{{ template }}'
         const templateList = {{ template_list | safe }}
+        const units = '{{ units | safe }}'
 
         const formOptions =  { 
             "locale": "en-gb", 
@@ -325,7 +392,7 @@
                 templateDialogFormValid: false,
                 categories: Object.values(templateList),
                 templates: [],
-                templateDialogFormRules: [
+                requiredRule: [
                     v => !!v || 'This field is required',
                 ],
                 deleteDialog: false,
@@ -333,6 +400,14 @@
                 formOptions,
                 data: {},
                 schema: {},
+
+                relatedProject: {},
+                relatedProjectDialog: false,
+                relatedProjectDialogFormValid: false,
+                relatedProjectDialogProjectCode: null,
+                relatedProjectDialogUnit: null,
+
+                units: units !== '' ? JSON.parse(units) : [],
 
                 alert: false,
                 alertType: "info",
@@ -343,10 +418,21 @@
                 this.getData()
             },
 
+            computed: {
+                hasData() {
+                    return (Object.keys(this.data).length !== 0)
+                },
+            },
+
             watch: {
                 category: function () {
                     this.templates = (this.category) ? templateList[this.category]['templates'] : []
-                }
+                },
+                tab: function () {
+                    if (this.tabItems[this.tab] === 'Project' && this.hasData && !this.Error) {
+                        this.getRelatedProject()
+                    }
+                },
             },
 
             methods: {
@@ -499,6 +585,21 @@
                                     this.showAlert("error", "The " + this.resource.toLowerCase() + " could not be deleted.")
                                     console.warn(error)
                                 }
+                            })
+                    }
+                },
+
+                getRelatedProject() {
+                    if (Object.keys(this.data.project).length !== 0) {
+                        let url = '/api/v1/projects/' + this.data.project.project_id
+                        console.log('Get ' + url)
+                        axios.get(url)
+                            .then(response => {
+                                this.relatedProject = response.data
+                            })
+                            .catch(error => {
+                                this.showAlert("error", "Could not find the related project")
+                                console.log(error)
                             })
                     }
                 },
