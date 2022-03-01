@@ -57,6 +57,24 @@ async def search_datasets(
     return response
 
 
+@router.get("/keys")
+async def get_dataset_by_its_unique_key(
+        dataset_code: str = Query(..., description="Dataset code")):
+    """
+    Return a single dataset by its unique key.
+    """
+    print(dataset_code)
+    try:
+        response = await crud.dataset.get_by_keys(
+            collection=db.datasets,
+            dataset_code=dataset_code)
+    except crud.NoResultsError:
+        raise HTTPException(status_code=404, detail="dataset not found")
+    except BaseException as err:
+        raise HTTPException(status_code=400, detail=str(err))
+    return response
+
+
 @router.get("/{id}")
 async def get_dataset_by_id(
         id: str = Path(None, description="The id of the dataset")):

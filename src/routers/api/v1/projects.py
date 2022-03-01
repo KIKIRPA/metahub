@@ -57,6 +57,25 @@ async def search_projects(
     return response
 
 
+@router.get("/keys")
+async def get_project_by_its_unique_keys(
+        project_code: str = Query(..., description="Project code (file number, acronym...)"),
+        unit: models.Unit = Query(..., description="Unit")):
+    """
+    Return a single project by its unique keys.
+    """
+    try:
+        response = await crud.project.get_by_keys(
+            collection=db.projects,
+            project_code=project_code,
+            unit=unit)
+    except crud.NoResultsError:
+        raise HTTPException(status_code=404, detail="project not found")
+    except BaseException as err:
+        raise HTTPException(status_code=400, detail=str(err))
+    return response
+
+
 @router.get("/{id}")
 async def get_project_by_id(
         id: str = Path(None, description="The id of the project")):
