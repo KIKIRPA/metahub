@@ -2,7 +2,7 @@ from typing import Optional, List, Set
 
 from pydantic import BaseModel, HttpUrl, Field
 
-from models.common import IdBaseModel, LoggingBaseModel, QueryParameters, Terms, Contributor
+from models.common import IdBaseModel, LoggingBaseModel, QueryParameters, Terms, Contributor, Unit
 
 
 class File(BaseModel):
@@ -10,10 +10,16 @@ class File(BaseModel):
     format: Optional[str] = Field(None, title="File format")
 
 
+class Project(BaseModel):
+    project_id: str = Field(..., title='Project Id')
+    project_code: str = Field(..., description='Project code (file number, acronym...)')
+    unit: Unit = Field(...)
+
+
 class DatasetUpdate(BaseModel):
     _schema: HttpUrl = Field(...)
     dataset_code: str = Field(..., description='Dataset code')
-    project_id: str = Field(..., title='Project Id')
+    project: Project = Field(...)
     object_id: Optional[int] = Field(None, description="Object number to which this dataset belongs")
     contributors: Optional[Set[Contributor]] = Field(...)
     terms: Optional[Terms] = Field(None)
