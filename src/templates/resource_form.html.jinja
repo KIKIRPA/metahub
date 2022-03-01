@@ -445,8 +445,12 @@
                             .then(response => {
                                 // remove unnecessary bits from schema (and instance)
                                 ['id', 'created_timestamp', 'created_by_user', 'modified_timestamp', 'modified_by_user'].forEach(e => delete response.data.properties[e])
-                                // hide contributors
+                                // hide contributors, project, files
                                 response.data.properties.contributors['x-display'] = 'hidden'
+                                if (this.resource === 'Dataset') {
+                                    response.data.definitions.Project['x-display'] = 'hidden'
+                                    response.data.properties.files['x-display'] = 'hidden'
+                                }
                                 this.schema = response.data
                                 this.schemaUrl = this.schema.$id
                             })
