@@ -170,7 +170,9 @@
             class="mt-6" 
             elevation="0" 
             :disabled="!isEditable">
-            <pre>DATASETS</pre>
+            <v-row>
+                <pre v-text="relatedDatasets"></pre>
+            </v-row>
         </v-card>
 
         <v-card 
@@ -407,6 +409,8 @@
                 relatedProjectDialogProjectCode: null,
                 relatedProjectDialogUnit: null,
 
+                relatedDatasets: null,
+
                 units: units !== '' ? JSON.parse(units) : [],
 
                 alert: false,
@@ -429,12 +433,14 @@
                     this.templates = (this.category) ? templateList[this.category]['templates'] : []
                 },
                 tab: function () {
-                    if (this.tabItems[this.tab] === 'Project' 
-                            && this.relatedProject === null
-                            && this.hasData 
-                            && !this.Error) {
-                        if (Object.keys(this.data.project).length !== 0) {
+                    if (this.hasData && !this.Error) {
+                        if (this.tabItems[this.tab] === 'Project' 
+                                && this.relatedProject === null
+                                && Object.keys(this.data.project).length !== 0) {
                             this.getRelatedProject(this.data.project.project_id)
+                        } else if (this.tabItems[this.tab] === 'Datasets'
+                                && this.relatedDatasets === null) {
+                            this.getRelatedDatasets(this.id)
                         }
                     }
                 },
@@ -599,7 +605,7 @@
                 },
 
                 getRelatedProject(project_id, project_code = null, unit = null) {
-                    let url = null                    
+                    let url = null
                     if (project_id !== null) {
                         url = '/api/v1/projects/' + project_id
                     } else if (project_code !== null && unit !== null) {
@@ -628,6 +634,21 @@
                             })
                     }
                 },
+
+                getRelatedDatasets(project_id) {
+                    let url = '/api/v1/datasets'
+                    let parameters = {'project.project_id': project_id}
+
+                    console.log('Get ' + url)
+                    axios.get(url)
+                        .then(response => {
+                            this.relatedDatasets = response.data
+                        })
+                        .catch(error => {
+                            this.showAlert("error", "Could not find the related datasets")
+                            console.log(error)
+                        })
+            },
 
                 saveData() {
                     if (this.isValid) {
