@@ -410,6 +410,7 @@
                 relatedProjectDialogUnit: null,
 
                 relatedDatasets: null,
+                relatedDatasetsTableOptions: {},
 
                 units: units !== '' ? JSON.parse(units) : [],
 
@@ -440,7 +441,7 @@
                             this.getRelatedProject(this.data.project.project_id)
                         } else if (this.tabItems[this.tab] === 'Datasets'
                                 && this.relatedDatasets === null) {
-                            this.getRelatedDatasets(this.id)
+                            this.getRelatedDatasets()
                         }
                     }
                 },
@@ -635,12 +636,19 @@
                     }
                 },
 
-                getRelatedDatasets(project_id) {
+                getRelatedDatasets() {
                     let url = '/api/v1/datasets'
-                    let parameters = {'project.project_id': project_id}
+                    let skip = (this.relatedDatasetsTableOptions.page - 1) * this.relatedDatasetsTableOptions.itemsPerPage
+                    let parameters = {
+                        skip: isNaN(skip) ? null : skip,
+                        limit: this.relatedDatasetsTableOptions.itemsPerPage,
+                        sort_by: this.relatedDatasetsTableOptions.sortBy,
+                        sort_desc: this.relatedDatasetsTableOptions.sortDesc,
+                        find: JSON.stringify({'project.project_id': this.id})
+                    }
 
                     console.log('Get ' + url)
-                    axios.get(url)
+                    axios.get(url, {params: parameters})
                         .then(response => {
                             this.relatedDatasets = response.data
                         })
@@ -648,7 +656,7 @@
                             this.showAlert("error", "Could not find the related datasets")
                             console.log(error)
                         })
-            },
+                },
 
                 saveData() {
                     if (this.isValid) {
