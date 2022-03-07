@@ -178,21 +178,47 @@
         </v-card>
 
         <v-card 
+            v-if="tabItems[tab] === 'Datasets' && hasData && !isError"
+            class="mt-6" 
+            elevation="0">
+            <v-row>
+                <v-spacer></v-spacer>
+            </v-row>
+            <v-card class="mt-6" v-if="relatedDatasets !== null">
+                <v-data-table
+                    :headers="relatedDatasetsHeaders"
+                    :items="relatedDatasets.data"
+                    :server-items-length="relatedDatasets.query_parameters.total"
+                    :options.sync="relatedDatasetsTableOptions"
+                    :footer-props="{'items-per-page-options':[10, 50, 100, -1]}">
+
+                    <template v-slot:item.id="{ item }">
+                        <v-tooltip top>
+                            <template v-slot:activator="{ on, attrs }">
+                                <v-icon
+                                    small
+                                    class="mr-2"
+                                    color="primary"
+                                    :href="'/datasets/' + item"
+                                    target="_blank"
+                                    v-bind="attrs"
+                                    v-on="on">
+                                    mdi-chart-box
+                                </v-icon>
+                            </template>
+                            <span>Open dataset</span>
+                        </v-tooltip>
+                    </template>
+                </v-data-table>
+            </v-card>
+        </v-card>
+
+        <v-card 
             v-if="tabItems[tab] === 'Contributors' && hasData && !isError"
             class="mt-6" 
             elevation="0" 
             :disabled="!isEditable">
             <pre v-text="data.contributors"></pre>
-        </v-card>
-
-        <v-card 
-            v-if="tabItems[tab] === 'Datasets' && hasData && !isError"
-            class="mt-6" 
-            elevation="0" 
-            :disabled="!isEditable">
-            <v-row>
-                <pre v-text="relatedDatasets"></pre>
-            </v-row>
         </v-card>
 
         <v-card 
@@ -430,6 +456,15 @@
                 relatedProjectDialogUnit: null,
 
                 relatedDatasets: null,
+                relatedDatasetsHeaders: [
+                    {text: " ", value:'id', sortable: false},
+                    {text: 'Dataset code', value: 'dataset_code', sortable: true},
+                    {text: 'Category', value: 'category'},
+                    {text: 'Template', value: 'template'},
+                    {text: 'Project code', value: 'project.project_code', sortable: true},
+                    {text: 'Unit', value: 'project.unit', sortable: true},
+                    {text: 'Access', value: 'terms.access', sortable: true}
+                ],
                 relatedDatasetsTableOptions: {},
 
                 units: units !== '' ? JSON.parse(units) : [],
@@ -464,6 +499,10 @@
                             this.getRelatedDatasets()
                         }
                     }
+                },
+                relatedDatasetsTableOptions() {
+                    console.log("relatedDatasetsTableOptions")
+                    this.getRelatedDatasets()
                 },
             },
 
@@ -659,8 +698,6 @@
                 flattenObj(obj) {
                     let result = {}
                     for (const i in obj) {
-                        console.log("KEY: " + i)
-                        console.log(obj[i])
                         // We check the type of the i using typeof() function and recursively call the function again
                         if ((typeof obj[i]) === 'object' && !Array.isArray(obj[i])) {
                             const temp = this.flattenObj(obj[i])
