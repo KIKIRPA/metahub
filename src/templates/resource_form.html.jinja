@@ -187,8 +187,8 @@
             <v-card class="mt-6" v-if="relatedDatasets !== null">
                 <v-data-table
                     :headers="relatedDatasetsHeaders"
-                    :items="relatedDatasets.data"
-                    :server-items-length="relatedDatasets.query_parameters.total"
+                    :items="relatedDatasets"
+                    :server-items-length="relatedDatasetsCount"
                     :options.sync="relatedDatasetsTableOptions"
                     :footer-props="{'items-per-page-options':[10, 50, 100, -1]}">
 
@@ -466,6 +466,7 @@
                     {text: 'Access', value: 'terms.access', sortable: true}
                 ],
                 relatedDatasetsTableOptions: {},
+                relatedDatasetsCount: 0,
 
                 units: units !== '' ? JSON.parse(units) : [],
 
@@ -496,12 +497,11 @@
                             this.getRelatedProject(this.data.project.project_id)
                         } else if (this.tabItems[this.tab] === 'Datasets'
                                 && this.relatedDatasets === null) {
-                            this.getRelatedDatasets()
+                            this.relatedDatasets = [] //initialising relatedDatasets will display the data-table and initialise its options, which will trigger getRelatedDatasets()
                         }
                     }
                 },
                 relatedDatasetsTableOptions() {
-                    console.log("relatedDatasetsTableOptions")
                     this.getRelatedDatasets()
                 },
             },
@@ -675,7 +675,7 @@
                         console.log('Get ' + url)
                         axios.get(url)
                             .then(response => {
-                                this.relatedProject = this.flattenObj(response.data)
+                                this.relatedProject = this.flattenObj(response.data, 'project')
                                 // update dataset if changed
                                 if (Object.keys(this.data.project).length === 0 
                                         || this.relatedProject.id !== this.data.project.project_id) {
@@ -695,12 +695,12 @@
                     }
                 },
 
-                flattenObj(obj) {
+                flattenObj(obj, resource) {
                     let result = {}
                     for (const i in obj) {
                         // We check the type of the i using typeof() function and recursively call the function again
                         if ((typeof obj[i]) === 'object' && !Array.isArray(obj[i])) {
-                            const temp = this.flattenObj(obj[i])
+                            const temp = this.flattenObj(obj[i], resource)
                             for (const j in temp) {
                                 result[i + '.' + j] = temp[j]
                             }
@@ -708,7 +708,7 @@
                                 if (Array.isArray(obj[i])) {
                                     obj[i] = obj[i]
                                 } else if (i === '$schema') {
-                                    let parts = obj[i].split("project/", 2)[1].split("/")
+                                    let parts = obj[i].split(resource + "/", 2)[1].split("/")
                                     result['category'] = parts[0]
                                     if (parts[1] !== null)
                                         result['template'] = parts[1]
@@ -745,7 +745,11 @@
                     console.log('Get ' + url)
                     axios.get(url, {params: parameters})
                         .then(response => {
-                            this.relatedDatasets = response.data
+                            this.relatedDatasets = []
+                            for (i in response.data.data) {
+                                this.relatedDatasets[i] = this.flattenObj(response.data.data[i], 'dataset')
+                            }
+                            this.relatedDatasetsCount = response.data.query_parameters.total
                         })
                         .catch(error => {
                             this.showAlert("error", "Could not find the related datasets")
