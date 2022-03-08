@@ -144,30 +144,13 @@
                 </template>
             </v-data-table>
 
-            <v-card-text style="height: 45px; position: relative">
+            <v-card-text style="height: 45px; position: relative; text-align: right">
                 <v-tooltip left>
                     <template v-slot:activator="{ on, attrs }">
                         <v-btn
-                            color="primary"
-                            absolute
-                            right
-                            fab
-                            @click="openForm()"
-                            v-bind="attrs"
-                            v-on="on">
-                            <v-icon>mdi-plus</v-icon>
-                        </v-btn>
-                    </template>
-                    <span>Create new <span v-text="resource.toLowerCase()"></span></span>
-                </v-tooltip>
-                <v-tooltip left>
-                    <template v-slot:activator="{ on, attrs }">
-                        <v-btn
-                            absolute
-                            right
                             fab
                             small
-                            class="mr-16 mt-2"
+                            class="mt-2 mr-4"
                             @click="getData()"
                             v-bind="attrs"
                             v-on="on">
@@ -175,6 +158,20 @@
                         </v-btn>
                     </template>
                     <span>Refresh</span>
+                </v-tooltip>
+                <v-tooltip left>
+                    <template v-slot:activator="{ on, attrs }">
+                        <v-btn
+                            color="primary"
+                            fab
+                            class="mr-4"
+                            @click="openForm()"
+                            v-bind="attrs"
+                            v-on="on">
+                            <v-icon>mdi-plus</v-icon>
+                        </v-btn>
+                    </template>
+                    <span>Create new <span v-text="resource.toLowerCase()"></span></span>
                 </v-tooltip>
             </v-card-text>
         </v-card>

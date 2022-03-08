@@ -138,52 +138,71 @@
             v-if="tabItems[tab] === 'Project' && hasData && !isError"
             class="mt-6" 
             elevation="0">
-            <v-row>
-                <v-spacer></v-spacer>
-                <v-btn
-                    v-if="data.project.project_id"
-                    :href="'/projects/' + data.project.project_id"
-                    target="_blank"
-                    class="ml-4"
-                    color="primary"
-                    dark>
-                    Open...
-                </v-btn>
-                <v-btn
-                    v-if="isEditable"
-                    @click="relatedProjectDialog = true"
-                    class="ml-4"
-                    color="primary"
-                    dark>
-                    Connect project...
-                </v-btn>
-            </v-row>
-            <v-row>
-                <v-spacer></v-spacer>
-                <v-col cols="12" sm="10" md="8" lg="6">
-                    <v-simple-table class="my-3">
-                        <template v-slot:default>
-                            <tbody>
-                                <tr v-for="(val, key) in relatedProject"
-                                    :key="key">
-                                    <td><span class="font-weight-bold" v-text="makeColumnName(key)"></span></td>
-                                    <td><span v-text="val"></span></td>
-                                </tr>
-                            </tbody>
+            <v-card class="mt-6">
+                <v-simple-table class="my-3">
+                    <template v-slot:default>
+                        <tbody>
+                            <tr v-for="(val, key) in relatedProject"
+                                :key="key">
+                                <td><span class="font-weight-bold" v-text="makeColumnName(key)"></span></td>
+                                <td><span v-text="val"></span></td>
+                            </tr>
+                        </tbody>
+                    </template>
+                </v-simple-table>
+
+                <v-card-text style="height: 45px; position: relative; text-align: right">
+                    <v-tooltip left>
+                        <template v-slot:activator="{ on, attrs }">
+                            <v-btn
+                                fab
+                                small
+                                class="mt-2 mr-4"
+                                @click="getRelatedProject()"
+                                v-bind="attrs"
+                                v-on="on">
+                                <v-icon>mdi-refresh</v-icon>
+                            </v-btn>
                         </template>
-                    </v-simple-table>
-                </v-col>
-                <v-spacer></v-spacer>
-            </v-row>
+                        <span>Refresh</span>
+                    </v-tooltip>
+                    <v-tooltip left v-if="isEditable">
+                        <template v-slot:activator="{ on, attrs }">
+                            <v-btn
+                                color="primary"
+                                fab
+                                class="mr-4"
+                                @click="relatedProjectDialog = true"
+                                v-bind="attrs"
+                                v-on="on">
+                                <v-icon>mdi-swap-horizontal-bold</v-icon>
+                            </v-btn>
+                        </template>
+                        <span>Connect project</span>
+                    </v-tooltip>
+                    <v-tooltip left v-if="data.project.project_id">
+                        <template v-slot:activator="{ on, attrs }">
+                            <v-btn
+                                color="primary"
+                                fab
+                                class="mr-4"
+                                :href="'/projects/' + data.project.project_id"
+                                target="_blank"
+                                v-bind="attrs"
+                                v-on="on">
+                                <v-icon>mdi-folder-open</v-icon>
+                            </v-btn>
+                        </template>
+                        <span>Open project</span>
+                    </v-tooltip>
+                </v-card-text>
+            </v-card>
         </v-card>
 
         <v-card 
             v-if="tabItems[tab] === 'Datasets' && hasData && !isError"
             class="mt-6" 
             elevation="0">
-            <v-row>
-                <v-spacer></v-spacer>
-            </v-row>
             <v-card class="mt-6" v-if="relatedDatasets !== null">
                 <v-data-table
                     :headers="relatedDatasetsHeaders"
@@ -210,30 +229,13 @@
                         </v-tooltip>
                     </template>
                 </v-data-table>
-                <v-card-text style="height: 45px; position: relative">
+                <v-card-text style="height: 45px; position: relative; text-align: right">
                     <v-tooltip left>
                         <template v-slot:activator="{ on, attrs }">
                             <v-btn
-                                color="primary"
-                                absolute
-                                right
-                                fab
-                                @click="addRelatedDataset()"
-                                v-bind="attrs"
-                                v-on="on">
-                                <v-icon>mdi-plus</v-icon>
-                            </v-btn>
-                        </template>
-                        <span>Create new dataset</span>
-                    </v-tooltip>
-                    <v-tooltip left>
-                        <template v-slot:activator="{ on, attrs }">
-                            <v-btn
-                                absolute
-                                right
                                 fab
                                 small
-                                class="mr-16 mt-2"
+                                class="mt-2 mr-4"
                                 @click="getRelatedDatasets()"
                                 v-bind="attrs"
                                 v-on="on">
@@ -241,6 +243,20 @@
                             </v-btn>
                         </template>
                         <span>Refresh</span>
+                    </v-tooltip>
+                    <v-tooltip left>
+                        <template v-slot:activator="{ on, attrs }">
+                            <v-btn
+                                color="primary"
+                                fab
+                                class="mr-4"
+                                @click="addRelatedDataset()"
+                                v-bind="attrs"
+                                v-on="on">
+                                <v-icon>mdi-plus</v-icon>
+                            </v-btn>
+                        </template>
+                        <span>Create new dataset</span>
                     </v-tooltip>
                 </v-card-text>
             </v-card>
