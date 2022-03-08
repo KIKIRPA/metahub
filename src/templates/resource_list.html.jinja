@@ -145,23 +145,37 @@
             </v-data-table>
 
             <v-card-text style="height: 45px; position: relative">
-                <v-fab-transition>
-                    <v-tooltip left>
-                        <template v-slot:activator="{ on, attrs }">
-                            <v-btn
-                                color="primary"
-                                absolute
-                                right
-                                fab
-                                @click="openForm()"
-                                v-bind="attrs"
-                                v-on="on">
-                                <v-icon>mdi-plus</v-icon>
-                            </v-btn>
-                        </template>
-                        <span>Create new {{'{{ resource.toLowerCase() }}'}}</span>
-                    </v-tooltip>
-                </v-fab-transition>
+                <v-tooltip left>
+                    <template v-slot:activator="{ on, attrs }">
+                        <v-btn
+                            color="primary"
+                            absolute
+                            right
+                            fab
+                            @click="openForm()"
+                            v-bind="attrs"
+                            v-on="on">
+                            <v-icon>mdi-plus</v-icon>
+                        </v-btn>
+                    </template>
+                    <span>Create new <span v-text="resource.toLowerCase()"></span></span>
+                </v-tooltip>
+                <v-tooltip left>
+                    <template v-slot:activator="{ on, attrs }">
+                        <v-btn
+                            absolute
+                            right
+                            fab
+                            small
+                            class="mr-16 mt-2"
+                            @click="getData()"
+                            v-bind="attrs"
+                            v-on="on">
+                            <v-icon>mdi-refresh</v-icon>
+                        </v-btn>
+                    </template>
+                    <span>Refresh</span>
+                </v-tooltip>
             </v-card-text>
         </v-card>
 
