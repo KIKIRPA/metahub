@@ -210,6 +210,25 @@
                         </v-tooltip>
                     </template>
                 </v-data-table>
+                <v-card-text style="height: 45px; position: relative">
+                    <v-fab-transition>
+                        <v-tooltip left>
+                            <template v-slot:activator="{ on, attrs }">
+                                <v-btn
+                                    color="primary"
+                                    absolute
+                                    right
+                                    fab
+                                    @click="addRelatedDataset()"
+                                    v-bind="attrs"
+                                    v-on="on">
+                                    <v-icon>mdi-plus</v-icon>
+                                </v-btn>
+                            </template>
+                            <span>Create new dataset</span>
+                        </v-tooltip>
+                    </v-fab-transition>
+                </v-card-text>
             </v-card>
         </v-card>
 
@@ -218,7 +237,7 @@
             class="mt-6" 
             elevation="0" 
             :disabled="!isEditable">
-            <pre v-text="data.contributors"></pre>
+            <pre v-text="data"></pre>
         </v-card>
 
         <v-card 
@@ -558,7 +577,12 @@
                             })
                     } else {
                         this.title = "New " + this.resource.toLowerCase()
+                        // initialise this.data as empty object or with the provided initial data
                         this.data = {}
+                        const init = new URLSearchParams(window.location.search).get('init')
+                        if (init !== null) {
+                            this.data = JSON.parse(init)
+                        }
                         this.isEditable = true
                         this.isNew = true
                         // if category (and template) are supplied as query parameters, retrieve schema, 
@@ -755,6 +779,16 @@
                             this.showAlert("error", "Could not find the related datasets")
                             console.log(error)
                         })
+                },
+
+                addRelatedDataset() {
+                    let project = {
+                        project_id: this.id,
+                        project_code: this.data.project_code,
+                        unit: this.data.unit
+                    }
+                    let url = "/datasets/new?init=" + encodeURIComponent(JSON.stringify({'project': project}))
+                    window.open(url, "_blank")
                 },
 
                 saveData() {
