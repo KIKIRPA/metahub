@@ -214,16 +214,16 @@
                     <template v-slot:item.id="{ item }">
                         <v-tooltip top>
                             <template v-slot:activator="{ on, attrs }">
-                                <v-icon
-                                    small
+                                <v-btn
+                                    icon
+                                    color="primary"
                                     class="mr-2"
                                     color="primary"
-                                    :href="'/datasets/' + item"
+                                    :href="'/datasets/' + item.id"
                                     target="_blank"
                                     v-bind="attrs"
                                     v-on="on">
-                                    mdi-chart-box
-                                </v-icon>
+                                    <v-icon small>mdi-chart-box</v-icon>
                             </template>
                             <span>Open dataset</span>
                         </v-tooltip>
