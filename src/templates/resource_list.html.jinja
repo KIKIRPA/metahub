@@ -9,7 +9,7 @@
 {% block content %}
 
     <v-banner color="primary" class="elevation-5 px-10">
-        <span class="white--text text-h4 px-10">{{'{{ title }}'}}</span>
+        <span class="white--text text-h4 px-10" v-text="title"></span>
     </v-banner>
 
     <v-container>
@@ -25,9 +25,8 @@
                     :type="alertType"
                     elevation="5"
                     transition="scale-transition"
-                    dismissible>
-                    {{ '{{alertText}}' }}
-                </v-alert>
+                    dismissible
+                    v-text="alertText"></v-alert>
             </v-col>
         </v-row>
 
@@ -43,7 +42,9 @@
                         class="ma-2"
                         close
                         @click:close="removeFilter(column.value)">
-                        <span class="font-weight-black">{{'{{column.text}}'}}</span>&nbsp;<span class="font-weight-light font-italic">{{'{{column.filterOperator}}'}}</span>&nbsp;{{'{{column.filterValue}}'}}
+                        <span class="font-weight-black" v-text="column.text"></span>&nbsp;
+                        <span class="font-weight-light font-italic" v-text="column.filterOperator"></span>&nbsp;
+                        <span v-text="column.filterValue"></span>
                     </v-chip>
                 </div>
                 <v-tooltip top>
@@ -74,17 +75,21 @@
                 <template v-slot:item.id="{ item }">
                     <v-tooltip top>
                         <template v-slot:activator="{ on, attrs }">
-                            <v-icon
-                                small
+                            <v-btn
+                                icon
+                                color="primary"
                                 class="mr-2"
                                 color="primary"
                                 @click="openForm(item)"
                                 v-bind="attrs"
                                 v-on="on">
-                                mdi-folder-open
-                            </v-icon>
+                                <v-icon v-if="resource === 'Project'" small>mdi-folder-open</v-icon>
+                                <v-icon v-else-if="resource === 'Dataset'" small>mdi-chart-box</v-icon>
+                                <v-icon v-else-if="resource === 'Collection'" small>mdi-file-cabinet</v-icon>
+                                <v-icon v-else-if="resource === 'Sample'" small>mdi-test-tube-empty</v-icon>
+                            </v-btn>
                         </template>
-                        <span>Open {{'{{ resource.toLowerCase() }}'}}</span>
+                        <span>Open <span v-text="resource.toLowerCase()"></span></span>
                     </v-tooltip>
                 </template>
                 <template v-slot:expanded-item="{ headers, item }">
@@ -96,13 +101,15 @@
                                         v-for="(val, key) in item"
                                         v-if="getType(key, val) !== 'list|empty'"
                                         :key="key">
-                                        <td><span class="font-weight-bold">{{ '{{ makeColumnName(key) }}' }}</span>&nbsp;&nbsp;<small class="font-weight-light font-italic">{{ '{{ getType(key, val) }}' }}</small></td>
+                                        <td>
+                                            <span class="font-weight-bold" v-text="makeColumnName(key)"></span>&nbsp;&nbsp;
+                                            <small class="font-weight-light font-italic" v-text="getType(key, val)"></span>
+                                        </td>
                                         <td v-if="['text', 'number', 'boolean', 'datetime', 'schema'].includes(getType(key, val))">
                                             <v-chip
                                                 small
-                                                @click="addFilter(key, val)">
-                                                {{ '{{ val }}' }}
-                                            </v-chip>
+                                                @click="addFilter(key, val)"
+                                                v-text="val"></v-chip>
                                         </td>
                                         <td v-else-if="['list|text', 'list|number', 'list|boolean'].includes(getType(key, val))">
                                             <v-chip
@@ -110,28 +117,28 @@
                                                 :key="v"
                                                 class="mr-2"
                                                 small
-                                                @click="addFilter(key, v)">
-                                                {{ '{{ v }}' }}
-                                            </v-chip>
+                                                @click="addFilter(key, v)"
+                                                v-text="v"></v-chip>
                                         </td>
                                         <td v-else>
                                             <v-chip
                                                 small
-                                                outlined>
-                                                {{ '{{ val }}' }}
-                                            </v-chip>
+                                                outlined
+                                                v-text="val"></v-chip>
                                         </td>
                                         <td class="text-right">
                                             <v-tooltip top v-if="key !== 'id' && key !== '$schema' && getType(key, val) !== 'list|object'">
                                                 <template v-slot:activator="{ on, attrs }">
-                                                    <v-icon
-                                                        small
+                                                    <v-btn
+                                                        icon
+                                                        color="primary"
+                                                        class="mr-2"
                                                         color="primary"
                                                         @click="addColumn(key, getType(key, val))"
                                                         v-bind="attrs"
                                                         v-on="on">
-                                                        mdi-table-column-plus-after
-                                                    </v-icon>
+                                                        <v-icon small>mdi-table-column-plus-after</v-icon>
+                                                    </v-btn>
                                                 </template>
                                                 <span>Add column</span>
                                             </v-tooltip>
@@ -192,7 +199,7 @@
                                     :key="item.value"
                                     v-if="item.show">
                                     <td class="font-weight-bold">
-                                        {{ '{{ makeColumnName(item.value) }}' }}
+                                        <span v-text="makeColumnName(item.value)"></span>
                                     </td>
                                     <td width="20%">
                                         <v-select 
@@ -228,14 +235,15 @@
                                     <td class="text-right">
                                         <v-tooltip top v-if="item.filterable">
                                             <template v-slot:activator="{ on, attrs }">
-                                                <v-icon
-                                                    small
+                                                <v-btn
+                                                    icon
+                                                    color="primary"
                                                     color="primary"
                                                     @click="resetFilter(index)"
                                                     v-bind="attrs"
                                                     v-on="on">
-                                                    mdi-filter-remove
-                                                </v-icon>
+                                                    <v-icon small>mdi-filter-remove</v-icon>
+                                                </v-btn>
                                             </template>
                                             <span>Remove filter</span>
                                         </v-tooltip>
@@ -243,14 +251,15 @@
                                     <td class="text-right">
                                         <v-tooltip top v-if="item.deletable">
                                             <template v-slot:activator="{ on, attrs }">
-                                                <v-icon
-                                                    small
+                                                <v-btn
+                                                    icon
+                                                    color="primary"
                                                     color="primary"
                                                     @click="removeColumn(index)"
                                                     v-bind="attrs"
                                                     v-on="on">
-                                                    mdi-table-column-remove
-                                                </v-icon>
+                                                    <v-icon small>mdi-table-column-remove</v-icon>
+                                                </v-btn>
                                             </template>
                                             <span>Remove column</span>
                                         </v-tooltip>
