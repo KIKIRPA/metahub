@@ -159,7 +159,7 @@ async def delete_project(
     Delete a project.
     """
     try:
-        deleted = await crud.project.remove(
+        deleted = await crud.project.cascading_remove(
             collection=db.projects, 
             id=id)
     except crud.NoResultsError:

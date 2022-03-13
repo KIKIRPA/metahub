@@ -41,7 +41,6 @@ class CRUDProject(CRUDBase):
 
         # update related datasets
         if data["project_code"] != original_data["project_code"] or data["unit"] != original_data["unit"]:
-            print("UPDATE MANY")
             client = AsyncIOMotorClient(core.settings.mongo_conn_str)
             db = client[core.settings.mongo_db]
             await db.datasets.update_many(
@@ -55,6 +54,31 @@ class CRUDProject(CRUDBase):
                 })
 
         return result
+
+
+    async def cascading_remove(
+            self,
+            collection: AsyncIOMotorCollection,
+            *,
+            id: str)-> dict:
+        # remove project
+        result = await self.remove(
+            collection=collection, 
+            id=id)
+        # update related datasets
+        client = AsyncIOMotorClient(core.settings.mongo_conn_str)
+        db = client[core.settings.mongo_db]
+        await db.datasets.update_many(
+            {"project.project_id": id,},
+            {
+                "$unset": {
+                    "project": "",
+                },
+                "$set": {
+                    "modified_timestamp": datetime.now(timezone.utc)
+                }
+            })
+
 
 
 project = CRUDProject()
