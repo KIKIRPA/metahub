@@ -14,4 +14,5 @@ class CRUDDataset(CRUDBase):
         if result is None: raise NoResultsError
         return translate_from_mongo(result)
 
+
 dataset = CRUDDataset()

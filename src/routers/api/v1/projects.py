@@ -133,7 +133,7 @@ async def replace_project(
         await core.utils.jsonschema.validate_instance(project, validate_category=True)
 
         # update the project
-        updated = await crud.project.replace(
+        updated = await crud.project.cascading_replace(
             collection=db.projects, 
             id=id,
             data=project)

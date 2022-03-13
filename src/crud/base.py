@@ -167,15 +167,17 @@ class CRUDBase():
             collection: AsyncIOMotorCollection,
             id: str,
             *,
-            data: dict) -> dict:
-        result = await collection.find_one({"_id": ObjectId(id)})
-        if result is None: raise NoResultsError
+            data: dict,
+            original_data: dict = None) -> dict:
+        if original_data is None:
+            original_data = await collection.find_one({"_id": ObjectId(id)})
+            if original_data is None: raise NoResultsError
 
         # first encode for json, than include a datetime (to be converted to mongo date object)
         #data = data.dict()
         data = translate_to_mongo(jsonable_encoder(data))
-        if "created_timestamp" in result:
-            data["created_timestamp"] = result["created_timestamp"]
+        if "created_timestamp" in original_data:
+            data["created_timestamp"] = original_data["created_timestamp"]
         data["modified_timestamp"] = datetime.now(timezone.utc)
         
         try:
