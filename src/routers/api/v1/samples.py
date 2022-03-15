@@ -81,7 +81,7 @@ async def create_sample(sample: dict):
     """
     try:
         # validate agains resource and category models
-        sample_resource_instance = models.DatasetUpdate(**sample)
+        sample_resource_instance = models.SampleUpdate(**sample)
         await core.utils.jsonschema.validate_instance(sample, validate_category=True)
 
         # create the sample
@@ -110,7 +110,7 @@ async def replace_sample(
     """
     try:
         # validate agains resource and category models
-        sample_resource_instance = models.DatasetUpdate(**sample)
+        sample_resource_instance = models.SampleUpdate(**sample)
         await core.utils.jsonschema.validate_instance(sample, validate_category=True)
 
         # update the sample

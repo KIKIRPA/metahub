@@ -81,7 +81,7 @@ async def create_collection(collection: dict):
     """
     try:
         # validate agains resource and category models
-        collection_resource_instance = models.DatasetUpdate(**collection)
+        collection_resource_instance = models.CollectionUpdate(**collection)
         await core.utils.jsonschema.validate_instance(collection, validate_category=True)
 
         # create the collection
@@ -110,7 +110,7 @@ async def replace_collection(
     """
     try:
         # validate agains resource and category models
-        collection_resource_instance = models.DatasetUpdate(**collection)
+        collection_resource_instance = models.CollectionUpdate(**collection)
         await core.utils.jsonschema.validate_instance(collection, validate_category=True)
 
         # update the collection
