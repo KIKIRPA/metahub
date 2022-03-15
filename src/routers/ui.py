@@ -346,15 +346,14 @@ def show_collection_list(request: Request):
     table_config = {
         "headers": [
             {"text": " ", "value":'id', "sortable": False, "show": False},
-            {"text": 'Collection code', "value": 'collection_code', "type": 'text', "sortable": True, "show": True, "filterable": True, "deletable": True},
+            {"text": 'Collection name', "value": 'collection_name', "type": 'text', "sortable": True, "show": True, "filterable": True, "deletable": True},
             {"text": 'Category', "value": 'category', "type": 'schema', "sortable": True, "show": True, "filterable": True, "deletable": True},
-            {"text": 'Name', "value": 'name', "type": 'text', "sortable": True, "show": True, "filterable": True, "deletable": True},
             {"text": 'Storage location', "value": 'storage_location', "type": 'text', "sortable": True, "show": True, "filterable": True, "deletable": True},
             {"text": 'Access', "value": 'terms.access', "type": 'text', "sortable": True, "show": True, "filterable": True, "deletable": True},
             {"text": '', "value": 'data-table-expand', "sortable": False, "show": False},
         ],
         "options": {
-            "sortBy": ['collection_code'],
+            "sortBy": ['collection_name'],
             "sortDesc": [False],
             "multiSort": True,
         },
@@ -440,6 +439,7 @@ def show_sample_list(request: Request):
         "headers": [
             {"text": " ", "value":'id', "sortable": False, "show": False},
             {"text": 'Sample code', "value": 'sample_code', "type": 'text', "sortable": True, "show": True, "filterable": True, "deletable": True},
+            {"text": 'Collection', "value": 'collection.collection_name', "type": 'text', "sortable": True, "show": True, "filterable": True, "deletable": True},
             {"text": 'Category', "value": 'category', "type": 'schema', "sortable": True, "show": True, "filterable": True, "deletable": True},
             {"text": 'Name', "value": 'name', "type": 'text', "sortable": True, "show": True, "filterable": True, "deletable": True},
             {"text": 'Storage location', "value": 'storage_location', "type": 'text', "sortable": True, "show": True, "filterable": True, "deletable": True},
@@ -447,7 +447,7 @@ def show_sample_list(request: Request):
             {"text": '', "value": 'data-table-expand', "sortable": False, "show": False},
         ],
         "options": {
-            "sortBy": ['sample_code'],
+            "sortBy": ['sample_code', 'collection.collection_name'],
             "sortDesc": [False],
             "multiSort": True,
         },
