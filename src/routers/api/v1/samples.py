@@ -57,6 +57,25 @@ async def search_samples(
     return response
 
 
+@router.get("/keys")
+async def get_sample_by_its_unique_keys(
+        sample_code: str = Query(..., description='Sample code'),
+        collection_id: str = Query(..., description="Collection Id")):
+    """
+    Return a single sample by its unique keys.
+    """
+    try:
+        response = await crud.sample.get_by_keys(
+            collection=db.samples,
+            sample_code=sample_code,
+            collection_id=collection_id)
+    except crud.NoResultsError:
+        raise HTTPException(status_code=404, detail="sample not found")
+    except BaseException as err:
+        raise HTTPException(status_code=400, detail=str(err))
+    return response
+
+
 @router.get("/{id}")
 async def get_sample_by_id(
         id: str = Path(None, description="The id of the sample")):

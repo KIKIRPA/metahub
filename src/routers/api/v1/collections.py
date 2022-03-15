@@ -57,6 +57,23 @@ async def search_collections(
     return response
 
 
+@router.get("/keys")
+async def get_collection_by_its_unique_keys(
+        collection_name: str = Query(..., description="Collection name")):
+    """
+    Return a single collection by its unique keys.
+    """
+    try:
+        response = await crud.collection.get_by_keys(
+            collection=db.collections,
+            collection_name=collection_name)
+    except crud.NoResultsError:
+        raise HTTPException(status_code=404, detail="collection not found")
+    except BaseException as err:
+        raise HTTPException(status_code=400, detail=str(err))
+    return response
+
+
 @router.get("/{id}")
 async def get_collection_by_id(
         id: str = Path(None, description="The id of the collection")):
