@@ -7,7 +7,7 @@ from models.common import IdBaseModel, LoggingBaseModel, QueryParameters, Terms,
 
 class Collection(BaseModel):
     collection_id: str = Field(None, title='Sample collection Id')
-    collection_code: str = Field(..., description='Sample collection code')
+    collection_name: str = Field(..., description='Unique sample collection name')
 
 
 class SampleUpdate(BaseModel):
