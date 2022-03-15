@@ -6,7 +6,12 @@ from motor.motor_asyncio import AsyncIOMotorClient
 
 import core
 from core.enums import Resource, JsonSchemaVersion
-from models import Project, ProjectUpdate, Dataset, DatasetUpdate, TemplateUpdate
+from models import (
+    Project, ProjectUpdate, 
+    Dataset, DatasetUpdate, 
+    Collection, CollectionUpdate, 
+    Sample, SampleUpdate,
+    TemplateUpdate)
 import crud
 
 
