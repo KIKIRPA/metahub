@@ -215,6 +215,71 @@
         </v-card>
 
         <v-card 
+            v-if="tabItems[tab] === 'Collection' && hasData && !isError"
+            class="mt-6" 
+            elevation="0">
+            <v-card class="mt-6">
+                <v-simple-table class="my-3">
+                    <template v-slot:default>
+                        <tbody>
+                            <tr v-for="(val, key) in relatedCollection"
+                                :key="key">
+                                <td><span class="font-weight-bold" v-text="makeColumnName(key)"></span></td>
+                                <td><span v-text="val"></span></td>
+                            </tr>
+                        </tbody>
+                    </template>
+                </v-simple-table>
+
+                <v-card-text style="height: 45px; position: relative; text-align: right">
+                    <v-tooltip left>
+                        <template v-slot:activator="{ on, attrs }">
+                            <v-btn
+                                fab
+                                small
+                                class="mt-2 mr-4"
+                                @click="getRelatedCollection()"
+                                v-bind="attrs"
+                                v-on="on">
+                                <v-icon>mdi-refresh</v-icon>
+                            </v-btn>
+                        </template>
+                        <span>Refresh</span>
+                    </v-tooltip>
+                    <v-tooltip left v-if="isEditable">
+                        <template v-slot:activator="{ on, attrs }">
+                            <v-btn
+                                color="primary"
+                                fab
+                                class="mr-4"
+                                @click="relatedCollectionDialog = true"
+                                v-bind="attrs"
+                                v-on="on">
+                                <v-icon>mdi-swap-horizontal-bold</v-icon>
+                            </v-btn>
+                        </template>
+                        <span>Link collection</span>
+                    </v-tooltip>
+                    <v-tooltip left v-if="Object.keys(data.collection).length > 0">
+                        <template v-slot:activator="{ on, attrs }">
+                            <v-btn
+                                color="primary"
+                                fab
+                                class="mr-4"
+                                :href="'/collections/' + data.collection.collection_id"
+                                target="_blank"
+                                v-bind="attrs"
+                                v-on="on">
+                                <v-icon>mdi-file-cabinet</v-icon>
+                            </v-btn>
+                        </template>
+                        <span>Open collection</span>
+                    </v-tooltip>
+                </v-card-text>
+            </v-card>
+        </v-card>
+
+        <v-card 
             v-if="tabItems[tab] === 'Datasets' && hasData && !isError"
             class="mt-6" 
             elevation="0">
@@ -398,6 +463,44 @@
     </v-dialog>
 
     <v-dialog
+        v-model="relatedCollectionDialog"
+        max-width="600">
+        <v-card>
+            <v-card-title class="text-h5">
+                <span>Link a collection</span>
+            </v-card-title>
+
+            <v-card-text>
+                <v-form 
+                    ref="relatedCollectionDialogForm" 
+                    v-model="relatedCollectionDialogFormValid">
+                    <v-text-field
+                        v-model="relatedCollectionDialogCollectionName"
+                        label="Collection"
+                        :rules="requiredRule"
+                        required></v-text-field>
+                </v-form>
+            </v-card-text>
+            <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn
+                    color="primary"
+                    text
+                    @click="relatedCollectionDialog = false">
+                    Cancel
+                </v-btn>
+                <v-btn
+                    color="primary"
+                    text
+                    :disabled="!relatedCollectionDialogFormValid"
+                    @click="getRelatedCollection(null, relatedCollectionDialogCollectionName)">
+                    Apply
+                </v-btn>
+            </v-card-actions>
+        </v-card>
+    </v-dialog>
+
+    <v-dialog
         v-model="deleteDialog"
         max-width="600"
         :persistent="isDeleted">
@@ -520,6 +623,11 @@
                 relatedProjectDialogProjectCode: null,
                 relatedProjectDialogUnit: null,
 
+                relatedCollection: null,
+                relatedCollectionDialog: false,
+                relatedCollectionDialogFormValid: false,
+                relatedCollectionDialogCollectionName: null,
+
                 relatedDatasets: null,
                 relatedDatasetsHeaders: [
                     {text: " ", value:'id', sortable: false},
@@ -560,6 +668,10 @@
                                 && this.relatedProject === null
                                 && Object.keys(this.data.project).length !== 0) {
                             this.getRelatedProject(this.data.project.project_id)
+                        } else if (this.tabItems[this.tab] === 'Collection' 
+                                && this.relatedCollection === null
+                                && Object.keys(this.data.collection).length !== 0) {
+                            this.getRelatedCollection(this.data.collection.collection_id)
                         } else if (this.tabItems[this.tab] === 'Datasets'
                                 && this.relatedDatasets === null) {
                             this.relatedDatasets = [] //initialising relatedDatasets will display the data-table and initialise its options, which will trigger getRelatedDatasets()
@@ -581,11 +693,14 @@
                             .then(response => {
                                 // remove unnecessary bits from schema (and instance)
                                 ['id', 'created_timestamp', 'created_by_user', 'modified_timestamp', 'modified_by_user'].forEach(e => delete response.data.properties[e])
-                                // hide contributors, project, files
+                                // hide contributors, project, collection, files
                                 response.data.properties.contributors['x-display'] = 'hidden'
                                 if (this.resource === 'Dataset') {
                                     response.data.definitions.Project['x-display'] = 'hidden'
                                     response.data.properties.files['x-display'] = 'hidden'
+                                }
+                                if (this.resource === 'Sample') {
+                                    response.data.definitions.Collection['x-display'] = 'hidden'
                                 }
                                 this.schema = response.data
                                 this.schemaUrl = this.schema.$id
@@ -768,6 +883,35 @@
                 unlinkRelatedProject() {
                     this.data.project = {} // better would be to remove project from data, but VJSF does not allow this (known bug)
                     this.relatedProject = null
+                },
+
+                getRelatedCollection(collection_id, collection_name = null) {
+                    let url = null
+                    if (collection_id !== null) {
+                        url = '/api/v1/collections/' + collection_id
+                    } else if (collection_name !== null) {
+                        url = '/api/v1/collections/keys?collection_name=' + collection_name
+                    }
+                    if (url !== null) {
+                        console.log('Get ' + url)
+                        axios.get(url)
+                            .then(response => {
+                                this.relatedCollection = this.flattenObj(response.data, 'collection')
+                                // update dataset if changed
+                                if (Object.keys(this.data.collection).length === 0 
+                                        || this.relatedCollection.id !== this.data.collection.collection_id) {
+                                    this.data.collection['collection_id'] = this.relatedCollection.id
+                                    this.data.collection['collection_name'] = this.relatedCollection.collection_name
+                                }
+                                // prefill form data
+                                this.relatedCollectionDialogCollectionName = this.relatedCollection.collection_name
+                                this.relatedCollectionDialog = false
+                            })
+                            .catch(error => {
+                                this.showAlert("error", "Could not find the related collection")
+                                console.log(error)
+                            })
+                    }
                 },
 
                 flattenObj(obj, resource) {

@@ -407,7 +407,7 @@ async def show_collection_form_with_id(
     Displaying a collection by its id
     """
     template_list = await core.utils.jsonschema.get_template_list(Resource.COLLECTION.name.lower())
-    title_parts = ["collection_code"]
+    title_parts = ["collection_name"]
     tabs = ['Collection details', 'Contributors', 'Samples']
     
     return templates.TemplateResponse("resource_form.html.jinja", {
@@ -474,7 +474,7 @@ async def show_sample_form_new(
     """
     template_list = await core.utils.jsonschema.get_template_list(Resource.SAMPLE.name.lower())
     title_parts = ["sample_code"]
-    tabs = ['Sample details', 'Contributors', 'Collection', 'Datasets']
+    tabs = ['Sample details', 'Collection', 'Contributors', 'Datasets']
 
     return templates.TemplateResponse("resource_form.html.jinja", {
         "request": request,
@@ -502,7 +502,7 @@ async def show_sample_form_with_id(
     """
     template_list = await core.utils.jsonschema.get_template_list(Resource.SAMPLE.name.lower())
     title_parts = ["sample_code"]
-    tabs = ['Sample details', 'Contributors', 'Samples']
+    tabs = ['Sample details', 'Collection', 'Contributors', 'Datasets']
     
     return templates.TemplateResponse("resource_form.html.jinja", {
         "request": request,
