@@ -5,10 +5,19 @@ from pydantic import BaseModel, HttpUrl, Field
 from models.common import IdBaseModel, LoggingBaseModel, QueryParameters, Terms, Contributor
 
 
+class Collection(BaseModel):
+    collection_id: Optional[str] = Field(None, title='Sample collection Id')
+    collection_code: Optional[str] = Field(..., description='Sample collection code')
+    # Note:
+    # These properties should actually not be optional, since the project-property in a Dataset is
+    # itself optional. However, due to a bug in VJSF (https://github.com/koumoul-dev/vuetify-jsonschema-form/issues/230)
+    # this was done as a temporary workaround
+
+
 class SampleUpdate(BaseModel):
     _schema: HttpUrl = Field(...)
     sample_code: str = Field(..., description='Sample code')
-    collection_id: str = Field(..., description='Sample collection Id')
+    collection: Optional[Collection] = Field(...)
     parent_sample_code: Optional[str] = Field(None, description='Parent sample code')
     description: str = Field(..., description='Description of the sample')
     contributors: Optional[Set[Contributor]] = Field(...)
