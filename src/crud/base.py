@@ -71,6 +71,14 @@ class DuplicateKeyError(Exception):
     pass
 
 
+class DependentObjectsError(Exception):
+    """
+    Exception raised when a CRUD delete action cannot be performed due 
+    to existing dependent objects
+    """
+    pass
+
+
 class CRUDBase():
     def __init__(self):
         """
