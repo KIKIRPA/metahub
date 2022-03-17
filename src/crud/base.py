@@ -141,7 +141,7 @@ class CRUDBase():
             skip: int = 0, 
             limit: int = 10) -> dict:
         
-        return self.search(
+        return await self.search(
             collection=collection, 
             sort_by=sort_by,
             sort_desc=sort_desc,

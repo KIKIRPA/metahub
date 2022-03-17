@@ -57,6 +57,21 @@ async def search_collections(
     return response
 
 
+@router.get("/list", response_model=list[models.CollectionCompact])
+async def get_collection_list():
+    """
+    Return a list of all collections.
+    """
+    try:
+        response = await crud.collection.get_all(
+            collection=db.collections,
+            sort_by=["collection_name"],
+            limit=0)
+    except BaseException as err:
+        raise HTTPException(status_code=400, detail=str(err))
+    return response["data"]
+
+
 @router.get("/keys")
 async def get_collection_by_its_unique_keys(
         collection_name: str = Query(..., description="Collection name")):

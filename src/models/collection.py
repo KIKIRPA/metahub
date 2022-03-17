@@ -27,3 +27,7 @@ class Collection(LoggingBaseModel, _CollectionShort):
 class CollectionList(BaseModel):
     query_parameters: QueryParameters = Field(...)
     data: List[_CollectionShort] = Field([])
+
+
+class CollectionCompact(IdBaseModel):
+    collection_name: str = Field(...)
