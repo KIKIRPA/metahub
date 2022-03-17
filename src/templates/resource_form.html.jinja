@@ -733,8 +733,7 @@
                             .catch(error => {
                                 this.title = this.resource + " not found"
                                 this.isError = true
-                                this.showAlert("error", "Could not find the " + this.resource.toLowerCase())
-                                console.log(error)
+                                this.handleApiErrors(error)
                             })
                     } else {
                         this.title = "New " + this.resource.toLowerCase()
@@ -781,13 +780,7 @@
                             this.title = this.resource + ": <i>" + arr.join(" &sdot; ")
                         })
                         .catch(error => {
-                            if (error.response && error.response.status == 422) {
-                                let msg = Array.isArray(error.response.data.detail) ? error.response.data.detail[0].type : error.response.data.detail
-                                this.showAlert("error", "The " + this.resource.toLowerCase() + " could not be saved: " + msg)
-                            } else {
-                                this.showAlert("error", "The " + this.resource.toLowerCase() + " could not be saved.")
-                                console.warn(error)
-                            }
+                            this.handleApiErrors(error)
                         })
                 },
 
@@ -817,13 +810,7 @@
                             this.title = this.resource + ": <i>" + arr.join(" &sdot; ")
                         })
                         .catch(error => {
-                            if (error.response && error.response.status == 422) {
-                                let msg = Array.isArray(error.response.data.detail) ? error.response.data.detail[0].type : error.response.data.detail
-                                this.showAlert("error", "The " + this.resource.toLowerCase() + " could not be saved: " + msg)
-                            } else {
-                                this.showAlert("error", "The " + this.resource.toLowerCase() + " could not be saved.")
-                                console.warn(error)
-                            }
+                            this.handleApiErrors(error)
                         })
                 },
 
@@ -838,13 +825,7 @@
                             })
                             .catch(error => {
                                 this.deleteDialog = false
-                                if (error.response && error.response.status == 422) {
-                                let msg = Array.isArray(error.response.data.detail) ? error.response.data.detail[0].type : error.response.data.detail
-                                this.showAlert("error", "The " + this.resource.toLowerCase() + " could not be saved: " + msg)
-                                } else {
-                                    this.showAlert("error", "The " + this.resource.toLowerCase() + " could not be deleted.")
-                                    console.warn(error)
-                                }
+                                this.handleApiErrors(error)
                             })
                     }
                 },
@@ -874,8 +855,7 @@
                                 this.relatedProjectDialog = false
                             })
                             .catch(error => {
-                                this.showAlert("error", "Could not find the related project")
-                                console.log(error)
+                                this.handleApiErrors(error, "related project")
                             })
                     }
                 },
@@ -908,8 +888,7 @@
                                 this.relatedCollectionDialog = false
                             })
                             .catch(error => {
-                                this.showAlert("error", "Could not find the related collection")
-                                console.log(error)
+                                this.handleApiErrors(error, "related collection")
                             })
                     }
                 },
@@ -971,8 +950,7 @@
                             this.relatedDatasetsCount = response.data.query_parameters.total
                         })
                         .catch(error => {
-                            this.showAlert("error", "Could not find the related datasets")
-                            console.log(error)
+                            this.handleApiErrors(error, "related datasets")
                         })
                 },
 
@@ -1008,7 +986,40 @@
                     this.alert = true
                     this.alertType = type
                     this.alertText = text
-                }
+                },
+
+                handleApiErrors(error, resource = null) {
+                    console.warn(error)
+
+                    if (resource === null) resource = this.resource.toLowerCase()
+
+                    if (error.response && error.response.data.detail === 'NoResults') { 
+                        this.showAlert("error", "Cannot not find the " + resource + ".")
+                    } else if (error.response && error.response.data.detail === 'DuplicateKey') {
+                        let keys = 'keys'
+                        if (this.resource === 'Project') keys = 'project code and unit'
+                        else if (this.resource === 'Dataset') keys = 'dataset code'
+                        else if (this.resource === 'Collection') keys = 'collection name'
+                        else if (this.resource === 'Sample') keys = 'collection and sample code'
+                        this.showAlert("error", "Cannot store this " + resource 
+                            + " because another " + resource + " exists with the same " + keys)
+                    } else if (error.response && error.response.data.detail === 'NotCreated') {
+                        this.showAlert("error", "Cannot create this " + resource + ".")
+                    } else if (error.response && error.response.data.detail === 'NotUpdated') {
+                        this.showAlert("error", "Cannot update this " + resource + ".")
+                    } else if (error.response && error.response.data.detail === 'NotDeleted') {
+                        this.showAlert("error", "Cannot delete this " + resource + ".")
+                    } else if (error.response && error.response.data.detail === 'DependentObjects') {
+                        let dependentObjects = 'objects'
+                        if (this.resource === 'Collection') keys = 'samples'
+                        this.showAlert("error", "Cannot delete this " + resource + " because it has linked " + dependentObjects + ".")
+                    } else if (error.response && error.response.status == 422) {
+                        let msg = Array.isArray(error.response.data.detail) ? error.response.data.detail[0].type : error.response.data.detail
+                        this.showAlert("error", "The " + resource + " could not be saved: " + msg)
+                    } else {
+                        this.showAlert("error", "Unknown error")
+                    }
+                },
             }
         })
     </script>

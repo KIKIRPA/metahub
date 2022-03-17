@@ -69,7 +69,7 @@ async def get_dataset_by_its_unique_key(
             collection=db.datasets,
             dataset_code=dataset_code)
     except crud.NoResultsError:
-        raise HTTPException(status_code=404, detail="dataset not found")
+        raise HTTPException(status_code=404, detail="NoResults")
     except BaseException as err:
         raise HTTPException(status_code=400, detail=str(err))
     return response
@@ -86,7 +86,7 @@ async def get_dataset_by_id(
             collection=db.datasets, 
             id=id)
     except crud.NoResultsError:
-        raise HTTPException(status_code=404, detail="dataset not found")
+        raise HTTPException(status_code=404, detail="NoResults")
     except BaseException as err:
         raise HTTPException(status_code=400, detail=str(err))
     return response
@@ -111,9 +111,9 @@ async def create_dataset(dataset: dict):
     except core.utils.jsonschema.SchemaValidationError as err:
         raise HTTPException(status_code=422, detail=err.args[0])
     except crud.DuplicateKeyError:
-        raise HTTPException(status_code=422, detail="duplicate key (dataset code)")
+        raise HTTPException(status_code=422, detail="DuplicateKey")
     except crud.NotCreatedError:
-        raise HTTPException(status_code=400, detail="dataset was not created")
+        raise HTTPException(status_code=400, detail="NotCreated")
     except BaseException as err:
         raise HTTPException(status_code=400, detail=str(err))
     return response
@@ -141,11 +141,11 @@ async def replace_dataset(
     except core.utils.jsonschema.SchemaValidationError as err:
         raise HTTPException(status_code=422, detail=err.args[0])
     except crud.NoResultsError:
-        raise HTTPException(status_code=404, detail="dataset not found")
+        raise HTTPException(status_code=404, detail="NoResults")
     except crud.DuplicateKeyError:
-        raise HTTPException(status_code=422, detail="duplicate key (dataset code)")
+        raise HTTPException(status_code=422, detail="DuplicateKey")
     except crud.NotUpdatedError:
-        raise HTTPException(status_code=400, detail="dataset was not updated")
+        raise HTTPException(status_code=400, detail="NotUpdated")
     except BaseException as err:
         raise HTTPException(status_code=400, detail=str(err))
     return updated
@@ -162,9 +162,9 @@ async def delete_dataset(
             collection=db.datasets, 
             id=id)
     except crud.NoResultsError:
-        raise HTTPException(status_code=404, detail="dataset not found")
+        raise HTTPException(status_code=404, detail="NoResults")
     except crud.NotDeletedError:
-        raise HTTPException(status_code=400, detail="dataset was not deleted")
+        raise HTTPException(status_code=400, detail="NotDeleted")
     except BaseException as err:
         raise HTTPException(status_code=400, detail=str(err))
     return deleted
