@@ -352,19 +352,75 @@
         </v-card>
 
         <v-card 
+            v-if="tabItems[tab] === 'Samples' && hasData && !isError"
+            class="mt-6" 
+            elevation="0">
+            <v-card class="mt-6" v-if="relatedSamples !== null">
+                <v-data-table
+                    :headers="relatedSamplesHeaders"
+                    :items="relatedSamples"
+                    :server-items-length="relatedSamplesCount"
+                    :options.sync="relatedSamplesTableOptions"
+                    :footer-props="{'items-per-page-options':[10, 50, 100, -1]}">
+
+                    <template v-slot:item.id="{ item }">
+                        <v-tooltip top>
+                            <template v-slot:activator="{ on, attrs }">
+                                <v-btn
+                                    icon
+                                    color="primary"
+                                    class="mr-2"
+                                    color="primary"
+                                    :href="'/samples/' + item.id"
+                                    target="_blank"
+                                    v-bind="attrs"
+                                    v-on="on">
+                                    <v-icon small>mdi-test-tube</v-icon>
+                                </v-btn>
+                            </template>
+                            <span>Open sample</span>
+                        </v-tooltip>
+                    </template>
+                </v-data-table>
+                <v-card-text style="height: 45px; position: relative; text-align: right">
+                    <v-tooltip left>
+                        <template v-slot:activator="{ on, attrs }">
+                            <v-btn
+                                fab
+                                small
+                                class="mt-2 mr-4"
+                                @click="getRelatedSamples()"
+                                v-bind="attrs"
+                                v-on="on">
+                                <v-icon>mdi-refresh</v-icon>
+                            </v-btn>
+                        </template>
+                        <span>Refresh</span>
+                    </v-tooltip>
+                    <v-tooltip left>
+                        <template v-slot:activator="{ on, attrs }">
+                            <v-btn
+                                color="primary"
+                                fab
+                                class="mr-4"
+                                @click="addRelatedSample()"
+                                v-bind="attrs"
+                                v-on="on">
+                                <v-icon>mdi-plus</v-icon>
+                            </v-btn>
+                        </template>
+                        <span>Create new sample</span>
+                    </v-tooltip>
+                </v-card-text>
+            </v-card>
+        </v-card>
+
+        <v-card 
             v-if="tabItems[tab] === 'Contributors' && hasData && !isError"
             class="mt-6" 
             elevation="0" 
             :disabled="!isEditable">
             <pre v-text="data"></pre>
-        </v-card>
-
-        <v-card 
-            v-if="tabItems[tab] === 'Samples' && hasData && !isError"
-            class="mt-6" 
-            elevation="0" 
-            :disabled="!isEditable">
-            <pre>SAMPLES</pre>
         </v-card>
 
         <v-card 
@@ -666,8 +722,26 @@
                     {text: 'Unit', value: 'project.unit', sortable: true},
                     {text: 'Access', value: 'terms.access', sortable: true}
                 ],
-                relatedDatasetsTableOptions: {},
+                relatedDatasetsTableOptions: {
+                    sortBy: ['dataset_code'],
+                    sortDesc: [false]
+                },
                 relatedDatasetsCount: 0,
+
+                relatedSamples: null,
+                relatedSamplesHeaders: [
+                    {text: " ", value:'id', sortable: false},
+                    {text: 'Sample code', value: 'sample_code', sortable: true},
+                    {text: 'Collection', value: 'collection.collection_name', sortable: true},
+                    {text: 'Category', value: 'category'},
+                    {text: 'Template', value: 'template'},
+                    {text: 'Access', value: 'terms.access', sortable: true}
+                ],
+                relatedSamplesTableOptions: {
+                    sortBy: ['sample_code', 'collection.collection_name'],
+                    sortDesc: [false, false]
+                },
+                relatedSamplesCount: 0,
 
                 units: units !== '' ? JSON.parse(units) : [],
 
@@ -703,11 +777,17 @@
                         } else if (this.tabItems[this.tab] === 'Datasets'
                                 && this.relatedDatasets === null) {
                             this.relatedDatasets = [] //initialising relatedDatasets will display the data-table and initialise its options, which will trigger getRelatedDatasets()
+                        } else if (this.tabItems[this.tab] === 'Samples'
+                                && this.relatedSamples === null) {
+                            this.relatedSamples = [] //initialising relatedSamples will display the data-table and initialise its options, which will trigger getRelatedSamples()
                         }
                     }
                 },
                 relatedDatasetsTableOptions() {
                     this.getRelatedDatasets()
+                },
+                relatedSamplesTableOptions() {
+                    this.getRelatedSamples()
                 },
                 relatedCollectionDialog() {
                     if (this.relatedCollectionList.length === 0)
@@ -1001,6 +1081,31 @@
                     }
                     let url = "/datasets/new?init=" + encodeURIComponent(JSON.stringify({'project': project}))
                     window.open(url, "_blank")
+                },
+
+                getRelatedSamples() {
+                    let url = '/api/v1/samples'
+                    let skip = (this.relatedSamplesTableOptions.page - 1) * this.relatedSamplesTableOptions.itemsPerPage
+                    let parameters = {
+                        skip: isNaN(skip) ? null : skip,
+                        limit: this.relatedSamplesTableOptions.itemsPerPage,
+                        sort_by: this.relatedSamplesTableOptions.sortBy,
+                        sort_desc: this.relatedSamplesTableOptions.sortDesc,
+                        find: JSON.stringify({'collection.collection_id': this.id})
+                    }
+
+                    console.log('Get ' + url)
+                    axios.get(url, {params: parameters})
+                        .then(response => {
+                            this.relatedSamples = []
+                            for (i in response.data.data) {
+                                this.relatedSamples[i] = this.flattenObj(response.data.data[i], 'sample')
+                            }
+                            this.relatedSamplesCount = response.data.query_parameters.total
+                        })
+                        .catch(error => {
+                            this.handleApiErrors(error, "related samples")
+                        })
                 },
 
                 saveData() {

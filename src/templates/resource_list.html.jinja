@@ -86,7 +86,7 @@
                                 <v-icon v-if="resource === 'Project'" small>mdi-folder-open</v-icon>
                                 <v-icon v-else-if="resource === 'Dataset'" small>mdi-chart-box</v-icon>
                                 <v-icon v-else-if="resource === 'Collection'" small>mdi-file-cabinet</v-icon>
-                                <v-icon v-else-if="resource === 'Sample'" small>mdi-test-tube-empty</v-icon>
+                                <v-icon v-else-if="resource === 'Sample'" small>mdi-test-tube</v-icon>
                             </v-btn>
                         </template>
                         <span>Open <span v-text="resource.toLowerCase()"></span></span>
