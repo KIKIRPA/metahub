@@ -151,14 +151,18 @@
                     </template>
                 </v-simple-table>
 
+                <v-card-text v-if="Object.keys(data.project).length === 0" class="font-italic">
+                    No linked project
+                </v-card-text>
+
                 <v-card-text style="height: 45px; position: relative; text-align: right">
                     <v-tooltip left>
                         <template v-slot:activator="{ on, attrs }">
-                            <v-btn
+                            <v-btn v-if="Object.keys(data.project).length !== 0"
                                 fab
                                 small
                                 class="mt-2 mr-4"
-                                @click="getRelatedProject()"
+                                @click="getRelatedProject(data.project.project_id)"
                                 v-bind="attrs"
                                 v-on="on">
                                 <v-icon>mdi-refresh</v-icon>
@@ -231,14 +235,18 @@
                     </template>
                 </v-simple-table>
 
+                <v-card-text v-if="Object.keys(data.collection).length === 0" class="font-italic">
+                    No linked collection
+                </v-card-text>
+
                 <v-card-text style="height: 45px; position: relative; text-align: right">
-                    <v-tooltip left>
+                    <v-tooltip left v-if="Object.keys(data.collection).length !== 0">
                         <template v-slot:activator="{ on, attrs }">
                             <v-btn
                                 fab
                                 small
                                 class="mt-2 mr-4"
-                                @click="getRelatedCollection()"
+                                @click="getRelatedCollection(data.collection.collection_id)"
                                 v-bind="attrs"
                                 v-on="on">
                                 <v-icon>mdi-refresh</v-icon>
@@ -474,11 +482,30 @@
                 <v-form 
                     ref="relatedCollectionDialogForm" 
                     v-model="relatedCollectionDialogFormValid">
-                    <v-text-field
-                        v-model="relatedCollectionDialogCollectionName"
+                    <v-autocomplete
+                        v-model="relatedCollectionDialogCollectionId"
+                        :items="relatedCollectionList"
+                        item-text="collection_name"
+                        item-value="id"
                         label="Collection"
                         :rules="requiredRule"
-                        required></v-text-field>
+                        required>
+                        <template v-slot:append-outer>
+                            <v-tooltip left>
+                                <template v-slot:activator="{ on, attrs }">
+                                    <v-btn
+                                        icon
+                                        color="primary"
+                                        @click="getRelatedCollectionList()"
+                                        v-bind="attrs"
+                                        v-on="on">
+                                        <v-icon>mdi-refresh</v-icon>
+                                    </v-btn>
+                                </template>
+                                <span>Refresh collection list</span>
+                            </v-tooltip>
+                        </template>
+                    </v-autocomplete>
                 </v-form>
             </v-card-text>
             <v-card-actions>
@@ -493,7 +520,7 @@
                     color="primary"
                     text
                     :disabled="!relatedCollectionDialogFormValid"
-                    @click="getRelatedCollection(null, relatedCollectionDialogCollectionName)">
+                    @click="getRelatedCollection(relatedCollectionDialogCollectionId)">
                     Apply
                 </v-btn>
             </v-card-actions>
@@ -624,9 +651,10 @@
                 relatedProjectDialogUnit: null,
 
                 relatedCollection: null,
+                relatedCollectionList: [],
                 relatedCollectionDialog: false,
                 relatedCollectionDialogFormValid: false,
-                relatedCollectionDialogCollectionName: null,
+                relatedCollectionDialogCollectionId: null,
 
                 relatedDatasets: null,
                 relatedDatasetsHeaders: [
@@ -681,6 +709,10 @@
                 relatedDatasetsTableOptions() {
                     this.getRelatedDatasets()
                 },
+                relatedCollectionDialog() {
+                    if (this.relatedCollectionList.length === 0)
+                        this.getRelatedCollectionList()
+                }
             },
 
             methods: {
@@ -865,32 +897,39 @@
                     this.relatedProject = null
                 },
 
-                getRelatedCollection(collection_id, collection_name = null) {
-                    let url = null
-                    if (collection_id !== null) {
-                        url = '/api/v1/collections/' + collection_id
-                    } else if (collection_name !== null) {
-                        url = '/api/v1/collections/keys?collection_name=' + collection_name
-                    }
-                    if (url !== null) {
-                        console.log('Get ' + url)
-                        axios.get(url)
-                            .then(response => {
-                                this.relatedCollection = this.flattenObj(response.data, 'collection')
-                                // update dataset if changed
-                                if (Object.keys(this.data.collection).length === 0 
-                                        || this.relatedCollection.id !== this.data.collection.collection_id) {
-                                    this.data.collection['collection_id'] = this.relatedCollection.id
-                                    this.data.collection['collection_name'] = this.relatedCollection.collection_name
-                                }
-                                // prefill form data
-                                this.relatedCollectionDialogCollectionName = this.relatedCollection.collection_name
-                                this.relatedCollectionDialog = false
-                            })
-                            .catch(error => {
-                                this.handleApiErrors(error, "related collection")
-                            })
-                    }
+                getRelatedCollection(collection_id) {
+                    let url = '/api/v1/collections/' + collection_id
+                    console.log('Get ' + url)
+                    axios.get(url)
+                        .then(response => {
+                            this.relatedCollection = this.flattenObj(response.data, 'collection')
+                            // update dataset if changed
+                            if (Object.keys(this.data.collection).length === 0 
+                                    || this.relatedCollection.id !== this.data.collection.collection_id) {
+                                this.data.collection['collection_id'] = this.relatedCollection.id
+                                this.data.collection['collection_name'] = this.relatedCollection.collection_name
+                            }
+                            // prefill form data
+                            this.relatedCollectionDialogCollectionId = this.relatedCollection.collection_id
+                            this.relatedCollectionDialog = false
+                        })
+                        .catch(error => {
+                            this.handleApiErrors(error, "related collection")
+                        })
+                },
+
+                getRelatedCollectionList() {
+                    let url = '/api/v1/collections/list'
+                    console.log('Get ' + url)
+                    axios.get(url)
+                        .then(response => {
+                            this.relatedCollectionList = response.data
+                            if (Object.keys(this.data.collection).length !== 0)
+                                this.relatedCollectionDialogCollectionId = this.data.collection.collection_id
+                        })
+                        .catch(error => {
+                            this.handleApiErrors(error, "list of collections")
+                        })
                 },
 
                 flattenObj(obj, resource) {
