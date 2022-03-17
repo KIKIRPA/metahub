@@ -1055,6 +1055,8 @@
                     } else if (error.response && error.response.status == 422) {
                         let msg = Array.isArray(error.response.data.detail) ? error.response.data.detail[0].type : error.response.data.detail
                         this.showAlert("error", "The " + resource + " could not be saved: " + msg)
+                    } else if (error.response && error.response.data.detail === 'ParameterError') {
+                        this.showAlert("error", "Error in API request.")
                     } else {
                         this.showAlert("error", "Unknown error")
                     }

@@ -43,7 +43,7 @@ async def search_collections(
         find = {}
 
     if len(sort_desc) > 0 and len(sort_desc) != len(sort_by):
-        raise HTTPException(status_code=422, detail="Unequal number of items in sort_by and sort_desc")
+        raise HTTPException(status_code=400, detail="ParameterError")
     try: 
         response = await crud.collection.search(
             collection=db.collections,
