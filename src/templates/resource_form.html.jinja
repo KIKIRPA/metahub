@@ -297,7 +297,8 @@
                     :items="relatedDatasets"
                     :server-items-length="relatedDatasetsCount"
                     :options.sync="relatedDatasetsTableOptions"
-                    :footer-props="{'items-per-page-options':[10, 50, 100, -1]}">
+                    :footer-props="{'items-per-page-options':[10, 50, 100, -1]}"
+                    multi-sort>
 
                     <template v-slot:item.id="{ item }">
                         <v-tooltip top>
@@ -361,7 +362,8 @@
                     :items="relatedSamples"
                     :server-items-length="relatedSamplesCount"
                     :options.sync="relatedSamplesTableOptions"
-                    :footer-props="{'items-per-page-options':[10, 50, 100, -1]}">
+                    :footer-props="{'items-per-page-options':[10, 50, 100, -1]}"
+                    multi-sort>
 
                     <template v-slot:item.id="{ item }">
                         <v-tooltip top>
@@ -716,8 +718,8 @@
                 relatedDatasetsHeaders: [
                     {text: " ", value:'id', sortable: false},
                     {text: 'Dataset code', value: 'dataset_code', sortable: true},
-                    {text: 'Category', value: 'category'},
-                    {text: 'Template', value: 'template'},
+                    {text: 'Category', value: 'category', sortable: false},
+                    {text: 'Template', value: 'template', sortable: false},
                     {text: 'Project code', value: 'project.project_code', sortable: true},
                     {text: 'Unit', value: 'project.unit', sortable: true},
                     {text: 'Access', value: 'terms.access', sortable: true}
@@ -733,8 +735,8 @@
                     {text: " ", value:'id', sortable: false},
                     {text: 'Sample code', value: 'sample_code', sortable: true},
                     {text: 'Collection', value: 'collection.collection_name', sortable: true},
-                    {text: 'Category', value: 'category'},
-                    {text: 'Template', value: 'template'},
+                    {text: 'Category', value: 'category', sortable: false},
+                    {text: 'Template', value: 'template', sortable: false},
                     {text: 'Access', value: 'terms.access', sortable: true}
                 ],
                 relatedSamplesTableOptions: {
