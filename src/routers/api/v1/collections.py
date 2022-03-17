@@ -131,7 +131,7 @@ async def replace_collection(
         await core.utils.jsonschema.validate_instance(collection, validate_category=True)
 
         # update the collection
-        updated = await crud.collection.replace(
+        updated = await crud.collection.cascading_replace(
             collection=db.collections, 
             id=id,
             data=collection)
@@ -157,9 +157,11 @@ async def delete_collection(
     Delete a collection.
     """
     try:
-        deleted = await crud.collection.remove(
+        deleted = await crud.collection.safe_remove(
             collection=db.collections, 
             id=id)
+    except crud.DependentObjectsError:
+        raise HTTPException(status_code=400, detail="collection cannot be deleted because it contains samples")
     except crud.NoResultsError:
         raise HTTPException(status_code=404, detail="collection not found")
     except crud.NotDeletedError:
