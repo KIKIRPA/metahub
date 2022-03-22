@@ -10,11 +10,16 @@ class Collection(BaseModel):
     collection_name: str = Field(..., description='Unique sample collection name')
 
 
+class ParentSample(BaseModel):
+    sample_id: str = Field(None, title='Parent sample Id')
+    sample_code: str = Field(..., description='Parent sample code')
+
+
 class SampleUpdate(BaseModel):
     _schema: HttpUrl = Field(...)
     sample_code: str = Field(..., description='Sample code')
     collection: Collection = Field(...)
-    parent_sample_code: Optional[str] = Field(None, description='Parent sample code')
+    parent_sample: Optional[ParentSample] = Field(None)
     description: Optional[str] = Field(None, description='Description of the sample')
     contributors: Optional[Set[Contributor]] = Field(...)
     terms: Optional[Terms] = Field(None)
