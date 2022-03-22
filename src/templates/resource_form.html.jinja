@@ -418,6 +418,13 @@
         </v-card>
 
         <v-card 
+            v-if="tabItems[tab] === 'Related samples' && hasData && !isError"
+            class="mt-6" 
+            elevation="0">
+            Parent data: <span v-text="data.parent_data"></span>
+        </v-card>
+
+        <v-card 
             v-if="tabItems[tab] === 'Contributors' && hasData && !isError"
             class="mt-6" 
             elevation="0" 
@@ -745,6 +752,8 @@
                 },
                 relatedSamplesCount: 0,
 
+                parentSample: null,
+
                 units: units !== '' ? JSON.parse(units) : [],
 
                 alert: false,
@@ -815,6 +824,7 @@
                                 }
                                 if (this.resource === 'Sample') {
                                     response.data.definitions.Collection['x-display'] = 'hidden'
+                                    response.data.definitions.ParentSample['x-display'] = 'hidden'
                                 }
                                 this.schema = response.data
                                 this.schemaUrl = this.schema.$id

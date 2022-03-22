@@ -286,7 +286,7 @@ async def show_dataset_form_new(
     """
     template_list = await core.utils.jsonschema.get_template_list(Resource.DATASET.name.lower())
     title_parts = ["dataset_code"]
-    tabs = ['Dataset details', 'Project', 'Contributors', 'Files', 'Samples']
+    tabs = ['Dataset details', 'Contributors', 'Project', 'Files', 'Samples']
     units = [e.value for e in models.common.Unit]
 
     return templates.TemplateResponse("resource_form.html.jinja", {
@@ -316,7 +316,7 @@ async def show_dataset_form_with_id(
     """
     template_list = await core.utils.jsonschema.get_template_list(Resource.DATASET.name.lower())
     title_parts = ["dataset_code"]
-    tabs = ['Dataset details', 'Project', 'Contributors', 'Files', 'Samples']
+    tabs = ['Dataset details', 'Contributors', 'Project', 'Files', 'Samples']
     units = [e.value for e in models.common.Unit]
     
     return templates.TemplateResponse("resource_form.html.jinja", {
@@ -476,7 +476,7 @@ async def show_sample_form_new(
     """
     template_list = await core.utils.jsonschema.get_template_list(Resource.SAMPLE.name.lower())
     title_parts = ["sample_code"]
-    tabs = ['Sample details', 'Collection', 'Contributors', 'Datasets']
+    tabs = ['Sample details', 'Contributors', 'Collection', 'Related samples', 'Datasets']
 
     return templates.TemplateResponse("resource_form.html.jinja", {
         "request": request,
@@ -504,7 +504,7 @@ async def show_sample_form_with_id(
     """
     template_list = await core.utils.jsonschema.get_template_list(Resource.SAMPLE.name.lower())
     title_parts = ["sample_code"]
-    tabs = ['Sample details', 'Collection', 'Contributors', 'Datasets']
+    tabs = ['Sample details', 'Contributors', 'Collection', 'Related samples', 'Datasets']
     
     return templates.TemplateResponse("resource_form.html.jinja", {
         "request": request,
