@@ -421,7 +421,10 @@
             v-if="tabItems[tab] === 'Related samples' && hasData && !isError"
             class="mt-6" 
             elevation="0">
-            Parent data: <span v-text="data.parent_data"></span>
+            Inbedded parent sample:
+            <pre v-text="data.parent_sample"></pre>
+            Fetched parent sample:
+            <pre v-text="parentSample"></pre>
         </v-card>
 
         <v-card 
@@ -791,6 +794,10 @@
                         } else if (this.tabItems[this.tab] === 'Samples'
                                 && this.relatedSamples === null) {
                             this.relatedSamples = [] //initialising relatedSamples will display the data-table and initialise its options, which will trigger getRelatedSamples()
+                        } else if (this.tabItems[this.tab] === 'Related samples'
+                                && this.parentSample === null
+                                && Object.keys(this.data.parent_sample).length !== 0) {
+                            this.getParentSample(this.data.parent_sample.sample_id)
                         }
                     }
                 },
@@ -1127,6 +1134,24 @@
                     }
                     let url = "/samples/new?init=" + encodeURIComponent(JSON.stringify({'collection': collection}))
                     window.open(url, "_blank")
+                },
+
+                getParentSample(sample_id) {
+                    let url = '/api/v1/samples/' + sample_id
+                    console.log('Get ' + url)
+                    axios.get(url)
+                        .then(response => {
+                            this.parentSample =  this.flattenObj(response.data, 'sample')
+                            // update dataset if changed
+                            if (Object.keys(this.data.parent_sample).length === 0 
+                                    || this.parentSample.id !== this.data.parent_sample.sample_id) {
+                                this.data.parent_sample['sample_id'] = this.parentSample.id
+                                this.data.parent_sample['sample_code'] = this.parentSample.sample_code
+                            }
+                        })
+                        .catch(error => {
+                            this.handleApiErrors(error, "parent sample")
+                        })
                 },
 
                 saveData() {
