@@ -12,7 +12,7 @@ class CRUDSample(CRUDBase):
             collection_id: str) -> dict:
         result = await collection.find_one({
             "sample_code": sample_code,
-            "collection.collection.id": collection_id})
+            "collection.collection_id": collection_id})
         if result is None: raise NoResultsError
         return translate_from_mongo(result)
 
