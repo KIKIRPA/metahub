@@ -442,9 +442,7 @@
                                     link
                                     :href="'/samples/' + data.parent_sample.parent_sample_id"
                                     color="primary"
-                                    outlined>
-                                    sample
-                                </v-chip>
+                                    outlined></v-chip>
                             </v-card-text>
                             <v-card-text 
                                 class="white text--primary"
@@ -503,6 +501,16 @@
                             <v-card-title>Child samples</v-card-title>
                             <v-card-text class="white text--primary">
                                 <p class="pt-2">Sample(s) that are derived from <span v-text="data.sample_code"></span>:</p>
+                                <v-chip
+                                    v-for="sample in childSamples"
+                                    :key="sample.id"
+                                    v-text="sample.sampleCode"
+                                    :href="'/samples/' + sample.id"
+                                    link
+                                    color="primary"
+                                    outlined
+                                    class="mr-2 mb-2">
+                                </v-chip>
                             </v-card-text>
                             <v-card-text 
                                 class="white text--primary"
@@ -514,7 +522,7 @@
                                             small
                                             light
                                             class="mt-2 mr-4"
-                                            @click="getRelatedSamples()"
+                                            @click="getChildSamples"
                                             v-bind="attrs"
                                             v-on="on">
                                             <v-icon>mdi-refresh</v-icon>
@@ -932,11 +940,12 @@
                 },
                 relatedSamplesCount: 0,
 
-                parentSample: null,
                 parentSampleDialog: false,
                 parentSampleDialogFormValid: false,
                 parentSampleDialogCollectionId: null,
                 parentSampleDialogSampleCode: null,
+
+                childSamples: null,
 
                 units: units !== '' ? JSON.parse(units) : [],
                 collections: [],
@@ -977,9 +986,8 @@
                                 && this.relatedSamples === null) {
                             this.relatedSamples = [] //initialising relatedSamples will display the data-table and initialise its options, which will trigger getRelatedSamples()
                         } else if (this.tabItems[this.tab] === 'Related samples'
-                                && this.parentSample === null
-                                && Object.keys(this.data.parent_sample).length !== 0) {
-                            //this.getParentSample(this.data.parent_sample.sample_id)
+                                && this.childSamples === null) {
+                            this.getChildSamples()
                         }
                     }
                 },
@@ -1337,6 +1345,30 @@
                         })
                         .catch(error => {
                             this.handleApiErrors(error, "parent sample")
+                        })
+                },
+
+                getChildSamples() {
+                    let url = '/api/v1/samples'
+                    let parameters = {
+                        skip: 0,
+                        limit: 0,
+                        sort_by: ['sample_code'],
+                        find: JSON.stringify({'parent_sample.parent_sample_id': this.id})
+                    }
+                    console.log('Get ' + url)
+                    axios.get(url, {params: parameters})
+                        .then(response => {
+                            this.childSamples = []
+                            for (i in response.data.data) {
+                                this.childSamples.push({
+                                    id: response.data.data[i].id,
+                                    sampleCode: response.data.data[i].sample_code
+                                })
+                            }
+                        })
+                        .catch(error => {
+                            this.handleApiErrors(error, "child samples")
                         })
                 },
 
