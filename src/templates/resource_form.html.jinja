@@ -1348,6 +1348,10 @@
                         })
                 },
 
+                unlinkParentSample() {
+                    this.data.parent_sample = {} // better would be to remove parent_sample entirely from data, but VJSF does not allow this (known bug)
+                },
+
                 getChildSamples() {
                     let url = '/api/v1/samples'
                     let parameters = {
