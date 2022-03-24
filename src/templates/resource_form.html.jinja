@@ -428,7 +428,6 @@
                     :dense="$vuetify.breakpoint.smAndDown">
                     <v-timeline-item
                         fill-dot
-                        small
                         color="secondary"
                         icon="mdi-test-tube">
                         <v-card
@@ -439,9 +438,9 @@
                                 <p class="pt-2"><span v-text="data.sample_code"></span> is derived from:</p>
                                 <v-chip
                                     v-if="Object.keys(data.parent_sample).length > 0"
-                                    v-text="data.parent_sample.sample_code"
+                                    v-text="data.parent_sample.parent_sample_code"
                                     link
-                                    :href="'/samples/' + data.parent_sample.sample_id"
+                                    :href="'/samples/' + data.parent_sample.parent_sample_id"
                                     color="primary"
                                     outlined>
                                     sample
@@ -457,7 +456,7 @@
                                             fab
                                             small
                                             class="mt-2 mr-4"
-                                            @click="unlinkRelatedProject()"
+                                            @click="unlinkParentSample()"
                                             v-bind="attrs"
                                             v-on="on">
                                             <v-icon>mdi-test-tube-off</v-icon>
@@ -471,7 +470,7 @@
                                             color="primary"
                                             fab
                                             class="mr-4"
-                                            @click="relatedCollectionDialog = true"
+                                            @click="parentSampleDialog = true"
                                             v-bind="attrs"
                                             v-on="on">
                                             <v-icon>mdi-swap-horizontal-bold</v-icon>
@@ -495,7 +494,6 @@
                     </v-timeline-item>
                     <v-timeline-item
                         fill-dot
-                        small
                         color="secondary"
                         icon="mdi-test-tube">
                         <v-card
@@ -670,7 +668,7 @@
                     v-model="relatedCollectionDialogFormValid">
                     <v-autocomplete
                         v-model="relatedCollectionDialogCollectionId"
-                        :items="relatedCollectionList"
+                        :items="collections"
                         item-text="collection_name"
                         item-value="id"
                         label="Collection"
@@ -682,7 +680,7 @@
                                     <v-btn
                                         icon
                                         color="primary"
-                                        @click="getRelatedCollectionList()"
+                                        @click="getCollectionList()"
                                         v-bind="attrs"
                                         v-on="on">
                                         <v-icon>mdi-refresh</v-icon>
@@ -707,6 +705,68 @@
                     text
                     :disabled="!relatedCollectionDialogFormValid"
                     @click="getRelatedCollection(relatedCollectionDialogCollectionId)">
+                    Apply
+                </v-btn>
+            </v-card-actions>
+        </v-card>
+    </v-dialog>
+
+    <v-dialog
+        v-model="parentSampleDialog"
+        max-width="600">
+        <v-card>
+            <v-card-title class="text-h5">
+                <span>Link a parent sample</span>
+            </v-card-title>
+
+            <v-card-text>
+                <v-form 
+                    ref="parentSampleDialogForm" 
+                    v-model="parentSampleDialogFormValid">
+                    <v-autocomplete
+                        v-model="parentSampleDialogCollectionId"
+                        :items="collections"
+                        item-text="collection_name"
+                        item-value="id"
+                        label="Collection"
+                        :rules="requiredRule"
+                        required>
+                        <template v-slot:append-outer>
+                            <v-tooltip left>
+                                <template v-slot:activator="{ on, attrs }">
+                                    <v-btn
+                                        icon
+                                        color="primary"
+                                        @click="getCollectionList()"
+                                        v-bind="attrs"
+                                        v-on="on">
+                                        <v-icon>mdi-refresh</v-icon>
+                                    </v-btn>
+                                </template>
+                                <span>Refresh collection list</span>
+                            </v-tooltip>
+                        </template>
+                    </v-autocomplete>
+                    <v-text-field
+                        v-model="parentSampleDialogSampleCode"
+                        label="Sample code"
+                        :rules="requiredRule"
+                        required></v-text-field>
+                </v-form>
+            </v-card-text>
+            <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn
+                    color="primary"
+                    text
+                    @click="parentSampleDialog = false">
+                    Cancel
+                </v-btn>
+                <v-btn
+                    color="primary"
+                    text
+                    :disabled="!parentSampleDialogFormValid"
+                    @click="getParentSample(parentSampleDialogSampleCode, parentSampleDialogCollectionId)">
                     Apply
                 </v-btn>
             </v-card-actions>
@@ -837,7 +897,6 @@
                 relatedProjectDialogUnit: null,
 
                 relatedCollection: null,
-                relatedCollectionList: [],
                 relatedCollectionDialog: false,
                 relatedCollectionDialogFormValid: false,
                 relatedCollectionDialogCollectionId: null,
@@ -874,8 +933,13 @@
                 relatedSamplesCount: 0,
 
                 parentSample: null,
+                parentSampleDialog: false,
+                parentSampleDialogFormValid: false,
+                parentSampleDialogCollectionId: null,
+                parentSampleDialogSampleCode: null,
 
                 units: units !== '' ? JSON.parse(units) : [],
+                collections: [],
 
                 alert: false,
                 alertType: "info",
@@ -915,7 +979,7 @@
                         } else if (this.tabItems[this.tab] === 'Related samples'
                                 && this.parentSample === null
                                 && Object.keys(this.data.parent_sample).length !== 0) {
-                            this.getParentSample(this.data.parent_sample.sample_id)
+                            //this.getParentSample(this.data.parent_sample.sample_id)
                         }
                     }
                 },
@@ -926,8 +990,12 @@
                     this.getRelatedSamples()
                 },
                 relatedCollectionDialog() {
-                    if (this.relatedCollectionList.length === 0)
-                        this.getRelatedCollectionList()
+                    if (this.collections.length === 0)
+                        this.getCollectionList()
+                },
+                parentSampleDialog() {
+                    if (this.collections.length === 0)
+                        this.getCollectionList()
                 }
             },
 
@@ -1135,12 +1203,12 @@
                         })
                 },
 
-                getRelatedCollectionList() {
+                getCollectionList() {
                     let url = '/api/v1/collections/list'
                     console.log('Get ' + url)
                     axios.get(url)
                         .then(response => {
-                            this.relatedCollectionList = response.data
+                            this.collections = response.data
                             if (Object.keys(this.data.collection).length !== 0)
                                 this.relatedCollectionDialogCollectionId = this.data.collection.collection_id
                         })
@@ -1254,18 +1322,18 @@
                     window.open(url, "_blank")
                 },
 
-                getParentSample(sample_id) {
-                    let url = '/api/v1/samples/' + sample_id
+                getParentSample(sampleCode, collectionId) {
+                    let url = '/api/v1/samples/keys?sample_code=' + sampleCode + '&collection_id=' + collectionId
                     console.log('Get ' + url)
                     axios.get(url)
                         .then(response => {
-                            this.parentSample =  this.flattenObj(response.data, 'sample')
                             // update dataset if changed
                             if (Object.keys(this.data.parent_sample).length === 0 
-                                    || this.parentSample.id !== this.data.parent_sample.sample_id) {
-                                this.data.parent_sample['sample_id'] = this.parentSample.id
-                                this.data.parent_sample['sample_code'] = this.parentSample.sample_code
+                                    || this.data.parent_sample.parent_sample_id !== response.data.id) {
+                                this.data.parent_sample.parent_sample_id = response.data.id
+                                this.data.parent_sample.parent_sample_code = response.data.sample_code
                             }
+                            this.parentSampleDialog = false
                         })
                         .catch(error => {
                             this.handleApiErrors(error, "parent sample")

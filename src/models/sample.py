@@ -11,8 +11,8 @@ class Collection(BaseModel):
 
 
 class ParentSample(BaseModel):
-    sample_id: str = Field(None, title='Parent sample Id')
-    sample_code: str = Field(..., description='Parent sample code')
+    parent_sample_id: Optional[str] = Field(None, title='Parent sample Id')
+    parent_sample_code: Optional[str] = Field(..., description='Parent sample code')
 
 
 class SampleUpdate(BaseModel):
