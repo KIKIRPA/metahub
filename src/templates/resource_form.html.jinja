@@ -421,10 +421,128 @@
             v-if="tabItems[tab] === 'Related samples' && hasData && !isError"
             class="mt-6" 
             elevation="0">
-            Inbedded parent sample:
-            <pre v-text="data.parent_sample"></pre>
-            Fetched parent sample:
-            <pre v-text="parentSample"></pre>
+            <v-card class="mt-6" v-if="'parent_sample' in data">
+                <v-timeline 
+                    align-top 
+                    class="ma-6"
+                    :dense="$vuetify.breakpoint.smAndDown">
+                    <v-timeline-item
+                        fill-dot
+                        small
+                        color="secondary"
+                        icon="mdi-test-tube">
+                        <v-card
+                            color="secondary"
+                            dark>
+                            <v-card-title>Parent sample</v-card-title>
+                            <v-card-text class="white text--primary">
+                                <p class="pt-2"><span v-text="data.sample_code"></span> is derived from:</p>
+                                <v-chip
+                                    v-if="Object.keys(data.parent_sample).length > 0"
+                                    v-text="data.parent_sample.sample_code"
+                                    link
+                                    :href="'/samples/' + data.parent_sample.sample_id"
+                                    color="primary"
+                                    outlined>
+                                    sample
+                                </v-chip>
+                            </v-card-text>
+                            <v-card-text 
+                                class="white text--primary"
+                                style="height: 45px; position: relative; text-align: right">
+                                <v-tooltip left v-if="isEditable && Object.keys(data.parent_sample).length > 0">
+                                    <template v-slot:activator="{ on, attrs }">
+                                        <v-btn
+                                            color="error"
+                                            fab
+                                            small
+                                            class="mt-2 mr-4"
+                                            @click="unlinkRelatedProject()"
+                                            v-bind="attrs"
+                                            v-on="on">
+                                            <v-icon>mdi-test-tube-off</v-icon>
+                                        </v-btn>
+                                    </template>
+                                    <span>Unlink parent sample</span>
+                                </v-tooltip>
+                                <v-tooltip left v-if="isEditable">
+                                    <template v-slot:activator="{ on, attrs }">
+                                        <v-btn
+                                            color="primary"
+                                            fab
+                                            class="mr-4"
+                                            @click="relatedCollectionDialog = true"
+                                            v-bind="attrs"
+                                            v-on="on">
+                                            <v-icon>mdi-swap-horizontal-bold</v-icon>
+                                        </v-btn>
+                                    </template>
+                                    <span>Link parent sample</span>
+                                </v-tooltip>
+                            </v-card-text>
+                        </v-card>
+                    </v-timeline-item>
+                    <v-timeline-item 
+                        fill-dot
+                        icon="mdi-test-tube">
+                        <v-card
+                            color="primary"
+                            dark>
+                            <v-card-title 
+                                v-text="data.sample_code">
+                            </v-card-title>
+                        </v-card>
+                    </v-timeline-item>
+                    <v-timeline-item
+                        fill-dot
+                        small
+                        color="secondary"
+                        icon="mdi-test-tube">
+                        <v-card
+                            color="secondary"
+                            dark
+                            class="mb-6">
+                            <v-card-title>Child samples</v-card-title>
+                            <v-card-text class="white text--primary">
+                                <p class="pt-2">Sample(s) that are derived from <span v-text="data.sample_code"></span>:</p>
+                            </v-card-text>
+                            <v-card-text 
+                                class="white text--primary"
+                                style="height: 45px; position: relative; text-align: right">
+                                <v-tooltip left>
+                                    <template v-slot:activator="{ on, attrs }">
+                                        <v-btn
+                                            fab
+                                            small
+                                            light
+                                            class="mt-2 mr-4"
+                                            @click="getRelatedSamples()"
+                                            v-bind="attrs"
+                                            v-on="on">
+                                            <v-icon>mdi-refresh</v-icon>
+                                        </v-btn>
+                                    </template>
+                                    <span>Refresh</span>
+                                </v-tooltip>
+                                <v-tooltip left>
+                                    <template v-slot:activator="{ on, attrs }">
+                                        <v-btn
+                                            color="primary"
+                                            fab
+                                            class="mr-4"
+                                            @click="addRelatedSample()"
+                                            v-bind="attrs"
+                                            v-on="on">
+                                            <v-icon>mdi-plus</v-icon>
+                                        </v-btn>
+                                    </template>
+                                    <span>Create new sample</span>
+                                </v-tooltip>
+                            </v-card-text>
+                        </v-card>
+                    </v-timeline-item>
+                </v-timeline>
+            </v-card>
         </v-card>
 
         <v-card 
