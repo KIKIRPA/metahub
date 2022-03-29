@@ -133,7 +133,7 @@ async def replace_sample(
         await core.utils.jsonschema.validate_instance(sample, validate_category=True)
 
         # update the sample
-        updated = await crud.sample.replace(
+        updated = await crud.sample.cascading_replace(
             collection=db.samples, 
             id=id,
             data=sample)
@@ -159,7 +159,7 @@ async def delete_sample(
     Delete a sample.
     """
     try:
-        deleted = await crud.sample.remove(
+        deleted = await crud.sample.cascading_remove(
             collection=db.samples, 
             id=id)
     except crud.NoResultsError:

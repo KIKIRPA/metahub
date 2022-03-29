@@ -20,36 +20,36 @@ class CRUDCollection(CRUDBase):
 
 
     async def cascading_replace(
-                self,
-                collection: AsyncIOMotorCollection,
-                id: str,
-                *,
-                data: dict) -> dict:
-            # get the existing collection
-            original_data = await collection.find_one({"_id": ObjectId(id)})
-            if original_data is None: raise NoResultsError
+            self,
+            collection: AsyncIOMotorCollection,
+            id: str,
+            *,
+            data: dict) -> dict:
+        # get the existing collection
+        original_data = await collection.find_one({"_id": ObjectId(id)})
+        if original_data is None: raise NoResultsError
 
-            # replace collection
-            result = await self.replace(
-                collection=collection, 
-                id=id,
-                data=data,
-                original_data=original_data)
+        # replace collection
+        result = await self.replace(
+            collection=collection, 
+            id=id,
+            data=data,
+            original_data=original_data)
 
-            # update related samples
-            if data["collection_name"] != original_data["collection_name"]:
-                client = AsyncIOMotorClient(core.settings.mongo_conn_str)
-                db = client[core.settings.mongo_db]
-                await db.samples.update_many(
-                    {"collection.collection_id": id},
-                    {
-                        "$set": {
-                            "collection.collection_name": result["collection_name"],
-                            "modified_timestamp": datetime.now(timezone.utc)
-                        }
-                    })
+        # update related samples
+        if data["collection_name"] != original_data["collection_name"]:
+            client = AsyncIOMotorClient(core.settings.mongo_conn_str)
+            db = client[core.settings.mongo_db]
+            await db.samples.update_many(
+                {"collection.collection_id": id},
+                {
+                    "$set": {
+                        "collection.collection_name": result["collection_name"],
+                        "modified_timestamp": datetime.now(timezone.utc)
+                    }
+                })
 
-            return result
+        return result
 
 
     async def safe_remove(

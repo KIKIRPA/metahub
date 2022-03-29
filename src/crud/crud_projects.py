@@ -78,7 +78,7 @@ class CRUDProject(CRUDBase):
                     "modified_timestamp": datetime.now(timezone.utc)
                 }
             })
-        return translate_from_mongo(result)
+        return result
 
 
 project = CRUDProject()
