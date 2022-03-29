@@ -1322,12 +1322,27 @@
                 },
 
                 addRelatedSample() {
-                    let collection = {
-                        collection_id: this.id,
-                        collection_name: this.data.collection_name,
+                    let prefill = null
+                    if (this.resource === 'Collection') {
+                        // prefill collection details
+                        prefill = encodeURIComponent(JSON.stringify({
+                            collection: {
+                                collection_id: this.id,
+                                collection_name: this.data.collection_name
+                            }
+                        }))
+                    } else if (this.resource === 'Sample') {
+                        // prefill parent sample details
+                        prefill = encodeURIComponent(JSON.stringify({
+                            parent_sample: {
+                                parent_sample_id: this.id,
+                                parent_sample_code: this.data.sample_code
+                            }
+                        }))
                     }
-                    let url = "/samples/new?init=" + encodeURIComponent(JSON.stringify({'collection': collection}))
-                    window.open(url, "_blank")
+
+                    if (prefill !== null)
+                        window.open("/samples/new?init=" + prefill, "_blank")
                 },
 
                 getParentSample(sampleCode, collectionId) {
