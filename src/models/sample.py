@@ -12,7 +12,7 @@ class Collection(BaseModel):
 
 class ParentSample(BaseModel):
     parent_sample_id: Optional[str] = Field(None, title='Parent sample Id')
-    parent_sample_code: Optional[str] = Field(..., description='Parent sample code')
+    parent_sample_code: Optional[str] = Field(None, description='Parent sample code')
 
 
 class SampleUpdate(BaseModel):
