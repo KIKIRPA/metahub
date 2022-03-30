@@ -1452,12 +1452,20 @@
                 getRelatedSamples() {
                     let url = '/api/v1/samples'
                     let skip = (this.relatedSamplesTableOptions.page - 1) * this.relatedSamplesTableOptions.itemsPerPage
+                    
+                    let find = {}
+                    if (this.resource === 'Collection') {
+                        find['collection.collection_id'] = this.id
+                    } else if (this.resource === 'Project') {
+                        find['projects.project_id'] = this.id
+                    }
+
                     let parameters = {
                         skip: isNaN(skip) ? null : skip,
                         limit: this.relatedSamplesTableOptions.itemsPerPage,
                         sort_by: this.relatedSamplesTableOptions.sortBy,
                         sort_desc: this.relatedSamplesTableOptions.sortDesc,
-                        find: JSON.stringify({'collection.collection_id': this.id})
+                        find: JSON.stringify(find)
                     }
 
                     console.log('Get ' + url)
@@ -1491,6 +1499,17 @@
                                 parent_sample_id: this.id,
                                 parent_sample_code: this.data.sample_code
                             }
+                        }))
+                    } else if (this.resource === 'Project') {
+                        // prefill project details
+                        prefill = encodeURIComponent(JSON.stringify({
+                            projects: [
+                                {
+                                    project_id: this.id,
+                                    project_code: this.data.project_code,
+                                    unit: this.data.unit
+                                }
+                            ]
                         }))
                     }
 
