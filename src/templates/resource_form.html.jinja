@@ -279,6 +279,53 @@
                             <v-card-text v-if="!relatedProject" class="font-italic">
                                 Select or link a project
                             </v-card-text>
+
+                            <v-card-text style="height: 45px; position: relative; text-align: right">
+                                <v-tooltip left v-if="relatedProject">
+                                    <template v-slot:activator="{ on, attrs }">
+                                        <v-btn 
+                                            fab
+                                            small
+                                            class="mt-2 mr-4"
+                                            @click="getRelatedProject(relatedProject.id)"
+                                            v-bind="attrs"
+                                            v-on="on">
+                                            <v-icon>mdi-refresh</v-icon>
+                                        </v-btn>
+                                    </template>
+                                    <span>Refresh</span>
+                                </v-tooltip>
+                                <v-tooltip left v-if="isEditable && relatedProject">
+                                    <template v-slot:activator="{ on, attrs }">
+                                        <v-btn
+                                            color="error"
+                                            fab
+                                            small
+                                            class="mt-2 mr-4"
+                                            @click="unlinkRelatedProject()"
+                                            v-bind="attrs"
+                                            v-on="on">
+                                            <v-icon>mdi-folder-remove</v-icon>
+                                        </v-btn>
+                                    </template>
+                                    <span>Unlink project</span>
+                                </v-tooltip>
+                                <v-tooltip left v-if="relatedProject">
+                                    <template v-slot:activator="{ on, attrs }">
+                                        <v-btn
+                                            color="primary"
+                                            fab
+                                            class="mr-4"
+                                            :href="'/projects/' + relatedProject.id"
+                                            target="_blank"
+                                            v-bind="attrs"
+                                            v-on="on">
+                                            <v-icon>mdi-folder-open</v-icon>
+                                        </v-btn>
+                                    </template>
+                                    <span>Open project</span>
+                                </v-tooltip>
+                            </v-card-text>
                         </v-card>
                     </v-col>
                 </v-row>
@@ -1286,8 +1333,14 @@
                 },
 
                 unlinkRelatedProject() {
-                    this.data.project = {} // better would be to remove project from data, but VJSF does not allow this (known bug)
-                    this.relatedProject = null
+                    if (this.resource === 'Dataset') {
+                        this.data.project = {} // better would be to remove project from data, but VJSF does not allow this (known bug)
+                        this.relatedProject = null
+                    } else if (this.resource === 'Sample') {
+                        this.data.projects.splice(this.selectedRelatedProject, 1)
+                        this.relatedProject = null
+                        this.selectedRelatedProject = null
+                    }
                 },
 
                 getRelatedCollection(collection_id) {
