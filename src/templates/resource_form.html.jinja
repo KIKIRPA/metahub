@@ -1026,6 +1026,7 @@
                                 if (this.resource === 'Sample') {
                                     response.data.definitions.Collection['x-display'] = 'hidden'
                                     response.data.definitions.ParentSample['x-display'] = 'hidden'
+                                    response.data.properties.projects['x-display'] = 'hidden'
                                 }
                                 this.schema = response.data
                                 this.schemaUrl = this.schema.$id
