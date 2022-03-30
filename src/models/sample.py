@@ -30,7 +30,7 @@ class SampleUpdate(BaseModel):
     sample_code: str = Field(..., description='Sample code')
     collection: Collection = Field(...)
     parent_sample: Optional[ParentSample] = Field(None)
-    projects: Optional[Set[Project]] = Field(None)
+    projects: Optional[List[Project]] = Field(None)
     description: Optional[str] = Field(None, description='Description of the sample')
     contributors: Optional[Set[Contributor]] = Field(...)
     terms: Optional[Terms] = Field(None)

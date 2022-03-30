@@ -477,6 +477,7 @@ async def show_sample_form_new(
     template_list = await core.utils.jsonschema.get_template_list(Resource.SAMPLE.name.lower())
     title_parts = ["sample_code"]
     tabs = ['Sample details', 'Contributors', 'Collection', 'Related samples', 'Projects', 'Datasets']
+    units = [e.value for e in models.common.Unit]
 
     return templates.TemplateResponse("resource_form.html.jinja", {
         "request": request,
@@ -492,6 +493,7 @@ async def show_sample_form_new(
         "ui_endpoint": "/samples",
         "api_endpoint": "/api/v1/samples",
         "schema_endpoint": "/schema/sample",
+        "units": json.dumps(units)
     })
 
 
@@ -505,6 +507,7 @@ async def show_sample_form_with_id(
     template_list = await core.utils.jsonschema.get_template_list(Resource.SAMPLE.name.lower())
     title_parts = ["sample_code"]
     tabs = ['Sample details', 'Contributors', 'Collection', 'Related samples', 'Projects', 'Datasets']
+    units = [e.value for e in models.common.Unit]
     
     return templates.TemplateResponse("resource_form.html.jinja", {
         "request": request,
@@ -518,4 +521,5 @@ async def show_sample_form_with_id(
         "ui_endpoint": "/samples",
         "api_endpoint": "/api/v1/samples",
         "schema_endpoint": "/schema/sample",
+        "units": json.dumps(units)
     })
