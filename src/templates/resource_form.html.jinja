@@ -222,42 +222,67 @@
             v-if="tabItems[tab] === 'Projects' && hasData && !isError"
             class="mt-6" 
             elevation="0">
-            <v-card class="mt-6">
-                <v-list dense>
-                    <v-subheader>Related projects</v-subheader>
-                    <v-list-item-group
-                        v-model="selectedRelatedProject"
-                        color="primary">
-                        <v-list-item
-                            v-for="(project, i) in data.projects"
-                            :key="i">
-                            <v-list-item-icon>
-                                <v-icon>mdi-folder-open</v-icon>
-                            </v-list-item-icon>
-                            <v-list-item-content>
-                                <v-list-item-title v-text="project.project_code"></v-list-item-title>
-                                <v-list-item-subtitle v-text="project.unit"></v-list-item-subtitle>
-                            </v-list-item-content>
-                        </v-list-item>
-                    </v-list-item-group>
-                </v-list>
-                <v-card-text style="height: 45px; position: relative; text-align: right">
-                    <v-tooltip left v-if="isEditable">
-                        <template v-slot:activator="{ on, attrs }">
-                            <v-btn
-                                color="primary"
-                                fab
-                                class="mr-4"
-                                @click="relatedProjectDialog = true"
-                                v-bind="attrs"
-                                v-on="on">
-                                <v-icon>mdi-swap-horizontal-bold</v-icon>
-                            </v-btn>
-                        </template>
-                        <span>Link project</span>
-                    </v-tooltip>
-                </v-card-text>
-            </v-card>
+            <v-container>
+                <v-row no-gutters>
+                    <v-col cols="12" md="4">
+                        <v-card class="mt-6">
+                            <v-list dense>
+                                <v-subheader>Related projects</v-subheader>
+                                <v-list-item-group
+                                    v-model="selectedRelatedProject"
+                                    color="primary">
+                                    <v-list-item
+                                        v-for="(project, i) in data.projects"
+                                        :key="i">
+                                        <v-list-item-icon>
+                                            <v-icon>mdi-folder-open</v-icon>
+                                        </v-list-item-icon>
+                                        <v-list-item-content>
+                                            <v-list-item-title v-text="project.project_code"></v-list-item-title>
+                                            <v-list-item-subtitle v-text="project.unit"></v-list-item-subtitle>
+                                        </v-list-item-content>
+                                    </v-list-item>
+                                </v-list-item-group>
+                            </v-list>
+                            <v-card-text style="height: 45px; position: relative; text-align: right">
+                                <v-tooltip left v-if="isEditable">
+                                    <template v-slot:activator="{ on, attrs }">
+                                        <v-btn
+                                            color="primary"
+                                            fab
+                                            class="mr-4"
+                                            @click="relatedProjectDialog = true"
+                                            v-bind="attrs"
+                                            v-on="on">
+                                            <v-icon>mdi-swap-horizontal-bold</v-icon>
+                                        </v-btn>
+                                    </template>
+                                    <span>Link project</span>
+                                </v-tooltip>
+                            </v-card-text>
+                        </v-card>
+                    </v-col>
+                    <v-col cols="12" md="8">
+                        <v-card class="mt-6 ml-md-6">
+                            <v-simple-table class="my-3">
+                                <template v-slot:default>
+                                    <tbody>
+                                        <tr v-for="(val, key) in relatedProject"
+                                            :key="key">
+                                            <td><span class="font-weight-bold" v-text="makeColumnName(key)"></span></td>
+                                            <td><span v-text="val"></span></td>
+                                        </tr>
+                                    </tbody>
+                                </template>
+                            </v-simple-table>
+
+                            <v-card-text v-if="!relatedProject" class="font-italic">
+                                Select or link a project
+                            </v-card-text>
+                        </v-card>
+                    </v-col>
+                </v-row>
+            </v-container>
         </v-card>
 
         <v-card 
@@ -1047,7 +1072,11 @@
                 parentSampleDialog() {
                     if (this.collections.length === 0)
                         this.getCollectionList()
-                }
+                },
+                selectedRelatedProject() {
+                    if (this.selectedRelatedProject !== null)
+                        this.getRelatedProject(this.data.projects[this.selectedRelatedProject].project_id)
+                },
             },
 
             methods: {
