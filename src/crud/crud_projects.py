@@ -39,16 +39,29 @@ class CRUDProject(CRUDBase):
             data=data,
             original_data=original_data)
 
-        # update related datasets
+        # cascading updates
         if data["project_code"] != original_data["project_code"] or data["unit"] != original_data["unit"]:
             client = AsyncIOMotorClient(core.settings.mongo_conn_str)
             db = client[core.settings.mongo_db]
+
+            # update related datasets
             await db.datasets.update_many(
-                {"project.project_id": id,},
+                {"project.project_id": id},
                 {
                     "$set": {
                         "project.project_code": result["project_code"],
                         "project.unit": result["unit"],
+                        "modified_timestamp": datetime.now(timezone.utc)
+                    }
+                })
+
+            # update related samples
+            await db.samples.update_many(
+                {"projects.project_id": id},
+                {
+                    "$set": {
+                        "projects.$.project_code": result["project_code"],
+                        "projects.$.unit": result["unit"],
                         "modified_timestamp": datetime.now(timezone.utc)
                     }
                 })
@@ -65,11 +78,12 @@ class CRUDProject(CRUDBase):
         result = await self.remove(
             collection=collection, 
             id=id)
+
         # update related datasets
         client = AsyncIOMotorClient(core.settings.mongo_conn_str)
         db = client[core.settings.mongo_db]
         await db.datasets.update_many(
-            {"project.project_id": id,},
+            {"project.project_id": id},
             {
                 "$unset": {
                     "project": "",
@@ -78,6 +92,19 @@ class CRUDProject(CRUDBase):
                     "modified_timestamp": datetime.now(timezone.utc)
                 }
             })
+
+        # update related samples
+        await db.samples.update_many(
+            {"projects.project_id": id},
+            {
+                "$unset": {
+                    "projects.$": "",
+                },
+                "$set": {
+                    "modified_timestamp": datetime.now(timezone.utc)
+                }
+            })
+
         return result
 
 
