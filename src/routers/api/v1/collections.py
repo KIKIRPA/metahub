@@ -57,7 +57,7 @@ async def search_collections(
     return response
 
 
-@router.get("/list", response_model=list[models.CollectionCompact])
+@router.get("/list", response_model=List[models.CollectionCompact])
 async def get_collection_list():
     """
     Return a list of all collections.
