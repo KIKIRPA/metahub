@@ -20,15 +20,21 @@ class Project(BaseModel):
     # this was done as a temporary workaround
 
 
+class Sample(BaseModel):
+    sample_id: Optional[str] = Field(None, title='Sample Id')
+    sample_code: Optional[str] = Field(None, description='Sample code')
+
+
 class DatasetUpdate(BaseModel):
     _schema: HttpUrl = Field(...)
     dataset_code: str = Field(..., description='Dataset code')
-    project: Optional[Project] = Field(...)
+    project: Optional[Project] = Field(None)
     object_id: Optional[int] = Field(None, description="Object number to which this dataset belongs")
-    contributors: Optional[Set[Contributor]] = Field(...)
+    samples: Optional[List[Sample]] = Field(None)
+    contributors: Optional[Set[Contributor]] = Field(None)
     terms: Optional[Terms] = Field(None)
     persistent_identifier: Optional[str] = Field(None, description='Persistent identifier for the dataset')
-    files: Optional[Set[File]] = Field(...)
+    files: Optional[Set[File]] = Field(None)
 
 
 class _DatasetShort(DatasetUpdate, IdBaseModel):
