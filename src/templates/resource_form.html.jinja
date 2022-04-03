@@ -1540,12 +1540,20 @@
                 getRelatedDatasets() {
                     let url = '/api/v1/datasets'
                     let skip = (this.relatedDatasetsTableOptions.page - 1) * this.relatedDatasetsTableOptions.itemsPerPage
+                    
+                    let find = {}
+                    if (this.resource === 'Sample') {
+                        find['samples.sample_id'] = this.id
+                    } else if (this.resource === 'Project') {
+                        find['projects.project_id'] = this.id
+                    }
+                    
                     let parameters = {
                         skip: isNaN(skip) ? null : skip,
                         limit: this.relatedDatasetsTableOptions.itemsPerPage,
                         sort_by: this.relatedDatasetsTableOptions.sortBy,
                         sort_desc: this.relatedDatasetsTableOptions.sortDesc,
-                        find: JSON.stringify({'project.project_id': this.id})
+                        find: JSON.stringify(find)
                     }
 
                     console.log('Get ' + url)
@@ -1563,13 +1571,28 @@
                 },
 
                 addRelatedDataset() {
-                    let project = {
-                        project_id: this.id,
-                        project_code: this.data.project_code,
-                        unit: this.data.unit
+                    let prefill = null
+                    if (this.resource === 'Sample') {
+                        // prefill parent sample details
+                        prefill = encodeURIComponent(JSON.stringify({
+                            samples: [
+                                {
+                                    sample_id: this.id,
+                                    sample_code: this.data.sample_code
+                                }
+                            ]
+                        }))
+                    } else if (this.resource === 'Project') {
+                        prefill = encodeURIComponent(JSON.stringify({
+                            project: {
+                                project_id: this.id,
+                                project_code: this.data.project_code,
+                                unit: this.data.unit
+                            }
+                        }))
                     }
-                    let url = "/datasets/new?init=" + encodeURIComponent(JSON.stringify({'project': project}))
-                    window.open(url, "_blank")
+                    if (prefill !== null)
+                        window.open("/datasets/new?init=" + prefill, "_blank")
                 },
 
                 getRelatedSamples() {
