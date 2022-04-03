@@ -582,7 +582,7 @@
                                             color="primary"
                                             fab
                                             class="mr-4"
-                                            @click="parentSampleDialog = true"
+                                            @click="relatedSampleDialog = true"
                                             v-bind="attrs"
                                             v-on="on">
                                             <v-icon>mdi-swap-horizontal-bold</v-icon>
@@ -697,7 +697,7 @@
                                             color="primary"
                                             fab
                                             class="mr-4"
-                                            @click="relatedProjectDialog = true"
+                                            @click="relatedSampleDialog = true"
                                             v-bind="attrs"
                                             v-on="on">
                                             <v-icon>mdi-swap-horizontal-bold</v-icon>
@@ -733,7 +733,7 @@
                                             fab
                                             small
                                             class="mt-2 mr-4"
-                                            @click="getRelatedProject(relatedSample.id)"
+                                            @click="getRelatedSample(relatedSample.id)"
                                             v-bind="attrs"
                                             v-on="on">
                                             <v-icon>mdi-refresh</v-icon>
@@ -748,7 +748,7 @@
                                             fab
                                             small
                                             class="mt-2 mr-4"
-                                            @click="unlinkRelatedProject()"
+                                            @click="unlinkRelatedSample()"
                                             v-bind="attrs"
                                             v-on="on">
                                             <v-icon>mdi-test-tube-off</v-icon>
@@ -947,19 +947,20 @@
     </v-dialog>
 
     <v-dialog
-        v-model="parentSampleDialog"
+        v-model="relatedSampleDialog"
         max-width="600">
         <v-card>
             <v-card-title class="text-h5">
-                <span>Link a parent sample</span>
+                <span v-if="resource === 'Sample'">Link a parent sample</span>
+                <span v-else>Link a sample</span>
             </v-card-title>
 
             <v-card-text>
                 <v-form 
-                    ref="parentSampleDialogForm" 
-                    v-model="parentSampleDialogFormValid">
+                    ref="relatedSampleDialogForm" 
+                    v-model="relatedSampleDialogFormValid">
                     <v-autocomplete
-                        v-model="parentSampleDialogCollectionId"
+                        v-model="relatedSampleDialogCollectionId"
                         :items="collections"
                         item-text="collection_name"
                         item-value="id"
@@ -983,7 +984,7 @@
                         </template>
                     </v-autocomplete>
                     <v-text-field
-                        v-model="parentSampleDialogSampleCode"
+                        v-model="relatedSampleDialogSampleCode"
                         label="Sample code"
                         :rules="requiredRule"
                         required></v-text-field>
@@ -994,14 +995,14 @@
                 <v-btn
                     color="primary"
                     text
-                    @click="parentSampleDialog = false">
+                    @click="relatedSampleDialog = false">
                     Cancel
                 </v-btn>
                 <v-btn
                     color="primary"
                     text
-                    :disabled="!parentSampleDialogFormValid"
-                    @click="getParentSample(parentSampleDialogSampleCode, parentSampleDialogCollectionId)">
+                    :disabled="!relatedSampleDialogFormValid"
+                    @click="getRelatedSample(null, relatedSampleDialogSampleCode, relatedSampleDialogCollectionId)">
                     Apply
                 </v-btn>
             </v-card-actions>
@@ -1171,10 +1172,10 @@
                 relatedSample: null,
                 selectedRelatedSample: null, 
 
-                parentSampleDialog: false,
-                parentSampleDialogFormValid: false,
-                parentSampleDialogCollectionId: null,
-                parentSampleDialogSampleCode: null,
+                relatedSampleDialog: false,
+                relatedSampleDialogFormValid: false,
+                relatedSampleDialogCollectionId: null,
+                relatedSampleDialogSampleCode: null,
 
                 childSamples: null,
 
@@ -1233,13 +1234,17 @@
                     if (this.collections.length === 0)
                         this.getCollectionList()
                 },
-                parentSampleDialog() {
+                relatedSampleDialog() {
                     if (this.collections.length === 0)
                         this.getCollectionList()
                 },
                 selectedRelatedProject() {
                     if (this.selectedRelatedProject !== null)
                         this.getRelatedProject(this.data.projects[this.selectedRelatedProject].project_id)
+                },
+                selectedRelatedSample() {
+                    if (this.selectedRelatedSample !== null)
+                        this.getRelatedSample(this.data.samples[this.selectedRelatedSample].sample_id)
                 },
             },
 
@@ -1488,7 +1493,7 @@
                     axios.get(url)
                         .then(response => {
                             this.collections = response.data
-                            if (Object.keys(this.data.collection).length !== 0)
+                            if (this.resource === 'Sample' && Object.keys(this.data.collection).length !== 0)
                                 this.relatedCollectionDialogCollectionId = this.data.collection.collection_id
                         })
                         .catch(error => {
@@ -1635,26 +1640,65 @@
                         window.open("/samples/new?init=" + prefill, "_blank")
                 },
 
-                getParentSample(sampleCode, collectionId) {
-                    let url = '/api/v1/samples/keys?sample_code=' + sampleCode + '&collection_id=' + collectionId
-                    console.log('Get ' + url)
-                    axios.get(url)
-                        .then(response => {
-                            // update dataset if changed
-                            if (Object.keys(this.data.parent_sample).length === 0 
-                                    || this.data.parent_sample.parent_sample_id !== response.data.id) {
-                                this.data.parent_sample.parent_sample_id = response.data.id
-                                this.data.parent_sample.parent_sample_code = response.data.sample_code
-                            }
-                            this.parentSampleDialog = false
-                        })
-                        .catch(error => {
-                            this.handleApiErrors(error, "parent sample")
-                        })
+                getRelatedSample(sampleId = null, sampleCode = null, collectionId = null) {
+                    let url = null
+                    if (sampleId !== null) {
+                        url = '/api/v1/samples/' + sampleId
+                    } else if (sampleCode !== null && collectionId !== null) {
+                        url = '/api/v1/samples/keys?sample_code=' + sampleCode + '&collection_id=' + collectionId
+                    }
+                    if (url !== null) {
+                        console.log('Get ' + url)
+                        axios.get(url)
+                            .then(response => {
+                                if (resource === 'Sample') {
+                                    // update parent_sample if changed
+                                    if (Object.keys(this.data.parent_sample).length === 0 
+                                            || this.data.parent_sample.parent_sample_id !== response.data.id) {
+                                        this.data.parent_sample.parent_sample_id = response.data.id
+                                        this.data.parent_sample.parent_sample_code = response.data.sample_code
+                                    }
+                                } else if (resource === 'Dataset') {
+                                    this.relatedSample = this.flattenObj(response.data, 'sample')
+                                    // check if this sample is already linked
+                                    let sampleIndex = -1
+                                    if (this.data.samples.length > 0) {
+                                        for (let i in this.data.samples) {
+                                            if (this.data.samples[i].sample_id === this.relatedSample.id) {
+                                                // this sample is already linked, set position in array
+                                                sampleIndex = parseInt(i)
+                                                break
+                                            }
+                                        }
+                                    }
+                                    // if not already linked, link it
+                                    if (sampleIndex === -1) {
+                                        sampleIndex = this.data.samples.length
+                                        this.data.samples.push({
+                                            sample_id: this.relatedSample.id,
+                                            sample_code: this.relatedSample.sample_code
+                                        })
+                                    }
+                                    // set selected item
+                                    if (this.selectedRelatedSample !== sampleIndex)
+                                        this.selectedRelatedSample = sampleIndex
+                                }
+                                this.relatedSampleDialog = false
+                            })
+                            .catch(error => {
+                                this.handleApiErrors(error, "related sample")
+                            })
+                    }
                 },
 
-                unlinkParentSample() {
-                    this.data.parent_sample = {} // better would be to remove parent_sample entirely from data, but VJSF does not allow this (known bug)
+                unlinkRelatedSample() {
+                    if (this.resource === 'Sample') {
+                        this.data.parent_sample = {} // better would be to remove parent_sample entirely from data, but VJSF does not allow this (known bug)
+                    } else if (this.resource === 'Dataset') {
+                        this.data.samples.splice(this.selectedRelatedSample, 1)
+                        this.relatedSample = null
+                        this.selectedRelatedSample = null
+                    }
                 },
 
                 getChildSamples() {
