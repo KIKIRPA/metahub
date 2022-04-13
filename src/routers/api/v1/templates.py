@@ -43,7 +43,7 @@ async def search_templates(
     if template is not None: find['template'] = {'$regex': f'.*{template.lower()}.*'}
  
     if len(sort_desc) > 0 and len(sort_desc) != len(sort_by):
-        raise HTTPException(status_code=422, detail="Unequal number of items in sort_by and sort_desc")
+        raise HTTPException(status_code=400, detail="ParameterError")
     try: 
         response = await crud.template.search(
             collection=db.templates,

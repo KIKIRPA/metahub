@@ -43,7 +43,7 @@ async def search_projects(
         find = {}
 
     if len(sort_desc) > 0 and len(sort_desc) != len(sort_by):
-        raise HTTPException(status_code=422, detail="Unequal number of items in sort_by and sort_desc")
+        raise HTTPException(status_code=400, detail="ParameterError")
     try: 
         response = await crud.project.search(
             collection=db.projects,
@@ -52,6 +52,25 @@ async def search_projects(
             limit=limit,
             sort_by=sort_by,
             sort_desc=sort_desc)
+    except BaseException as err:
+        raise HTTPException(status_code=400, detail=str(err))
+    return response
+
+
+@router.get("/keys")
+async def get_project_by_its_unique_keys(
+        project_code: str = Query(..., description="Project code (file number, acronym...)"),
+        unit: models.Unit = Query(..., description="Unit")):
+    """
+    Return a single project by its unique keys.
+    """
+    try:
+        response = await crud.project.get_by_keys(
+            collection=db.projects,
+            project_code=project_code,
+            unit=unit)
+    except crud.NoResultsError:
+        raise HTTPException(status_code=404, detail="NoResults")
     except BaseException as err:
         raise HTTPException(status_code=400, detail=str(err))
     return response
@@ -68,7 +87,7 @@ async def get_project_by_id(
             collection=db.projects, 
             id=id)
     except crud.NoResultsError:
-        raise HTTPException(status_code=404, detail="project not found")
+        raise HTTPException(status_code=404, detail="NoResults")
     except BaseException as err:
         raise HTTPException(status_code=400, detail=str(err))
     return response
@@ -93,9 +112,9 @@ async def create_project(project: dict):
     except core.utils.jsonschema.SchemaValidationError as err:
         raise HTTPException(status_code=422, detail=err.args[0])
     except crud.DuplicateKeyError:
-        raise HTTPException(status_code=422, detail="duplicate key (project code, unit)")
+        raise HTTPException(status_code=422, detail="DuplicateKey")
     except crud.NotCreatedError:
-        raise HTTPException(status_code=400, detail="project was not created")
+        raise HTTPException(status_code=400, detail="NotCreated")
     except BaseException as err:
         raise HTTPException(status_code=400, detail=str(err))
     return response
@@ -114,7 +133,7 @@ async def replace_project(
         await core.utils.jsonschema.validate_instance(project, validate_category=True)
 
         # update the project
-        updated = await crud.project.replace(
+        updated = await crud.project.cascading_replace(
             collection=db.projects, 
             id=id,
             data=project)
@@ -123,11 +142,11 @@ async def replace_project(
     except core.utils.jsonschema.SchemaValidationError as err:
         raise HTTPException(status_code=422, detail=err.args[0])
     except crud.NoResultsError:
-        raise HTTPException(status_code=404, detail="project not found")
+        raise HTTPException(status_code=404, detail="NoResults")
     except crud.DuplicateKeyError:
-        raise HTTPException(status_code=422, detail="duplicate key (project code, unit)")
+        raise HTTPException(status_code=422, detail="DuplicateKey")
     except crud.NotUpdatedError:
-        raise HTTPException(status_code=400, detail="project was not updated")
+        raise HTTPException(status_code=400, detail="NotUpdated")
     except BaseException as err:
         raise HTTPException(status_code=400, detail=str(err))
     return updated
@@ -140,13 +159,13 @@ async def delete_project(
     Delete a project.
     """
     try:
-        deleted = await crud.project.remove(
+        deleted = await crud.project.cascading_remove(
             collection=db.projects, 
             id=id)
     except crud.NoResultsError:
-        raise HTTPException(status_code=404, detail="project not found")
+        raise HTTPException(status_code=404, detail="NoResults")
     except crud.NotDeletedError:
-        raise HTTPException(status_code=400, detail="project was not deleted")
+        raise HTTPException(status_code=400, detail="NotDeleted")
     except BaseException as err:
         raise HTTPException(status_code=400, detail=str(err))
     return deleted

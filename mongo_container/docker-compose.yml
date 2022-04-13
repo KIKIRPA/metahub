@@ -9,6 +9,7 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: kikirpa
       MONGO_INITDB_ROOT_PASSWORD: hescida
+    restart: unless-stopped
   mongo-express:
     image: mongo-express
     ports:
@@ -17,3 +18,4 @@ services:
       ME_CONFIG_MONGODB_SERVER: mongo_mbapi
       ME_CONFIG_MONGODB_ADMINUSERNAME: kikirpa
       ME_CONFIG_MONGODB_ADMINPASSWORD: hescida
+    restart: unless-stopped

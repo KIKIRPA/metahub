@@ -8,25 +8,6 @@
     "independent_schema": false,
     "json_schema": {
         "properties": {
-            "measurement_id": {
-                "title": "Measurement Identifier",
-                "type": "object",
-                "properties": {
-                    "measurement_technique": {
-                        "title": "Analytical technique code",
-                        "type": "string"
-                    },
-                    "measurement_date": {
-                        "title": "Measurement date",
-                        "type": "string",
-                        "format": "date"
-                    },
-                    "measurement_index": {
-                        "title": "Measurement index",
-                        "type": "string"
-                    }
-                }
-            },
             "measurement_parameters": {
                 "title": "Measurement parameters",
                 "type": "object",
@@ -184,24 +165,24 @@
                         "uniqueItems": true
                     }
                 }
-            }
-        },
-        "measurement_results": {
-            "title": "Measurement results",
-            "type": "object",
-            "properties": {
-                "identified_components": {
-                    "title": "Identified components",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
+            },
+            "measurement_results": {
+                "title": "Measurement results",
+                "type": "object",
+                "properties": {
+                    "identified_components": {
+                        "title": "Identified components",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "uniqueItems": true
                     },
-                    "uniqueItems": true
-                },
-                "comments": {
-                    "title": "Comments",
-                    "description": "Comments with regards to generated research data",
-                    "type": "string"
+                    "comments": {
+                        "title": "Comments",
+                        "description": "Comments with regards to generated research data",
+                        "type": "string"
+                    }
                 }
             }
         }

@@ -156,7 +156,8 @@ def show_project_list(request: Request):
             {"text": " ", "value":'id', "sortable": False, "show": False},
             {"text": 'Project code', "value": 'project_code', "type": 'text', "sortable": True, "show": True, "filterable": True, "deletable": True},
             {"text": 'Unit', "value": 'unit', "type": 'text', "sortable": True, "show": True, "filterable": True, "deletable": True},
-            {"text": 'Category', "value": 'category', "type": 'schema', "sortable": True, "show": True, "filterable": True, "deletable": True},
+            {"text": 'Category', "value": 'category', "type": 'schema', "sortable": False, "show": True, "filterable": True, "deletable": True},
+            {"text": 'Template', "value": 'template', "type": 'schema', "sortable": False, "show": True, "filterable": True, "deletable": True},
             {"text": 'Subject', "value": 'subject', "type": 'text', "sortable": True, "show": True, "filterable": True, "deletable": True},
             {"text": 'State', "value": 'state', "type": 'text', "sortable": True, "show": True, "filterable": True, "deletable": True},
             {"text": 'Access', "value": 'terms.access', "type": 'text', "sortable": True, "show": True, "filterable": True, "deletable": True},
@@ -219,6 +220,7 @@ async def show_project_form_with_id(
     template_list = await core.utils.jsonschema.get_template_list(Resource.PROJECT.name.lower())
     title_parts = ["project_code", "unit"]
     tabs = ['Project details', 'Contributors', 'Datasets', 'Samples', 'Images']
+
     
     return templates.TemplateResponse("resource_form.html.jinja", {
         "request": request,
@@ -249,9 +251,10 @@ def show_dataset_list(request: Request):
         "headers": [
             {"text": " ", "value":'id', "sortable": False, "show": False},
             {"text": 'Dataset code', "value": 'dataset_code', "type": 'text', "sortable": True, "show": True, "filterable": True, "deletable": True},
-            {"text": 'Category', "value": 'category', "type": 'schema', "sortable": True, "show": True, "filterable": True, "deletable": True},
-            {"text": 'Project', "value": 'project_id', "type": 'text', "sortable": True, "show": True, "filterable": True, "deletable": True},
-            {"text": 'Object ID', "value": 'object_id', "type": 'text', "sortable": True, "show": True, "filterable": True, "deletable": True},
+            {"text": 'Category', "value": 'category', "type": 'schema', "sortable": False, "show": True, "filterable": True, "deletable": True},
+            {"text": 'Template', "value": 'template', "type": 'schema', "sortable": False, "show": True, "filterable": True, "deletable": True},
+            {"text": 'Project code', "value": 'project.project_code', "type": 'text', "sortable": True, "show": True, "filterable": True, "deletable": True},
+            {"text": 'Unit', "value": 'project.unit', "type": 'text', "sortable": True, "show": True, "filterable": True, "deletable": True},
             {"text": 'Access', "value": 'terms.access', "type": 'text', "sortable": True, "show": True, "filterable": True, "deletable": True},
             {"text": '', "value": 'data-table-expand', "sortable": False, "show": False},
         ],
@@ -283,7 +286,8 @@ async def show_dataset_form_new(
     """
     template_list = await core.utils.jsonschema.get_template_list(Resource.DATASET.name.lower())
     title_parts = ["dataset_code"]
-    tabs = ['Dataset details', 'Contributors', 'Files', 'Samples']
+    tabs = ['Dataset details', 'Contributors', 'Project', 'Files', 'Samples']
+    units = [e.value for e in models.common.Unit]
 
     return templates.TemplateResponse("resource_form.html.jinja", {
         "request": request,
@@ -299,6 +303,7 @@ async def show_dataset_form_new(
         "ui_endpoint": "/datasets",
         "api_endpoint": "/api/v1/datasets",
         "schema_endpoint": "/schema/dataset",
+        "units": json.dumps(units)
     })
 
 
@@ -311,7 +316,8 @@ async def show_dataset_form_with_id(
     """
     template_list = await core.utils.jsonschema.get_template_list(Resource.DATASET.name.lower())
     title_parts = ["dataset_code"]
-    tabs = ['Dataset details', 'Contributors', 'Files', 'Samples']
+    tabs = ['Dataset details', 'Contributors', 'Project', 'Files', 'Samples']
+    units = [e.value for e in models.common.Unit]
     
     return templates.TemplateResponse("resource_form.html.jinja", {
         "request": request,
@@ -325,6 +331,7 @@ async def show_dataset_form_with_id(
         "ui_endpoint": "/datasets",
         "api_endpoint": "/api/v1/datasets",
         "schema_endpoint": "/schema/dataset",
+        "units": json.dumps(units)
     })
 
 
@@ -341,15 +348,15 @@ def show_collection_list(request: Request):
     table_config = {
         "headers": [
             {"text": " ", "value":'id', "sortable": False, "show": False},
-            {"text": 'Collection code', "value": 'collection_code', "type": 'text', "sortable": True, "show": True, "filterable": True, "deletable": True},
-            {"text": 'Category', "value": 'category', "type": 'schema', "sortable": True, "show": True, "filterable": True, "deletable": True},
-            {"text": 'Name', "value": 'name', "type": 'text', "sortable": True, "show": True, "filterable": True, "deletable": True},
+            {"text": 'Collection name', "value": 'collection_name', "type": 'text', "sortable": True, "show": True, "filterable": True, "deletable": True},
+            {"text": 'Category', "value": 'category', "type": 'schema', "sortable": False, "show": True, "filterable": True, "deletable": True},
+            {"text": 'Template', "value": 'template', "type": 'schema', "sortable": False, "show": True, "filterable": True, "deletable": True},
             {"text": 'Storage location', "value": 'storage_location', "type": 'text', "sortable": True, "show": True, "filterable": True, "deletable": True},
             {"text": 'Access', "value": 'terms.access', "type": 'text', "sortable": True, "show": True, "filterable": True, "deletable": True},
             {"text": '', "value": 'data-table-expand', "sortable": False, "show": False},
         ],
         "options": {
-            "sortBy": ['collection_code'],
+            "sortBy": ['collection_name'],
             "sortDesc": [False],
             "multiSort": True,
         },
@@ -403,7 +410,7 @@ async def show_collection_form_with_id(
     Displaying a collection by its id
     """
     template_list = await core.utils.jsonschema.get_template_list(Resource.COLLECTION.name.lower())
-    title_parts = ["collection_code"]
+    title_parts = ["collection_name"]
     tabs = ['Collection details', 'Contributors', 'Samples']
     
     return templates.TemplateResponse("resource_form.html.jinja", {
@@ -435,14 +442,14 @@ def show_sample_list(request: Request):
         "headers": [
             {"text": " ", "value":'id', "sortable": False, "show": False},
             {"text": 'Sample code', "value": 'sample_code', "type": 'text', "sortable": True, "show": True, "filterable": True, "deletable": True},
-            {"text": 'Category', "value": 'category', "type": 'schema', "sortable": True, "show": True, "filterable": True, "deletable": True},
-            {"text": 'Name', "value": 'name', "type": 'text', "sortable": True, "show": True, "filterable": True, "deletable": True},
-            {"text": 'Storage location', "value": 'storage_location', "type": 'text', "sortable": True, "show": True, "filterable": True, "deletable": True},
+            {"text": 'Collection', "value": 'collection.collection_name', "type": 'text', "sortable": True, "show": True, "filterable": True, "deletable": True},
+            {"text": 'Category', "value": 'category', "type": 'schema', "sortable": False, "show": True, "filterable": True, "deletable": True},
+            {"text": 'Template', "value": 'template', "type": 'schema', "sortable": False, "show": True, "filterable": True, "deletable": True},
             {"text": 'Access', "value": 'terms.access', "type": 'text', "sortable": True, "show": True, "filterable": True, "deletable": True},
             {"text": '', "value": 'data-table-expand', "sortable": False, "show": False},
         ],
         "options": {
-            "sortBy": ['sample_code'],
+            "sortBy": ['sample_code', 'collection.collection_name'],
             "sortDesc": [False],
             "multiSort": True,
         },
@@ -469,7 +476,8 @@ async def show_sample_form_new(
     """
     template_list = await core.utils.jsonschema.get_template_list(Resource.SAMPLE.name.lower())
     title_parts = ["sample_code"]
-    tabs = ['Sample details', 'Contributors', 'Collection', 'Datasets']
+    tabs = ['Sample details', 'Contributors', 'Collection', 'Related samples', 'Projects', 'Datasets']
+    units = [e.value for e in models.common.Unit]
 
     return templates.TemplateResponse("resource_form.html.jinja", {
         "request": request,
@@ -485,6 +493,7 @@ async def show_sample_form_new(
         "ui_endpoint": "/samples",
         "api_endpoint": "/api/v1/samples",
         "schema_endpoint": "/schema/sample",
+        "units": json.dumps(units)
     })
 
 
@@ -497,7 +506,8 @@ async def show_sample_form_with_id(
     """
     template_list = await core.utils.jsonschema.get_template_list(Resource.SAMPLE.name.lower())
     title_parts = ["sample_code"]
-    tabs = ['Sample details', 'Contributors', 'Samples']
+    tabs = ['Sample details', 'Contributors', 'Collection', 'Related samples', 'Projects', 'Datasets']
+    units = [e.value for e in models.common.Unit]
     
     return templates.TemplateResponse("resource_form.html.jinja", {
         "request": request,
@@ -511,4 +521,5 @@ async def show_sample_form_with_id(
         "ui_endpoint": "/samples",
         "api_endpoint": "/api/v1/samples",
         "schema_endpoint": "/schema/sample",
+        "units": json.dumps(units)
     })

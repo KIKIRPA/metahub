@@ -135,12 +135,12 @@
                         }
                     }
                 }
-            }
-        },
-        "measurement_results": {
-            "properties": {
-                "comments": {
-                    "x-display": "textarea"
+            },
+            "measurement_results": {
+                "properties": {
+                    "comments": {
+                        "x-display": "textarea"
+                    }
                 }
             }
         }

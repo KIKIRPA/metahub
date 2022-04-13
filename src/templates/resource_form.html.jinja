@@ -135,31 +135,659 @@
         </v-card>
 
         <v-card 
-            v-if="tabItems[tab] === 'Contributors' && !isError"
+            v-if="tabItems[tab] === 'Project' && hasData && !isError"
             class="mt-6" 
-            elevation="0" 
-            :disabled="!isEditable">
-            <pre v-text="data.contributors"></pre>
+            elevation="0">
+            <v-card class="mt-6">
+                <v-simple-table class="my-3">
+                    <template v-slot:default>
+                        <tbody>
+                            <tr v-for="(val, key) in relatedProject"
+                                :key="key">
+                                <td><span class="font-weight-bold" v-text="makeColumnName(key)"></span></td>
+                                <td><span v-text="val"></span></td>
+                            </tr>
+                        </tbody>
+                    </template>
+                </v-simple-table>
+
+                <v-card-text v-if="Object.keys(data.project).length === 0" class="font-italic">
+                    No linked project
+                </v-card-text>
+
+                <v-card-text style="height: 45px; position: relative; text-align: right">
+                    <v-tooltip left>
+                        <template v-slot:activator="{ on, attrs }">
+                            <v-btn v-if="Object.keys(data.project).length !== 0"
+                                fab
+                                small
+                                class="mt-2 mr-4"
+                                @click="getRelatedProject(data.project.project_id)"
+                                v-bind="attrs"
+                                v-on="on">
+                                <v-icon>mdi-refresh</v-icon>
+                            </v-btn>
+                        </template>
+                        <span>Refresh</span>
+                    </v-tooltip>
+                    <v-tooltip left v-if="isEditable && Object.keys(data.project).length > 0">
+                        <template v-slot:activator="{ on, attrs }">
+                            <v-btn
+                                color="error"
+                                fab
+                                small
+                                class="mt-2 mr-4"
+                                @click="unlinkRelatedProject()"
+                                v-bind="attrs"
+                                v-on="on">
+                                <v-icon>mdi-folder-remove</v-icon>
+                            </v-btn>
+                        </template>
+                        <span>Unlink project</span>
+                    </v-tooltip>
+                    <v-tooltip left v-if="isEditable">
+                        <template v-slot:activator="{ on, attrs }">
+                            <v-btn
+                                color="primary"
+                                fab
+                                class="mr-4"
+                                @click="relatedProjectDialog = true"
+                                v-bind="attrs"
+                                v-on="on">
+                                <v-icon>mdi-swap-horizontal-bold</v-icon>
+                            </v-btn>
+                        </template>
+                        <span>Link project</span>
+                    </v-tooltip>
+                    <v-tooltip left v-if="Object.keys(data.project).length > 0">
+                        <template v-slot:activator="{ on, attrs }">
+                            <v-btn
+                                color="primary"
+                                fab
+                                class="mr-4"
+                                :href="'/projects/' + data.project.project_id"
+                                target="_blank"
+                                v-bind="attrs"
+                                v-on="on">
+                                <v-icon>mdi-folder-open</v-icon>
+                            </v-btn>
+                        </template>
+                        <span>Open project</span>
+                    </v-tooltip>
+                </v-card-text>
+            </v-card>
         </v-card>
 
         <v-card 
-            v-if="tabItems[tab] === 'Datasets' && !isError"
+            v-if="tabItems[tab] === 'Projects' && hasData && !isError"
             class="mt-6" 
-            elevation="0" 
-            :disabled="!isEditable">
-            <pre>DATASETS</pre>
+            elevation="0">
+            <v-container>
+                <v-row no-gutters>
+                    <v-col cols="12" md="4">
+                        <v-card class="mt-6">
+                            <v-list dense>
+                                <v-subheader>Related projects</v-subheader>
+                                <v-list-item-group
+                                    v-model="selectedRelatedProject"
+                                    color="primary">
+                                    <v-list-item
+                                        v-for="(project, i) in data.projects"
+                                        :key="i">
+                                        <v-list-item-icon>
+                                            <v-icon>mdi-folder-open</v-icon>
+                                        </v-list-item-icon>
+                                        <v-list-item-content>
+                                            <v-list-item-title v-text="project.project_code"></v-list-item-title>
+                                            <v-list-item-subtitle v-text="project.unit"></v-list-item-subtitle>
+                                        </v-list-item-content>
+                                    </v-list-item>
+                                </v-list-item-group>
+                            </v-list>
+                            <v-card-text style="height: 45px; position: relative; text-align: right">
+                                <v-tooltip left v-if="isEditable">
+                                    <template v-slot:activator="{ on, attrs }">
+                                        <v-btn
+                                            color="primary"
+                                            fab
+                                            class="mr-4"
+                                            @click="relatedProjectDialog = true"
+                                            v-bind="attrs"
+                                            v-on="on">
+                                            <v-icon>mdi-swap-horizontal-bold</v-icon>
+                                        </v-btn>
+                                    </template>
+                                    <span>Link project</span>
+                                </v-tooltip>
+                            </v-card-text>
+                        </v-card>
+                    </v-col>
+                    <v-col cols="12" md="8">
+                        <v-card class="mt-6 ml-md-6">
+                            <v-simple-table class="my-3">
+                                <template v-slot:default>
+                                    <tbody>
+                                        <tr v-for="(val, key) in relatedProject"
+                                            :key="key">
+                                            <td><span class="font-weight-bold" v-text="makeColumnName(key)"></span></td>
+                                            <td><span v-text="val"></span></td>
+                                        </tr>
+                                    </tbody>
+                                </template>
+                            </v-simple-table>
+
+                            <v-card-text v-if="!relatedProject" class="font-italic">
+                                Select or link a project
+                            </v-card-text>
+
+                            <v-card-text style="height: 45px; position: relative; text-align: right">
+                                <v-tooltip left v-if="relatedProject">
+                                    <template v-slot:activator="{ on, attrs }">
+                                        <v-btn 
+                                            fab
+                                            small
+                                            class="mt-2 mr-4"
+                                            @click="getRelatedProject(relatedProject.id)"
+                                            v-bind="attrs"
+                                            v-on="on">
+                                            <v-icon>mdi-refresh</v-icon>
+                                        </v-btn>
+                                    </template>
+                                    <span>Refresh</span>
+                                </v-tooltip>
+                                <v-tooltip left v-if="isEditable && relatedProject">
+                                    <template v-slot:activator="{ on, attrs }">
+                                        <v-btn
+                                            color="error"
+                                            fab
+                                            small
+                                            class="mt-2 mr-4"
+                                            @click="unlinkRelatedProject()"
+                                            v-bind="attrs"
+                                            v-on="on">
+                                            <v-icon>mdi-folder-remove</v-icon>
+                                        </v-btn>
+                                    </template>
+                                    <span>Unlink project</span>
+                                </v-tooltip>
+                                <v-tooltip left v-if="relatedProject">
+                                    <template v-slot:activator="{ on, attrs }">
+                                        <v-btn
+                                            color="primary"
+                                            fab
+                                            class="mr-4"
+                                            :href="'/projects/' + relatedProject.id"
+                                            target="_blank"
+                                            v-bind="attrs"
+                                            v-on="on">
+                                            <v-icon>mdi-folder-open</v-icon>
+                                        </v-btn>
+                                    </template>
+                                    <span>Open project</span>
+                                </v-tooltip>
+                            </v-card-text>
+                        </v-card>
+                    </v-col>
+                </v-row>
+            </v-container>
         </v-card>
 
         <v-card 
-            v-if="tabItems[tab] === 'Samples' && !isError"
+            v-if="tabItems[tab] === 'Collection' && hasData && !isError"
             class="mt-6" 
-            elevation="0" 
-            :disabled="!isEditable">
-            <pre>SAMPLES</pre>
+            elevation="0">
+            <v-card class="mt-6">
+                <v-simple-table class="my-3">
+                    <template v-slot:default>
+                        <tbody>
+                            <tr v-for="(val, key) in relatedCollection"
+                                :key="key">
+                                <td><span class="font-weight-bold" v-text="makeColumnName(key)"></span></td>
+                                <td><span v-text="val"></span></td>
+                            </tr>
+                        </tbody>
+                    </template>
+                </v-simple-table>
+
+                <v-card-text v-if="Object.keys(data.collection).length === 0" class="font-italic">
+                    No linked collection
+                </v-card-text>
+
+                <v-card-text style="height: 45px; position: relative; text-align: right">
+                    <v-tooltip left v-if="Object.keys(data.collection).length !== 0">
+                        <template v-slot:activator="{ on, attrs }">
+                            <v-btn
+                                fab
+                                small
+                                class="mt-2 mr-4"
+                                @click="getRelatedCollection(data.collection.collection_id)"
+                                v-bind="attrs"
+                                v-on="on">
+                                <v-icon>mdi-refresh</v-icon>
+                            </v-btn>
+                        </template>
+                        <span>Refresh</span>
+                    </v-tooltip>
+                    <v-tooltip left v-if="isEditable">
+                        <template v-slot:activator="{ on, attrs }">
+                            <v-btn
+                                color="primary"
+                                fab
+                                class="mr-4"
+                                @click="relatedCollectionDialog = true"
+                                v-bind="attrs"
+                                v-on="on">
+                                <v-icon>mdi-swap-horizontal-bold</v-icon>
+                            </v-btn>
+                        </template>
+                        <span>Link collection</span>
+                    </v-tooltip>
+                    <v-tooltip left v-if="Object.keys(data.collection).length > 0">
+                        <template v-slot:activator="{ on, attrs }">
+                            <v-btn
+                                color="primary"
+                                fab
+                                class="mr-4"
+                                :href="'/collections/' + data.collection.collection_id"
+                                target="_blank"
+                                v-bind="attrs"
+                                v-on="on">
+                                <v-icon>mdi-file-cabinet</v-icon>
+                            </v-btn>
+                        </template>
+                        <span>Open collection</span>
+                    </v-tooltip>
+                </v-card-text>
+            </v-card>
         </v-card>
 
         <v-card 
-            v-if="tabItems[tab] === 'Images' && !isError"
+            v-if="tabItems[tab] === 'Datasets' && hasData && !isError"
+            class="mt-6" 
+            elevation="0">
+            <v-card class="mt-6" v-if="relatedDatasets !== null">
+                <v-data-table
+                    :headers="relatedDatasetsHeaders"
+                    :items="relatedDatasets"
+                    :server-items-length="relatedDatasetsCount"
+                    :options.sync="relatedDatasetsTableOptions"
+                    :footer-props="{'items-per-page-options':[10, 50, 100, -1]}"
+                    multi-sort>
+
+                    <template v-slot:item.id="{ item }">
+                        <v-tooltip top>
+                            <template v-slot:activator="{ on, attrs }">
+                                <v-btn
+                                    icon
+                                    color="primary"
+                                    class="mr-2"
+                                    color="primary"
+                                    :href="'/datasets/' + item.id"
+                                    target="_blank"
+                                    v-bind="attrs"
+                                    v-on="on">
+                                    <v-icon small>mdi-chart-box</v-icon>
+                                </v-btn>
+                            </template>
+                            <span>Open dataset</span>
+                        </v-tooltip>
+                    </template>
+                </v-data-table>
+                <v-card-text style="height: 45px; position: relative; text-align: right">
+                    <v-tooltip left>
+                        <template v-slot:activator="{ on, attrs }">
+                            <v-btn
+                                fab
+                                small
+                                class="mt-2 mr-4"
+                                @click="getRelatedDatasets()"
+                                v-bind="attrs"
+                                v-on="on">
+                                <v-icon>mdi-refresh</v-icon>
+                            </v-btn>
+                        </template>
+                        <span>Refresh</span>
+                    </v-tooltip>
+                    <v-tooltip left>
+                        <template v-slot:activator="{ on, attrs }">
+                            <v-btn
+                                color="primary"
+                                fab
+                                class="mr-4"
+                                @click="addRelatedDataset()"
+                                v-bind="attrs"
+                                v-on="on">
+                                <v-icon>mdi-plus</v-icon>
+                            </v-btn>
+                        </template>
+                        <span>Create new dataset</span>
+                    </v-tooltip>
+                </v-card-text>
+            </v-card>
+        </v-card>
+
+        <v-card 
+            v-if="tabItems[tab] === 'Samples' && resource !== 'Dataset' && hasData && !isError"
+            class="mt-6" 
+            elevation="0">
+            <v-card class="mt-6" v-if="relatedSamples !== null">
+                <v-data-table
+                    :headers="relatedSamplesHeaders"
+                    :items="relatedSamples"
+                    :server-items-length="relatedSamplesCount"
+                    :options.sync="relatedSamplesTableOptions"
+                    :footer-props="{'items-per-page-options':[10, 50, 100, -1]}"
+                    multi-sort>
+
+                    <template v-slot:item.id="{ item }">
+                        <v-tooltip top>
+                            <template v-slot:activator="{ on, attrs }">
+                                <v-btn
+                                    icon
+                                    color="primary"
+                                    class="mr-2"
+                                    color="primary"
+                                    :href="'/samples/' + item.id"
+                                    target="_blank"
+                                    v-bind="attrs"
+                                    v-on="on">
+                                    <v-icon small>mdi-test-tube</v-icon>
+                                </v-btn>
+                            </template>
+                            <span>Open sample</span>
+                        </v-tooltip>
+                    </template>
+                </v-data-table>
+                <v-card-text style="height: 45px; position: relative; text-align: right">
+                    <v-tooltip left>
+                        <template v-slot:activator="{ on, attrs }">
+                            <v-btn
+                                fab
+                                small
+                                class="mt-2 mr-4"
+                                @click="getRelatedSamples()"
+                                v-bind="attrs"
+                                v-on="on">
+                                <v-icon>mdi-refresh</v-icon>
+                            </v-btn>
+                        </template>
+                        <span>Refresh</span>
+                    </v-tooltip>
+                    <v-tooltip left>
+                        <template v-slot:activator="{ on, attrs }">
+                            <v-btn
+                                color="primary"
+                                fab
+                                class="mr-4"
+                                @click="addRelatedSample()"
+                                v-bind="attrs"
+                                v-on="on">
+                                <v-icon>mdi-plus</v-icon>
+                            </v-btn>
+                        </template>
+                        <span>Create new sample</span>
+                    </v-tooltip>
+                </v-card-text>
+            </v-card>
+        </v-card>
+
+        <v-card 
+            v-if="tabItems[tab] === 'Related samples' && hasData && !isError"
+            class="mt-6" 
+            elevation="0">
+            <v-card class="mt-6" v-if="'parent_sample' in data">
+                <v-timeline 
+                    align-top 
+                    class="ma-6"
+                    :dense="$vuetify.breakpoint.smAndDown">
+                    <v-timeline-item
+                        fill-dot
+                        color="secondary"
+                        icon="mdi-test-tube">
+                        <v-card
+                            color="secondary"
+                            dark>
+                            <v-card-title>Parent sample</v-card-title>
+                            <v-card-text class="white text--primary">
+                                <p class="pt-2"><span v-text="data.sample_code"></span> is derived from:</p>
+                                <v-chip
+                                    v-if="Object.keys(data.parent_sample).length > 0"
+                                    v-text="data.parent_sample.parent_sample_code"
+                                    link
+                                    :href="'/samples/' + data.parent_sample.parent_sample_id"
+                                    color="primary"
+                                    outlined></v-chip>
+                            </v-card-text>
+                            <v-card-text 
+                                class="white text--primary"
+                                style="height: 45px; position: relative; text-align: right">
+                                <v-tooltip left v-if="isEditable && Object.keys(data.parent_sample).length > 0">
+                                    <template v-slot:activator="{ on, attrs }">
+                                        <v-btn
+                                            color="error"
+                                            fab
+                                            small
+                                            class="mt-2 mr-4"
+                                            @click="unlinkParentSample()"
+                                            v-bind="attrs"
+                                            v-on="on">
+                                            <v-icon>mdi-test-tube-off</v-icon>
+                                        </v-btn>
+                                    </template>
+                                    <span>Unlink parent sample</span>
+                                </v-tooltip>
+                                <v-tooltip left v-if="isEditable">
+                                    <template v-slot:activator="{ on, attrs }">
+                                        <v-btn
+                                            color="primary"
+                                            fab
+                                            class="mr-4"
+                                            @click="relatedSampleDialog = true"
+                                            v-bind="attrs"
+                                            v-on="on">
+                                            <v-icon>mdi-swap-horizontal-bold</v-icon>
+                                        </v-btn>
+                                    </template>
+                                    <span>Link parent sample</span>
+                                </v-tooltip>
+                            </v-card-text>
+                        </v-card>
+                    </v-timeline-item>
+                    <v-timeline-item 
+                        fill-dot
+                        icon="mdi-test-tube">
+                        <v-card
+                            color="primary"
+                            dark>
+                            <v-card-title 
+                                v-text="data.sample_code">
+                            </v-card-title>
+                        </v-card>
+                    </v-timeline-item>
+                    <v-timeline-item
+                        fill-dot
+                        color="secondary"
+                        icon="mdi-test-tube">
+                        <v-card
+                            color="secondary"
+                            dark
+                            class="mb-6">
+                            <v-card-title>Child samples</v-card-title>
+                            <v-card-text class="white text--primary">
+                                <p class="pt-2">Sample(s) that are derived from <span v-text="data.sample_code"></span>:</p>
+                                <v-chip
+                                    v-for="sample in childSamples"
+                                    :key="sample.id"
+                                    v-text="sample.sampleCode"
+                                    :href="'/samples/' + sample.id"
+                                    link
+                                    color="primary"
+                                    outlined
+                                    class="mr-2 mb-2">
+                                </v-chip>
+                            </v-card-text>
+                            <v-card-text 
+                                class="white text--primary"
+                                style="height: 45px; position: relative; text-align: right">
+                                <v-tooltip left>
+                                    <template v-slot:activator="{ on, attrs }">
+                                        <v-btn
+                                            fab
+                                            small
+                                            light
+                                            class="mt-2 mr-4"
+                                            @click="getChildSamples"
+                                            v-bind="attrs"
+                                            v-on="on">
+                                            <v-icon>mdi-refresh</v-icon>
+                                        </v-btn>
+                                    </template>
+                                    <span>Refresh</span>
+                                </v-tooltip>
+                                <v-tooltip left>
+                                    <template v-slot:activator="{ on, attrs }">
+                                        <v-btn
+                                            color="primary"
+                                            fab
+                                            class="mr-4"
+                                            @click="addRelatedSample()"
+                                            v-bind="attrs"
+                                            v-on="on">
+                                            <v-icon>mdi-plus</v-icon>
+                                        </v-btn>
+                                    </template>
+                                    <span>Create new sample</span>
+                                </v-tooltip>
+                            </v-card-text>
+                        </v-card>
+                    </v-timeline-item>
+                </v-timeline>
+            </v-card>
+        </v-card>
+
+        <v-card 
+            v-if="tabItems[tab] === 'Samples' && resource === 'Dataset' && hasData && !isError"
+            class="mt-6" 
+            elevation="0">
+            <v-container>
+                <v-row no-gutters>
+                    <v-col cols="12" md="4">
+                        <v-card class="mt-6">
+                            <v-list dense>
+                                <v-subheader>Related samples</v-subheader>
+                                <v-list-item-group
+                                    v-model="selectedRelatedSample"
+                                    color="primary">
+                                    <v-list-item
+                                        v-for="(sample, i) in data.samples"
+                                        :key="i">
+                                        <v-list-item-icon>
+                                            <v-icon>mdi-test-tube</v-icon>
+                                        </v-list-item-icon>
+                                        <v-list-item-content>
+                                            <v-list-item-title v-text="sample.sample_code"></v-list-item-title>
+                                        </v-list-item-content>
+                                    </v-list-item>
+                                </v-list-item-group>
+                            </v-list>
+                            <v-card-text style="height: 45px; position: relative; text-align: right">
+                                <v-tooltip left v-if="isEditable">
+                                    <template v-slot:activator="{ on, attrs }">
+                                        <v-btn
+                                            color="primary"
+                                            fab
+                                            class="mr-4"
+                                            @click="relatedSampleDialog = true"
+                                            v-bind="attrs"
+                                            v-on="on">
+                                            <v-icon>mdi-swap-horizontal-bold</v-icon>
+                                        </v-btn>
+                                    </template>
+                                    <span>Link sample</span>
+                                </v-tooltip>
+                            </v-card-text>
+                        </v-card>
+                    </v-col>
+                    <v-col cols="12" md="8">
+                        <v-card class="mt-6 ml-md-6">
+                            <v-simple-table class="my-3">
+                                <template v-slot:default>
+                                    <tbody>
+                                        <tr v-for="(val, key) in relatedSample"
+                                            :key="key">
+                                            <td><span class="font-weight-bold" v-text="makeColumnName(key)"></span></td>
+                                            <td><span v-text="val"></span></td>
+                                        </tr>
+                                    </tbody>
+                                </template>
+                            </v-simple-table>
+
+                            <v-card-text v-if="!relatedSample" class="font-italic">
+                                Select or link a sample
+                            </v-card-text>
+
+                            <v-card-text style="height: 45px; position: relative; text-align: right">
+                                <v-tooltip left v-if="relatedSample">
+                                    <template v-slot:activator="{ on, attrs }">
+                                        <v-btn 
+                                            fab
+                                            small
+                                            class="mt-2 mr-4"
+                                            @click="getRelatedSample(relatedSample.id)"
+                                            v-bind="attrs"
+                                            v-on="on">
+                                            <v-icon>mdi-refresh</v-icon>
+                                        </v-btn>
+                                    </template>
+                                    <span>Refresh</span>
+                                </v-tooltip>
+                                <v-tooltip left v-if="isEditable && relatedSample">
+                                    <template v-slot:activator="{ on, attrs }">
+                                        <v-btn
+                                            color="error"
+                                            fab
+                                            small
+                                            class="mt-2 mr-4"
+                                            @click="unlinkRelatedSample()"
+                                            v-bind="attrs"
+                                            v-on="on">
+                                            <v-icon>mdi-test-tube-off</v-icon>
+                                        </v-btn>
+                                    </template>
+                                    <span>Unlink sample</span>
+                                </v-tooltip>
+                                <v-tooltip left v-if="relatedSample">
+                                    <template v-slot:activator="{ on, attrs }">
+                                        <v-btn
+                                            color="primary"
+                                            fab
+                                            class="mr-4"
+                                            :href="'/samples/' + relatedSample.id"
+                                            target="_blank"
+                                            v-bind="attrs"
+                                            v-on="on">
+                                            <v-icon>mdi-test-tube</v-icon>
+                                        </v-btn>
+                                    </template>
+                                    <span>Open sample</span>
+                                </v-tooltip>
+                            </v-card-text>
+                        </v-card>
+                    </v-col>
+                </v-row>
+            </v-container>
+        </v-card>
+
+        <v-card 
+            v-if="tabItems[tab] === 'Contributors' && hasData && !isError"
+            class="mt-6" 
+            elevation="0" 
+            :disabled="!isEditable">
+            <pre v-text="data"></pre>
+        </v-card>
+
+        <v-card 
+            v-if="tabItems[tab] === 'Images' && hasData && !isError"
             class="mt-6" 
             elevation="0" 
             :disabled="!isEditable">
@@ -179,15 +807,14 @@
             <v-card-text>
                 <v-form 
                     ref="templateDialogForm" 
-                    v-model="templateDialogFormValid" 
-                    lazy-validation>
+                    v-model="templateDialogFormValid">
                     <v-select
                         v-model="category"
                         :items="categories"
                         item-text="name"
                         item-value="value"
                         label="Category"
-                        :rules="templateDialogFormRules"
+                        :rules="requiredRule"
                         required></v-select>
                     <v-select
                         v-model="template"
@@ -195,7 +822,7 @@
                         item-text="name"
                         item-value="value"
                         label="Template"
-                        :rules="templateDialogFormRules"
+                        :rules="requiredRule"
                         required></v-select>
                 </v-form>
             </v-card-text>
@@ -219,12 +846,176 @@
     </v-dialog>
 
     <v-dialog
+        v-model="relatedProjectDialog"
+        max-width="600">
+        <v-card>
+            <v-card-title class="text-h5">
+                <span>Link a project</span>
+            </v-card-title>
+
+            <v-card-text>
+                <v-form 
+                    ref="relatedProjectDialogForm" 
+                    v-model="relatedProjectDialogFormValid">
+                    <v-text-field
+                        v-model="relatedProjectDialogProjectCode"
+                        label="Project code"
+                        :rules="requiredRule"
+                        required></v-text-field>
+                    <v-select
+                        v-model="relatedProjectDialogUnit"
+                        :items="units"
+                        label="Unit"
+                        :rules="requiredRule"
+                        required></v-select>
+                </v-form>
+            </v-card-text>
+            <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn
+                    color="primary"
+                    text
+                    @click="relatedProjectDialog = false">
+                    Cancel
+                </v-btn>
+                <v-btn
+                    color="primary"
+                    text
+                    :disabled="!relatedProjectDialogFormValid"
+                    @click="getRelatedProject(null, relatedProjectDialogProjectCode, relatedProjectDialogUnit)">
+                    Apply
+                </v-btn>
+            </v-card-actions>
+        </v-card>
+    </v-dialog>
+
+    <v-dialog
+        v-model="relatedCollectionDialog"
+        max-width="600">
+        <v-card>
+            <v-card-title class="text-h5">
+                <span>Link a collection</span>
+            </v-card-title>
+
+            <v-card-text>
+                <v-form 
+                    ref="relatedCollectionDialogForm" 
+                    v-model="relatedCollectionDialogFormValid">
+                    <v-autocomplete
+                        v-model="relatedCollectionDialogCollectionId"
+                        :items="collections"
+                        item-text="collection_name"
+                        item-value="id"
+                        label="Collection"
+                        :rules="requiredRule"
+                        required>
+                        <template v-slot:append-outer>
+                            <v-tooltip left>
+                                <template v-slot:activator="{ on, attrs }">
+                                    <v-btn
+                                        icon
+                                        color="primary"
+                                        @click="getCollectionList()"
+                                        v-bind="attrs"
+                                        v-on="on">
+                                        <v-icon>mdi-refresh</v-icon>
+                                    </v-btn>
+                                </template>
+                                <span>Refresh collection list</span>
+                            </v-tooltip>
+                        </template>
+                    </v-autocomplete>
+                </v-form>
+            </v-card-text>
+            <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn
+                    color="primary"
+                    text
+                    @click="relatedCollectionDialog = false">
+                    Cancel
+                </v-btn>
+                <v-btn
+                    color="primary"
+                    text
+                    :disabled="!relatedCollectionDialogFormValid"
+                    @click="getRelatedCollection(relatedCollectionDialogCollectionId)">
+                    Apply
+                </v-btn>
+            </v-card-actions>
+        </v-card>
+    </v-dialog>
+
+    <v-dialog
+        v-model="relatedSampleDialog"
+        max-width="600">
+        <v-card>
+            <v-card-title class="text-h5">
+                <span v-if="resource === 'Sample'">Link a parent sample</span>
+                <span v-else>Link a sample</span>
+            </v-card-title>
+
+            <v-card-text>
+                <v-form 
+                    ref="relatedSampleDialogForm" 
+                    v-model="relatedSampleDialogFormValid">
+                    <v-autocomplete
+                        v-model="relatedSampleDialogCollectionId"
+                        :items="collections"
+                        item-text="collection_name"
+                        item-value="id"
+                        label="Collection"
+                        :rules="requiredRule"
+                        required>
+                        <template v-slot:append-outer>
+                            <v-tooltip left>
+                                <template v-slot:activator="{ on, attrs }">
+                                    <v-btn
+                                        icon
+                                        color="primary"
+                                        @click="getCollectionList()"
+                                        v-bind="attrs"
+                                        v-on="on">
+                                        <v-icon>mdi-refresh</v-icon>
+                                    </v-btn>
+                                </template>
+                                <span>Refresh collection list</span>
+                            </v-tooltip>
+                        </template>
+                    </v-autocomplete>
+                    <v-text-field
+                        v-model="relatedSampleDialogSampleCode"
+                        label="Sample code"
+                        :rules="requiredRule"
+                        required></v-text-field>
+                </v-form>
+            </v-card-text>
+            <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn
+                    color="primary"
+                    text
+                    @click="relatedSampleDialog = false">
+                    Cancel
+                </v-btn>
+                <v-btn
+                    color="primary"
+                    text
+                    :disabled="!relatedSampleDialogFormValid"
+                    @click="getRelatedSample(null, relatedSampleDialogSampleCode, relatedSampleDialogCollectionId)">
+                    Apply
+                </v-btn>
+            </v-card-actions>
+        </v-card>
+    </v-dialog>
+
+    <v-dialog
         v-model="deleteDialog"
         max-width="600"
         :persistent="isDeleted">
         <v-card>
             <v-card-title class="text-h5">
-                Delete <span v-text="resource.toLowerCase()"></span>
+                Delete&nbsp;<span v-text="resource.toLowerCase()"></span>
             </v-card-title>
             <v-card-text v-if="!isDeleted">
                 Are you sure you want to delete this <span v-text="resource.toLowerCase()"></span>? This action cannot be undone.
@@ -274,6 +1065,7 @@
         const queryParameterCategory = '{{ category }}'
         const queryParameterTemplate = '{{ template }}'
         const templateList = {{ template_list | safe }}
+        const units = '{{ units | safe }}'
 
         const formOptions =  { 
             "locale": "en-gb", 
@@ -325,7 +1117,7 @@
                 templateDialogFormValid: false,
                 categories: Object.values(templateList),
                 templates: [],
-                templateDialogFormRules: [
+                requiredRule: [
                     v => !!v || 'This field is required',
                 ],
                 deleteDialog: false,
@@ -333,6 +1125,62 @@
                 formOptions,
                 data: {},
                 schema: {},
+
+                relatedProject: null,
+                relatedProjectDialog: false,
+                relatedProjectDialogFormValid: false,
+                relatedProjectDialogProjectCode: null,
+                relatedProjectDialogUnit: null,
+                selectedRelatedProject: null,
+
+                relatedCollection: null,
+                relatedCollectionDialog: false,
+                relatedCollectionDialogFormValid: false,
+                relatedCollectionDialogCollectionId: null,
+
+                relatedDatasets: null,
+                relatedDatasetsHeaders: [
+                    {text: " ", value:'id', sortable: false},
+                    {text: 'Dataset code', value: 'dataset_code', sortable: true},
+                    {text: 'Category', value: 'category', sortable: false},
+                    {text: 'Template', value: 'template', sortable: false},
+                    {text: 'Project code', value: 'project.project_code', sortable: true},
+                    {text: 'Unit', value: 'project.unit', sortable: true},
+                    {text: 'Access', value: 'terms.access', sortable: true}
+                ],
+                relatedDatasetsTableOptions: {
+                    sortBy: ['dataset_code'],
+                    sortDesc: [false]
+                },
+                relatedDatasetsCount: 0,
+
+                relatedSamples: null,
+                relatedSamplesHeaders: [
+                    {text: " ", value:'id', sortable: false},
+                    {text: 'Sample code', value: 'sample_code', sortable: true},
+                    {text: 'Collection', value: 'collection.collection_name', sortable: true},
+                    {text: 'Category', value: 'category', sortable: false},
+                    {text: 'Template', value: 'template', sortable: false},
+                    {text: 'Access', value: 'terms.access', sortable: true}
+                ],
+                relatedSamplesTableOptions: {
+                    sortBy: ['sample_code', 'collection.collection_name'],
+                    sortDesc: [false, false]
+                },
+                relatedSamplesCount: 0,
+
+                relatedSample: null,
+                selectedRelatedSample: null, 
+
+                relatedSampleDialog: false,
+                relatedSampleDialogFormValid: false,
+                relatedSampleDialogCollectionId: null,
+                relatedSampleDialogSampleCode: null,
+
+                childSamples: null,
+
+                units: units !== '' ? JSON.parse(units) : [],
+                collections: [],
 
                 alert: false,
                 alertType: "info",
@@ -343,10 +1191,61 @@
                 this.getData()
             },
 
+            computed: {
+                hasData() {
+                    return (Object.keys(this.data).length !== 0)
+                },
+            },
+
             watch: {
                 category: function () {
                     this.templates = (this.category) ? templateList[this.category]['templates'] : []
-                }
+                },
+                tab: function () {
+                    if (this.hasData && !this.Error) {
+                        if (this.tabItems[this.tab] === 'Project' 
+                                && this.relatedProject === null
+                                && Object.keys(this.data.project).length !== 0) {
+                            this.getRelatedProject(this.data.project.project_id)
+                        } else if (this.tabItems[this.tab] === 'Collection' 
+                                && this.relatedCollection === null
+                                && Object.keys(this.data.collection).length !== 0) {
+                            this.getRelatedCollection(this.data.collection.collection_id)
+                        } else if (this.tabItems[this.tab] === 'Datasets'
+                                && this.relatedDatasets === null) {
+                            this.relatedDatasets = [] //initialising relatedDatasets will display the data-table and initialise its options, which will trigger getRelatedDatasets()
+                        } else if (this.tabItems[this.tab] === 'Samples'
+                                && this.resource !== 'Dataset'
+                                && this.relatedSamples === null) {
+                            this.relatedSamples = [] //initialising relatedSamples will display the data-table and initialise its options, which will trigger getRelatedSamples()
+                        } else if (this.tabItems[this.tab] === 'Related samples'
+                                && this.childSamples === null) {
+                            this.getChildSamples()
+                        }
+                    }
+                },
+                relatedDatasetsTableOptions() {
+                    this.getRelatedDatasets()
+                },
+                relatedSamplesTableOptions() {
+                    this.getRelatedSamples()
+                },
+                relatedCollectionDialog() {
+                    if (this.collections.length === 0)
+                        this.getCollectionList()
+                },
+                relatedSampleDialog() {
+                    if (this.collections.length === 0)
+                        this.getCollectionList()
+                },
+                selectedRelatedProject() {
+                    if (this.selectedRelatedProject !== null)
+                        this.getRelatedProject(this.data.projects[this.selectedRelatedProject].project_id)
+                },
+                selectedRelatedSample() {
+                    if (this.selectedRelatedSample !== null)
+                        this.getRelatedSample(this.data.samples[this.selectedRelatedSample].sample_id)
+                },
             },
 
             methods: {
@@ -359,8 +1258,18 @@
                             .then(response => {
                                 // remove unnecessary bits from schema (and instance)
                                 ['id', 'created_timestamp', 'created_by_user', 'modified_timestamp', 'modified_by_user'].forEach(e => delete response.data.properties[e])
-                                // hide contributors
+                                // hide contributors, project, collection, files
                                 response.data.properties.contributors['x-display'] = 'hidden'
+                                if (this.resource === 'Dataset') {
+                                    response.data.definitions.Project['x-display'] = 'hidden'
+                                    response.data.properties.samples['x-display'] = 'hidden'
+                                    response.data.properties.files['x-display'] = 'hidden'
+                                }
+                                if (this.resource === 'Sample') {
+                                    response.data.definitions.Collection['x-display'] = 'hidden'
+                                    response.data.definitions.ParentSample['x-display'] = 'hidden'
+                                    response.data.properties.projects['x-display'] = 'hidden'
+                                }
                                 this.schema = response.data
                                 this.schemaUrl = this.schema.$id
                             })
@@ -392,12 +1301,16 @@
                             .catch(error => {
                                 this.title = this.resource + " not found"
                                 this.isError = true
-                                this.showAlert("error", "Could not find the " + this.resource.toLowerCase())
-                                console.log(error)
+                                this.handleApiErrors(error)
                             })
                     } else {
                         this.title = "New " + this.resource.toLowerCase()
+                        // initialise this.data as empty object or with the provided initial data
                         this.data = {}
+                        const init = new URLSearchParams(window.location.search).get('init')
+                        if (init !== null) {
+                            this.data = JSON.parse(init)
+                        }
                         this.isEditable = true
                         this.isNew = true
                         // if category (and template) are supplied as query parameters, retrieve schema, 
@@ -435,13 +1348,7 @@
                             this.title = this.resource + ": <i>" + arr.join(" &sdot; ")
                         })
                         .catch(error => {
-                            if (error.response && error.response.status == 422) {
-                                let msg = Array.isArray(error.response.data.detail) ? error.response.data.detail[0].type : error.response.data.detail
-                                this.showAlert("error", "The " + this.resource.toLowerCase() + " could not be saved: " + msg)
-                            } else {
-                                this.showAlert("error", "The " + this.resource.toLowerCase() + " could not be saved.")
-                                console.warn(error)
-                            }
+                            this.handleApiErrors(error)
                         })
                 },
 
@@ -471,13 +1378,7 @@
                             this.title = this.resource + ": <i>" + arr.join(" &sdot; ")
                         })
                         .catch(error => {
-                            if (error.response && error.response.status == 422) {
-                                let msg = Array.isArray(error.response.data.detail) ? error.response.data.detail[0].type : error.response.data.detail
-                                this.showAlert("error", "The " + this.resource.toLowerCase() + " could not be saved: " + msg)
-                            } else {
-                                this.showAlert("error", "The " + this.resource.toLowerCase() + " could not be saved.")
-                                console.warn(error)
-                            }
+                            this.handleApiErrors(error)
                         })
                 },
 
@@ -492,15 +1393,359 @@
                             })
                             .catch(error => {
                                 this.deleteDialog = false
-                                if (error.response && error.response.status == 422) {
-                                let msg = Array.isArray(error.response.data.detail) ? error.response.data.detail[0].type : error.response.data.detail
-                                this.showAlert("error", "The " + this.resource.toLowerCase() + " could not be saved: " + msg)
-                                } else {
-                                    this.showAlert("error", "The " + this.resource.toLowerCase() + " could not be deleted.")
-                                    console.warn(error)
-                                }
+                                this.handleApiErrors(error)
                             })
                     }
+                },
+
+                getRelatedProject(project_id, project_code = null, unit = null) {
+                    let url = null
+                    if (project_id !== null) {
+                        url = '/api/v1/projects/' + project_id
+                    } else if (project_code !== null && unit !== null) {
+                        url = '/api/v1/projects/keys?project_code=' + project_code + '&unit=' + unit
+                    }
+                    if (url !== null) {
+                        console.log('Get ' + url)
+                        axios.get(url)
+                            .then(response => {
+                                this.relatedProject = this.flattenObj(response.data, 'project')
+                                if (this.resource === 'Dataset') {
+                                    // update dataset if changed
+                                    if (Object.keys(this.data.project).length === 0 
+                                            || this.relatedProject.id !== this.data.project.project_id) {
+                                        this.data.project['project_id'] = this.relatedProject.id
+                                        this.data.project['project_code'] = this.relatedProject.project_code
+                                        this.data.project['unit'] = this.relatedProject.unit
+                                    }
+                                    // prefill form data
+                                    this.relatedProjectDialogProjectCode = this.relatedProject.project_code
+                                    this.relatedProjectDialogUnit = this.relatedProject.unit
+                                } else if (this.resource === 'Sample') {
+                                    // check if this project is already linked
+                                    let projectIndex = -1
+                                    if (this.data.projects.length > 0) {
+                                        for (let i in this.data.projects) {
+                                            if (this.data.projects[i].project_id === this.relatedProject.id) {
+                                                // this project is already linked, set position in array
+                                                projectIndex = parseInt(i)
+                                                break
+                                            }
+                                        }
+                                    }
+                                    // if not already linked, link it
+                                    if (projectIndex === -1) {
+                                        projectIndex = this.data.projects.length
+                                        this.data.projects.push({
+                                            project_id: this.relatedProject.id,
+                                            project_code: this.relatedProject.project_code,
+                                            unit: this.relatedProject.unit
+                                        })
+                                    }
+                                    // set selected item
+                                    if (this.selectedRelatedProject !== projectIndex)
+                                        this.selectedRelatedProject = projectIndex
+                                }
+                                // close form
+                                this.relatedProjectDialog = false
+                            })
+                            .catch(error => {
+                                this.handleApiErrors(error, "related project")
+                            })
+                    }
+                },
+
+                unlinkRelatedProject() {
+                    if (this.resource === 'Dataset') {
+                        this.data.project = {} // better would be to remove project from data, but VJSF does not allow this (known bug)
+                        this.relatedProject = null
+                    } else if (this.resource === 'Sample') {
+                        this.data.projects.splice(this.selectedRelatedProject, 1)
+                        this.relatedProject = null
+                        this.selectedRelatedProject = null
+                    }
+                },
+
+                getRelatedCollection(collection_id) {
+                    let url = '/api/v1/collections/' + collection_id
+                    console.log('Get ' + url)
+                    axios.get(url)
+                        .then(response => {
+                            this.relatedCollection = this.flattenObj(response.data, 'collection')
+                            // update dataset if changed
+                            if (Object.keys(this.data.collection).length === 0 
+                                    || this.relatedCollection.id !== this.data.collection.collection_id) {
+                                this.data.collection['collection_id'] = this.relatedCollection.id
+                                this.data.collection['collection_name'] = this.relatedCollection.collection_name
+                            }
+                            // prefill form data
+                            this.relatedCollectionDialogCollectionId = this.relatedCollection.collection_id
+                            this.relatedCollectionDialog = false
+                        })
+                        .catch(error => {
+                            this.handleApiErrors(error, "related collection")
+                        })
+                },
+
+                getCollectionList() {
+                    let url = '/api/v1/collections/list'
+                    console.log('Get ' + url)
+                    axios.get(url)
+                        .then(response => {
+                            this.collections = response.data
+                            if (this.resource === 'Sample' && Object.keys(this.data.collection).length !== 0)
+                                this.relatedCollectionDialogCollectionId = this.data.collection.collection_id
+                        })
+                        .catch(error => {
+                            this.handleApiErrors(error, "list of collections")
+                        })
+                },
+
+                flattenObj(obj, resource) {
+                    let result = {}
+                    for (const i in obj) {
+                        // We check the type of the i using typeof() function and recursively call the function again
+                        if ((typeof obj[i]) === 'object' && !Array.isArray(obj[i])) {
+                            const temp = this.flattenObj(obj[i], resource)
+                            for (const j in temp) {
+                                result[i + '.' + j] = temp[j]
+                            }
+                        } else { // Else store obj[i] in result directly
+                                if (Array.isArray(obj[i])) {
+                                    obj[i] = obj[i]
+                                } else if (i === '$schema') {
+                                    let parts = obj[i].split(resource + "/", 2)[1].split("/")
+                                    result['category'] = parts[0]
+                                    if (parts[1] !== null)
+                                        result['template'] = parts[1]
+                                }
+                            result[i] = obj[i]
+                        }
+                    }
+                    return result
+                },
+
+                makeColumnName(item) {
+                    // split combined
+                    if (item.includes('.')) {
+                        let arr = item.split('.')
+                        item = arr.pop()
+                    }
+                    // replace characters
+                    item = item.replace('$', '').replace('_', ' ')
+                    // capitalize first character
+                    return item.charAt(0).toUpperCase() + item.slice(1);
+                },
+
+                getRelatedDatasets() {
+                    let url = '/api/v1/datasets'
+                    let skip = (this.relatedDatasetsTableOptions.page - 1) * this.relatedDatasetsTableOptions.itemsPerPage
+                    
+                    let find = {}
+                    if (this.resource === 'Sample') {
+                        find['samples.sample_id'] = this.id
+                    } else if (this.resource === 'Project') {
+                        find['projects.project_id'] = this.id
+                    }
+                    
+                    let parameters = {
+                        skip: isNaN(skip) ? null : skip,
+                        limit: this.relatedDatasetsTableOptions.itemsPerPage,
+                        sort_by: this.relatedDatasetsTableOptions.sortBy,
+                        sort_desc: this.relatedDatasetsTableOptions.sortDesc,
+                        find: JSON.stringify(find)
+                    }
+
+                    console.log('Get ' + url)
+                    axios.get(url, {params: parameters})
+                        .then(response => {
+                            this.relatedDatasets = []
+                            for (i in response.data.data) {
+                                this.relatedDatasets[i] = this.flattenObj(response.data.data[i], 'dataset')
+                            }
+                            this.relatedDatasetsCount = response.data.query_parameters.total
+                        })
+                        .catch(error => {
+                            this.handleApiErrors(error, "related datasets")
+                        })
+                },
+
+                addRelatedDataset() {
+                    let prefill = null
+                    if (this.resource === 'Sample') {
+                        // prefill parent sample details
+                        prefill = encodeURIComponent(JSON.stringify({
+                            samples: [
+                                {
+                                    sample_id: this.id,
+                                    sample_code: this.data.sample_code
+                                }
+                            ]
+                        }))
+                    } else if (this.resource === 'Project') {
+                        prefill = encodeURIComponent(JSON.stringify({
+                            project: {
+                                project_id: this.id,
+                                project_code: this.data.project_code,
+                                unit: this.data.unit
+                            }
+                        }))
+                    }
+                    if (prefill !== null)
+                        window.open("/datasets/new?init=" + prefill, "_blank")
+                },
+
+                getRelatedSamples() {
+                    let url = '/api/v1/samples'
+                    let skip = (this.relatedSamplesTableOptions.page - 1) * this.relatedSamplesTableOptions.itemsPerPage
+                    
+                    let find = {}
+                    if (this.resource === 'Collection') {
+                        find['collection.collection_id'] = this.id
+                    } else if (this.resource === 'Project') {
+                        find['projects.project_id'] = this.id
+                    }
+
+                    let parameters = {
+                        skip: isNaN(skip) ? null : skip,
+                        limit: this.relatedSamplesTableOptions.itemsPerPage,
+                        sort_by: this.relatedSamplesTableOptions.sortBy,
+                        sort_desc: this.relatedSamplesTableOptions.sortDesc,
+                        find: JSON.stringify(find)
+                    }
+
+                    console.log('Get ' + url)
+                    axios.get(url, {params: parameters})
+                        .then(response => {
+                            this.relatedSamples = []
+                            for (i in response.data.data) {
+                                this.relatedSamples[i] = this.flattenObj(response.data.data[i], 'sample')
+                            }
+                            this.relatedSamplesCount = response.data.query_parameters.total
+                        })
+                        .catch(error => {
+                            this.handleApiErrors(error, "related samples")
+                        })
+                },
+
+                addRelatedSample() {
+                    let prefill = null
+                    if (this.resource === 'Collection') {
+                        // prefill collection details
+                        prefill = encodeURIComponent(JSON.stringify({
+                            collection: {
+                                collection_id: this.id,
+                                collection_name: this.data.collection_name
+                            }
+                        }))
+                    } else if (this.resource === 'Sample') {
+                        // prefill parent sample details
+                        prefill = encodeURIComponent(JSON.stringify({
+                            parent_sample: {
+                                parent_sample_id: this.id,
+                                parent_sample_code: this.data.sample_code
+                            }
+                        }))
+                    } else if (this.resource === 'Project') {
+                        // prefill project details
+                        prefill = encodeURIComponent(JSON.stringify({
+                            projects: [
+                                {
+                                    project_id: this.id,
+                                    project_code: this.data.project_code,
+                                    unit: this.data.unit
+                                }
+                            ]
+                        }))
+                    }
+
+                    if (prefill !== null)
+                        window.open("/samples/new?init=" + prefill, "_blank")
+                },
+
+                getRelatedSample(sampleId = null, sampleCode = null, collectionId = null) {
+                    let url = null
+                    if (sampleId !== null) {
+                        url = '/api/v1/samples/' + sampleId
+                    } else if (sampleCode !== null && collectionId !== null) {
+                        url = '/api/v1/samples/keys?sample_code=' + sampleCode + '&collection_id=' + collectionId
+                    }
+                    if (url !== null) {
+                        console.log('Get ' + url)
+                        axios.get(url)
+                            .then(response => {
+                                if (resource === 'Sample') {
+                                    // update parent_sample if changed
+                                    if (Object.keys(this.data.parent_sample).length === 0 
+                                            || this.data.parent_sample.parent_sample_id !== response.data.id) {
+                                        this.data.parent_sample.parent_sample_id = response.data.id
+                                        this.data.parent_sample.parent_sample_code = response.data.sample_code
+                                    }
+                                } else if (resource === 'Dataset') {
+                                    this.relatedSample = this.flattenObj(response.data, 'sample')
+                                    // check if this sample is already linked
+                                    let sampleIndex = -1
+                                    if (this.data.samples.length > 0) {
+                                        for (let i in this.data.samples) {
+                                            if (this.data.samples[i].sample_id === this.relatedSample.id) {
+                                                // this sample is already linked, set position in array
+                                                sampleIndex = parseInt(i)
+                                                break
+                                            }
+                                        }
+                                    }
+                                    // if not already linked, link it
+                                    if (sampleIndex === -1) {
+                                        sampleIndex = this.data.samples.length
+                                        this.data.samples.push({
+                                            sample_id: this.relatedSample.id,
+                                            sample_code: this.relatedSample.sample_code
+                                        })
+                                    }
+                                    // set selected item
+                                    if (this.selectedRelatedSample !== sampleIndex)
+                                        this.selectedRelatedSample = sampleIndex
+                                }
+                                this.relatedSampleDialog = false
+                            })
+                            .catch(error => {
+                                this.handleApiErrors(error, "related sample")
+                            })
+                    }
+                },
+
+                unlinkRelatedSample() {
+                    if (this.resource === 'Sample') {
+                        this.data.parent_sample = {} // better would be to remove parent_sample entirely from data, but VJSF does not allow this (known bug)
+                    } else if (this.resource === 'Dataset') {
+                        this.data.samples.splice(this.selectedRelatedSample, 1)
+                        this.relatedSample = null
+                        this.selectedRelatedSample = null
+                    }
+                },
+
+                getChildSamples() {
+                    let url = '/api/v1/samples'
+                    let parameters = {
+                        skip: 0,
+                        limit: 0,
+                        sort_by: ['sample_code'],
+                        find: JSON.stringify({'parent_sample.parent_sample_id': this.id})
+                    }
+                    console.log('Get ' + url)
+                    axios.get(url, {params: parameters})
+                        .then(response => {
+                            this.childSamples = []
+                            for (i in response.data.data) {
+                                this.childSamples.push({
+                                    id: response.data.data[i].id,
+                                    sampleCode: response.data.data[i].sample_code
+                                })
+                            }
+                        })
+                        .catch(error => {
+                            this.handleApiErrors(error, "child samples")
+                        })
                 },
 
                 saveData() {
@@ -525,7 +1770,42 @@
                     this.alert = true
                     this.alertType = type
                     this.alertText = text
-                }
+                },
+
+                handleApiErrors(error, resource = null) {
+                    console.warn(error)
+
+                    if (resource === null) resource = this.resource.toLowerCase()
+
+                    if (error.response && error.response.data.detail === 'NoResults') { 
+                        this.showAlert("error", "Cannot not find the " + resource + ".")
+                    } else if (error.response && error.response.data.detail === 'DuplicateKey') {
+                        let keys = 'keys'
+                        if (this.resource === 'Project') keys = 'project code and unit'
+                        else if (this.resource === 'Dataset') keys = 'dataset code'
+                        else if (this.resource === 'Collection') keys = 'collection name'
+                        else if (this.resource === 'Sample') keys = 'collection and sample code'
+                        this.showAlert("error", "Cannot store this " + resource 
+                            + " because another " + resource + " exists with the same " + keys)
+                    } else if (error.response && error.response.data.detail === 'NotCreated') {
+                        this.showAlert("error", "Cannot create this " + resource + ".")
+                    } else if (error.response && error.response.data.detail === 'NotUpdated') {
+                        this.showAlert("error", "Cannot update this " + resource + ".")
+                    } else if (error.response && error.response.data.detail === 'NotDeleted') {
+                        this.showAlert("error", "Cannot delete this " + resource + ".")
+                    } else if (error.response && error.response.data.detail === 'DependentObjects') {
+                        let dependentObjects = 'objects'
+                        if (this.resource === 'Collection') keys = 'samples'
+                        this.showAlert("error", "Cannot delete this " + resource + " because it has linked " + dependentObjects + ".")
+                    } else if (error.response && error.response.status == 422) {
+                        let msg = Array.isArray(error.response.data.detail) ? error.response.data.detail[0].type : error.response.data.detail
+                        this.showAlert("error", "The " + resource + " could not be saved: " + msg)
+                    } else if (error.response && error.response.data.detail === 'ParameterError') {
+                        this.showAlert("error", "Error in API request.")
+                    } else {
+                        this.showAlert("error", "Unknown error")
+                    }
+                },
             }
         })
     </script>

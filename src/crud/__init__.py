@@ -1,4 +1,4 @@
-from .base import NoResultsError, NotCreatedError, NotUpdatedError, NotDeletedError, DuplicateKeyError
+from .base import NoResultsError, NotCreatedError, NotUpdatedError, NotDeletedError, DuplicateKeyError, DependentObjectsError
 from .crud_templates import template
 from .crud_projects import project
 from .crud_datasets import dataset
