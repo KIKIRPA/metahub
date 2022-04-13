@@ -71,6 +71,14 @@ class DuplicateKeyError(Exception):
     pass
 
 
+class DependentObjectsError(Exception):
+    """
+    Exception raised when a CRUD delete action cannot be performed due 
+    to existing dependent objects
+    """
+    pass
+
+
 class CRUDBase():
     def __init__(self):
         """
@@ -133,7 +141,7 @@ class CRUDBase():
             skip: int = 0, 
             limit: int = 10) -> dict:
         
-        return self.search(
+        return await self.search(
             collection=collection, 
             sort_by=sort_by,
             sort_desc=sort_desc,
@@ -167,15 +175,17 @@ class CRUDBase():
             collection: AsyncIOMotorCollection,
             id: str,
             *,
-            data: dict) -> dict:
-        result = await collection.find_one({"_id": ObjectId(id)})
-        if result is None: raise NoResultsError
+            data: dict,
+            original_data: dict = None) -> dict:
+        if original_data is None:
+            original_data = await collection.find_one({"_id": ObjectId(id)})
+            if original_data is None: raise NoResultsError
 
         # first encode for json, than include a datetime (to be converted to mongo date object)
         #data = data.dict()
         data = translate_to_mongo(jsonable_encoder(data))
-        if "created_timestamp" in result:
-            data["created_timestamp"] = result["created_timestamp"]
+        if "created_timestamp" in original_data:
+            data["created_timestamp"] = original_data["created_timestamp"]
         data["modified_timestamp"] = datetime.now(timezone.utc)
         
         try:

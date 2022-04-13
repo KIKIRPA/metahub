@@ -43,7 +43,7 @@ async def search_samples(
         find = {}
 
     if len(sort_desc) > 0 and len(sort_desc) != len(sort_by):
-        raise HTTPException(status_code=422, detail="Unequal number of items in sort_by and sort_desc")
+        raise HTTPException(status_code=400, detail="ParameterError")
     try: 
         response = await crud.sample.search(
             collection=db.samples,
@@ -52,6 +52,25 @@ async def search_samples(
             limit=limit,
             sort_by=sort_by,
             sort_desc=sort_desc)
+    except BaseException as err:
+        raise HTTPException(status_code=400, detail=str(err))
+    return response
+
+
+@router.get("/keys")
+async def get_sample_by_its_unique_keys(
+        sample_code: str = Query(..., description='Sample code'),
+        collection_id: str = Query(..., description="Collection Id")):
+    """
+    Return a single sample by its unique keys.
+    """
+    try:
+        response = await crud.sample.get_by_keys(
+            collection=db.samples,
+            sample_code=sample_code,
+            collection_id=collection_id)
+    except crud.NoResultsError:
+        raise HTTPException(status_code=404, detail="NoResults")
     except BaseException as err:
         raise HTTPException(status_code=400, detail=str(err))
     return response
@@ -68,7 +87,7 @@ async def get_sample_by_id(
             collection=db.samples, 
             id=id)
     except crud.NoResultsError:
-        raise HTTPException(status_code=404, detail="sample not found")
+        raise HTTPException(status_code=404, detail="NoResults")
     except BaseException as err:
         raise HTTPException(status_code=400, detail=str(err))
     return response
@@ -81,7 +100,7 @@ async def create_sample(sample: dict):
     """
     try:
         # validate agains resource and category models
-        sample_resource_instance = models.DatasetUpdate(**sample)
+        sample_resource_instance = models.SampleUpdate(**sample)
         await core.utils.jsonschema.validate_instance(sample, validate_category=True)
 
         # create the sample
@@ -93,9 +112,9 @@ async def create_sample(sample: dict):
     except core.utils.jsonschema.SchemaValidationError as err:
         raise HTTPException(status_code=422, detail=err.args[0])
     except crud.DuplicateKeyError:
-        raise HTTPException(status_code=422, detail="duplicate key (sample code, collection id)")
+        raise HTTPException(status_code=422, detail="DuplicateKey")
     except crud.NotCreatedError:
-        raise HTTPException(status_code=400, detail="sample was not created")
+        raise HTTPException(status_code=400, detail="NotCreated")
     except BaseException as err:
         raise HTTPException(status_code=400, detail=str(err))
     return response
@@ -110,11 +129,11 @@ async def replace_sample(
     """
     try:
         # validate agains resource and category models
-        sample_resource_instance = models.DatasetUpdate(**sample)
+        sample_resource_instance = models.SampleUpdate(**sample)
         await core.utils.jsonschema.validate_instance(sample, validate_category=True)
 
         # update the sample
-        updated = await crud.sample.replace(
+        updated = await crud.sample.cascading_replace(
             collection=db.samples, 
             id=id,
             data=sample)
@@ -123,11 +142,11 @@ async def replace_sample(
     except core.utils.jsonschema.SchemaValidationError as err:
         raise HTTPException(status_code=422, detail=err.args[0])
     except crud.NoResultsError:
-        raise HTTPException(status_code=404, detail="sample not found")
+        raise HTTPException(status_code=404, detail="NoResults")
     except crud.DuplicateKeyError:
-        raise HTTPException(status_code=422, detail="duplicate key (sample code, collection id)")
+        raise HTTPException(status_code=422, detail="DuplicateKey")
     except crud.NotUpdatedError:
-        raise HTTPException(status_code=400, detail="sample was not updated")
+        raise HTTPException(status_code=400, detail="NotUpdated")
     except BaseException as err:
         raise HTTPException(status_code=400, detail=str(err))
     return updated
@@ -140,13 +159,13 @@ async def delete_sample(
     Delete a sample.
     """
     try:
-        deleted = await crud.sample.remove(
+        deleted = await crud.sample.cascading_remove(
             collection=db.samples, 
             id=id)
     except crud.NoResultsError:
-        raise HTTPException(status_code=404, detail="sample not found")
+        raise HTTPException(status_code=404, detail="NoResults")
     except crud.NotDeletedError:
-        raise HTTPException(status_code=400, detail="sample was not deleted")
+        raise HTTPException(status_code=400, detail="NotDeleted")
     except BaseException as err:
         raise HTTPException(status_code=400, detail=str(err))
     return deleted

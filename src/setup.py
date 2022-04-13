@@ -107,7 +107,7 @@ async def main():
             "name": "samples",
             "unique_index": [
                 ('sample_code', pymongo.ASCENDING),
-                ('collection_id', pymongo.ASCENDING),
+                ('collection.collection_id', pymongo.ASCENDING),
             ],
             "seed_templates": options.seed_samples,
             "model": None

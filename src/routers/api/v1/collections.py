@@ -43,7 +43,7 @@ async def search_collections(
         find = {}
 
     if len(sort_desc) > 0 and len(sort_desc) != len(sort_by):
-        raise HTTPException(status_code=422, detail="Unequal number of items in sort_by and sort_desc")
+        raise HTTPException(status_code=400, detail="ParameterError")
     try: 
         response = await crud.collection.search(
             collection=db.collections,
@@ -52,6 +52,38 @@ async def search_collections(
             limit=limit,
             sort_by=sort_by,
             sort_desc=sort_desc)
+    except BaseException as err:
+        raise HTTPException(status_code=400, detail=str(err))
+    return response
+
+
+@router.get("/list", response_model=List[models.CollectionCompact])
+async def get_collection_list():
+    """
+    Return a list of all collections.
+    """
+    try:
+        response = await crud.collection.get_all(
+            collection=db.collections,
+            sort_by=["collection_name"],
+            limit=0)
+    except BaseException as err:
+        raise HTTPException(status_code=400, detail=str(err))
+    return response["data"]
+
+
+@router.get("/keys")
+async def get_collection_by_its_unique_keys(
+        collection_name: str = Query(..., description="Collection name")):
+    """
+    Return a single collection by its unique keys.
+    """
+    try:
+        response = await crud.collection.get_by_keys(
+            collection=db.collections,
+            collection_name=collection_name)
+    except crud.NoResultsError:
+        raise HTTPException(status_code=404, detail="NoResults")
     except BaseException as err:
         raise HTTPException(status_code=400, detail=str(err))
     return response
@@ -68,7 +100,7 @@ async def get_collection_by_id(
             collection=db.collections, 
             id=id)
     except crud.NoResultsError:
-        raise HTTPException(status_code=404, detail="collection not found")
+        raise HTTPException(status_code=404, detail="NoResults")
     except BaseException as err:
         raise HTTPException(status_code=400, detail=str(err))
     return response
@@ -81,7 +113,7 @@ async def create_collection(collection: dict):
     """
     try:
         # validate agains resource and category models
-        collection_resource_instance = models.DatasetUpdate(**collection)
+        collection_resource_instance = models.CollectionUpdate(**collection)
         await core.utils.jsonschema.validate_instance(collection, validate_category=True)
 
         # create the collection
@@ -93,9 +125,9 @@ async def create_collection(collection: dict):
     except core.utils.jsonschema.SchemaValidationError as err:
         raise HTTPException(status_code=422, detail=err.args[0])
     except crud.DuplicateKeyError:
-        raise HTTPException(status_code=422, detail="duplicate key (collection code)")
+        raise HTTPException(status_code=422, detail="DuplicateKey")
     except crud.NotCreatedError:
-        raise HTTPException(status_code=400, detail="collection was not created")
+        raise HTTPException(status_code=400, detail="NotCreated")
     except BaseException as err:
         raise HTTPException(status_code=400, detail=str(err))
     return response
@@ -110,11 +142,11 @@ async def replace_collection(
     """
     try:
         # validate agains resource and category models
-        collection_resource_instance = models.DatasetUpdate(**collection)
+        collection_resource_instance = models.CollectionUpdate(**collection)
         await core.utils.jsonschema.validate_instance(collection, validate_category=True)
 
         # update the collection
-        updated = await crud.collection.replace(
+        updated = await crud.collection.cascading_replace(
             collection=db.collections, 
             id=id,
             data=collection)
@@ -123,11 +155,11 @@ async def replace_collection(
     except core.utils.jsonschema.SchemaValidationError as err:
         raise HTTPException(status_code=422, detail=err.args[0])
     except crud.NoResultsError:
-        raise HTTPException(status_code=404, detail="collection not found")
+        raise HTTPException(status_code=404, detail="NoResults")
     except crud.DuplicateKeyError:
-        raise HTTPException(status_code=422, detail="duplicate key (collection code)")
+        raise HTTPException(status_code=422, detail="DuplicateKey")
     except crud.NotUpdatedError:
-        raise HTTPException(status_code=400, detail="collection was not updated")
+        raise HTTPException(status_code=400, detail="NotUpdated")
     except BaseException as err:
         raise HTTPException(status_code=400, detail=str(err))
     return updated
@@ -140,13 +172,15 @@ async def delete_collection(
     Delete a collection.
     """
     try:
-        deleted = await crud.collection.remove(
+        deleted = await crud.collection.safe_remove(
             collection=db.collections, 
             id=id)
+    except crud.DependentObjectsError:
+        raise HTTPException(status_code=400, detail="DependentObjects")
     except crud.NoResultsError:
-        raise HTTPException(status_code=404, detail="collection not found")
+        raise HTTPException(status_code=404, detail="NoResults")
     except crud.NotDeletedError:
-        raise HTTPException(status_code=400, detail="collection was not deleted")
+        raise HTTPException(status_code=400, detail="NotDeleted")
     except BaseException as err:
         raise HTTPException(status_code=400, detail=str(err))
     return deleted
