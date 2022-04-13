@@ -31,6 +31,8 @@ class Settings(BaseSettings):
         'DRAFT3'] = "DRAFT7"
     json_schema_base_url: str = "https://balat.kikirpa.be/schema"
 
+    files_base_path: str = "/mnt/metahub_data"
+
     class Config:
         env_file = ".env"
 
