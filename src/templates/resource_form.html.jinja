@@ -787,6 +787,43 @@
         </v-card>
 
         <v-card 
+            v-if="tabItems[tab] === 'Files' && hasData && !isError"
+            class="mt-6" 
+            elevation="0" 
+            :disabled="!isEditable">
+            <v-container>
+                <v-row no-gutters>
+                    <v-col cols="12" md="4">
+                        <v-card class="mt-6" v-if="projectFiles.length > 0">
+                            <v-treeview
+                                v-model="projectFileTree"
+                                :items="projectFiles"
+                                selectable
+                                selection-type="independent"
+                                item-key="path"
+                                item-text="name"
+                                open-all>
+                                <template v-slot:prepend="{ item, open }">
+                                    <v-icon v-if="item.type === 'folder'">
+                                        {{'{{ open ? "mdi-folder-open" : "mdi-folder" }}'}}
+                                    </v-icon>
+                                    <v-icon v-else>
+                                        mdi-{{'{{ item.type }}'}}
+                                    </v-icon>
+                                </template>
+                            </v-treeview>
+                        </v-card>
+                    </v-col>
+                    <v-col cols="12" md="8">
+                        <v-card class="mt-6 ml-md-6">
+                            <pre v-text="projectFiles"></pre>
+                        </v-card>
+                    </v-col>
+                </v-row>
+            </v-container>
+        </v-card>
+
+        <v-card 
             v-if="tabItems[tab] === 'Images' && hasData && !isError"
             class="mt-6" 
             elevation="0" 
@@ -1182,6 +1219,9 @@
                 units: units !== '' ? JSON.parse(units) : [],
                 collections: [],
 
+                projectFiles: [],
+                projectFileTree: null,
+
                 alert: false,
                 alertType: "info",
                 alertText: ""
@@ -1221,6 +1261,9 @@
                         } else if (this.tabItems[this.tab] === 'Related samples'
                                 && this.childSamples === null) {
                             this.getChildSamples()
+                        } else if (this.tabItems[this.tab] === 'Files'
+                                && this.projectFiles.length === 0) {
+                            this.getProjectFiles()
                         }
                     }
                 },
@@ -1746,6 +1789,20 @@
                         .catch(error => {
                             this.handleApiErrors(error, "child samples")
                         })
+                },
+
+                getProjectFiles() {
+                    if (this.data.project && this.data.project.project_id) {
+                        let url = '/api/v1/files/project_path/' + this.data.project.project_id
+                        console.log('Get ' + url)
+                        axios.get(url)
+                            .then(response => {
+                                this.projectFiles = [response.data]
+                            })
+                            .catch(error => {
+                                this.handleApiErrors(error, "project files")
+                            })
+                    }
                 },
 
                 saveData() {
