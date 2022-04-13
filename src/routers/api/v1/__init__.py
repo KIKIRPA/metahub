@@ -1,1 +1,1 @@
-from . import templates, projects, datasets, collections, samples
+from . import templates, projects, datasets, collections, samples, files

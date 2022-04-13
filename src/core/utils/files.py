@@ -1,7 +1,9 @@
-from distutils import extension
 import os
+from distutils import extension
 
 import core
+
+
 
 # translates file extensions to fontawesome icons (version 6.1.1)
 file_types = {
@@ -45,10 +47,24 @@ file_types = {
 }
 
 
+class DirectoryNotFoundError(Exception):
+    """
+    Exception raised when the requested directory was not found
+    """
+    pass
+
+
+class DirectoryNotReadableError(Exception):
+    """
+    Exception raised when the requested directory cannot be read
+    """
+    pass
+
+
 def construct_file_prop(root, file):
     # file type based on extension
     extension = os.path.splitext(file)[1].lower()
-    if file_types.has_key(extension):
+    if extension in file_types:
         file_type = file_types[extension]
     else:
         file_type = "file"
@@ -70,8 +86,12 @@ def read_path(path, base_path = None):
 
     if base_path is None: 
         base_path = os.path.basename(full_path)
+        if not os.path.isdir(full_path):
+            raise DirectoryNotFoundError
+        if not os.access(full_path, os.R_OK):
+            raise DirectoryNotReadableError
 
-    for root, dirs, files in os.walk(path):
+    for root, dirs, files in os.walk(full_path):
         tree = {
             "name": os.path.basename(root),
             "path": root,
