@@ -5,9 +5,9 @@ import core
 
 
 
-# translates file extensions to fontawesome icons (version 6.1.1)
+# translates file extensions to mdi icons
 file_types = {
-    "pdf": "file-pdf",
+    "pdf": "file-pdf-box",
 
     "docx": "file-word",
     "doc": "file-word",
@@ -22,7 +22,7 @@ file_types = {
     "ppt": "file-powerpoint",
     "odp": "file-powerpoint",
 
-    "csv": "file-csv",
+    "csv": "file-delimited",
 
     "txt": "file-lines",
     "text": "file-lines",
@@ -40,10 +40,10 @@ file_types = {
     "avi": "file-video",
     "mp4": "file-video",
 
-    "zip": "file-zipper",
-    "gz": "file-zipper",
-    "bz2": "file-zipper",
-    "rar": "file-zipper"
+    "zip": "folder-zip",
+    "gz": "folder-zip",
+    "bz2": "folder-zip",
+    "rar": "folder-zip"
 }
 
 
@@ -63,7 +63,8 @@ class DirectoryNotReadableError(Exception):
 
 def construct_file_prop(root, file):
     # file type based on extension
-    extension = os.path.splitext(file)[1].lower()
+    extension = os.path.splitext(file)[1].lower().lstrip(".")
+
     if extension in file_types:
         file_type = file_types[extension]
     else:
