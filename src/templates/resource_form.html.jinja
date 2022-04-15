@@ -789,12 +789,11 @@
         <v-card 
             v-if="tabItems[tab] === 'Files' && hasData && !isError"
             class="mt-6" 
-            elevation="0" 
-            :disabled="!isEditable">
+            elevation="0">
             <v-container>
-                <v-row no-gutters>
+                <v-row no-gutters v-if="projectFiles">
                     <v-col cols="12" md="4">
-                        <v-card class="mt-6" v-if="projectFiles.length > 0">
+                        <v-card class="mt-6" :disabled="!isEditable">
                             <v-treeview
                                 v-model="projectFileTree"
                                 :items="projectFiles"
@@ -813,6 +812,22 @@
                                     </v-icon>
                                 </template>
                             </v-treeview>
+                            <v-card-text style="height: 45px; position: relative; text-align: right">
+                                <v-tooltip left>
+                                    <template v-slot:activator="{ on, attrs }">
+                                        <v-btn 
+                                            fab
+                                            small
+                                            class="mt-2 mr-4"
+                                            @click="getProjectFiles()"
+                                            v-bind="attrs"
+                                            v-on="on">
+                                            <v-icon>mdi-refresh</v-icon>
+                                        </v-btn>
+                                    </template>
+                                    <span>Refresh</span>
+                                </v-tooltip>
+                            </v-card-text>
                         </v-card>
                     </v-col>
                     <v-col cols="12" md="8">
@@ -837,7 +852,7 @@
                                             v-for="item in data.files"
                                             :key="item.path">
                                             <td><span v-text="item.path"></span></td>
-                                            <td><span v-text="item.type"></span></td>
+                                            <td :disabled="!isEditable"><span v-text="item.type"></span></td>
                                         </tr>
                                     </tbody>
                                 </template>
@@ -1244,8 +1259,8 @@
                 units: units !== '' ? JSON.parse(units) : [],
                 collections: [],
 
-                projectFiles: [],
-                projectFileTree: null,
+                projectFiles: null,
+                projectFileTree: [],
 
                 alert: false,
                 alertType: "info",
@@ -1287,7 +1302,7 @@
                                 && this.childSamples === null) {
                             this.getChildSamples()
                         } else if (this.tabItems[this.tab] === 'Files'
-                                && this.projectFiles.length === 0) {
+                                && this.projectFiles === null) {
                             this.getProjectFiles()
                         }
                     }
