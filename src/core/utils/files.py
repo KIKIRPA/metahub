@@ -61,7 +61,7 @@ class DirectoryNotReadableError(Exception):
     pass
 
 
-def construct_file_prop(root, file):
+def construct_file_prop(base_path, file):
     # file type based on extension
     extension = os.path.splitext(file)[1].lower().lstrip(".")
 
@@ -72,7 +72,7 @@ def construct_file_prop(root, file):
     
     return {
         "name": file,
-        "path": os.path.join(root, file),
+        "path": os.path.join(base_path, file),
         "type": file_type,
     }
 
@@ -86,19 +86,25 @@ def read_path(path, base_path = None):
     full_path = os.path.join(repo_path, path)
 
     if base_path is None: 
-        base_path = os.path.basename(full_path)
+        base_path = "/"
         if not os.path.isdir(full_path):
             raise DirectoryNotFoundError
         if not os.access(full_path, os.R_OK):
             raise DirectoryNotReadableError
 
     for root, dirs, files in os.walk(full_path):
-        tree = {
-            "name": os.path.basename(root),
-            "path": root,
-            "type": "folder", 
-            "children": []
-        }
-        tree["children"].extend([read_path(os.path.join(root, d), os.path.join(base_path, d)) for d in dirs])
-        tree["children"].extend([construct_file_prop(root, f) for f in files])
-        return tree
+        if base_path == "/":
+            tree = []
+            tree.extend([read_path(os.path.join(root, d), os.path.join(base_path, d)) for d in dirs])
+            tree.extend([construct_file_prop(base_path, f) for f in files])
+            return tree
+        else: 
+            tree = {
+                "name": os.path.basename(base_path),
+                "path": base_path,
+                "type": "folder", 
+                "children": []
+            }
+            tree["children"].extend([read_path(os.path.join(root, d), os.path.join(base_path, d)) for d in dirs])
+            tree["children"].extend([construct_file_prop(base_path, f) for f in files])
+            return tree

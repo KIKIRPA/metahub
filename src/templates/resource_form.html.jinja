@@ -800,6 +800,7 @@
                                 :items="projectFiles"
                                 selectable
                                 selection-type="independent"
+                                selected-color="primary"
                                 item-key="path"
                                 item-text="name"
                                 open-all>
@@ -816,7 +817,7 @@
                     </v-col>
                     <v-col cols="12" md="8">
                         <v-card class="mt-6 ml-md-6">
-                            <pre v-text="projectFiles"></pre>
+                            <pre v-text="projectFileTree"></pre>
                         </v-card>
                     </v-col>
                 </v-row>
@@ -1797,7 +1798,7 @@
                         console.log('Get ' + url)
                         axios.get(url)
                             .then(response => {
-                                this.projectFiles = [response.data]
+                                this.projectFiles = response.data
                             })
                             .catch(error => {
                                 this.handleApiErrors(error, "project files")
