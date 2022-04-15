@@ -7,7 +7,7 @@ from models.common import IdBaseModel, LoggingBaseModel, QueryParameters, Terms,
 
 class File(BaseModel):
     path: str = Field(..., title='Path', description='Path to a file or a directory')
-    format: Optional[str] = Field(None, title="File format")
+    type: Optional[str] = Field(None, title="File type")
 
 
 class Project(BaseModel):

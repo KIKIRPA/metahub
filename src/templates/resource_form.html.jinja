@@ -819,6 +819,30 @@
                         <v-card class="mt-6 ml-md-6">
                             <pre v-text="projectFileTree"></pre>
                         </v-card>
+                        <v-card class="mt-6 ml-md-6">
+                            <v-simple-table>
+                                <template v-slot:default>
+                                    <thead>
+                                        <tr>
+                                            <th class="text-left">
+                                                File path
+                                            </th>
+                                            <th class="text-left">
+                                                File type
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr
+                                            v-for="item in data.files"
+                                            :key="item.path">
+                                            <td><span v-text="item.path"></span></td>
+                                            <td><span v-text="item.type"></span></td>
+                                        </tr>
+                                    </tbody>
+                                </template>
+                            </v-simple-table>
+                        </v-card>
                     </v-col>
                 </v-row>
             </v-container>
