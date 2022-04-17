@@ -34,7 +34,7 @@ class DatasetUpdate(BaseModel):
     contributors: Optional[Set[Contributor]] = Field(None)
     terms: Optional[Terms] = Field(None)
     persistent_identifier: Optional[str] = Field(None, description='Persistent identifier for the dataset')
-    files: Optional[Set[File]] = Field(None)
+    files: Optional[List[File]] = Field(None)
 
 
 class _DatasetShort(DatasetUpdate, IdBaseModel):
