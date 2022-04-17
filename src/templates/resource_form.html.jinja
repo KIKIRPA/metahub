@@ -849,7 +849,13 @@
                                             v-for="item in data.files"
                                             :key="item.path">
                                             <td><span v-text="item.path"></span></td>
-                                            <td :disabled="!isEditable"><span v-text="item.type"></span></td>
+                                            <td :disabled="!isEditable">
+                                                <v-select
+                                                    v-model="item.type"
+                                                    :items="['Undefined', 'One', 'Two']"
+                                                    :rules="requiredRule"
+                                                    required></v-select>
+                                            </td>
                                         </tr>
                                     </tbody>
                                 </template>
