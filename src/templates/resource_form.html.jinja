@@ -832,9 +832,6 @@
                     </v-col>
                     <v-col cols="12" md="8">
                         <v-card class="mt-6 ml-md-6">
-                            <pre v-text="projectFileTree"></pre>
-                        </v-card>
-                        <v-card class="mt-6 ml-md-6">
                             <v-simple-table>
                                 <template v-slot:default>
                                     <thead>
@@ -1329,6 +1326,24 @@
                     if (this.selectedRelatedSample !== null)
                         this.getRelatedSample(this.data.samples[this.selectedRelatedSample].sample_id)
                 },
+                projectFileTree() {
+                    // remove stored files that are not selected
+                    for (i in this.data.files) {
+                        if (!this.projectFileTree.includes(this.data.files[i].path)) {
+                            this.data.files.splice(i, 1)
+                        }
+                    }
+                    // search and add newly selected files
+                    let storedFiles = this.data.files.map(obj => { return obj.path})
+                    for (path of this.projectFileTree) {
+                        if (!storedFiles.includes(path)) {
+                            this.data.files.push({
+                                path: path,
+                                type: "Undefined"
+                            })
+                        }
+                    }
+                }
             },
 
             methods: {
