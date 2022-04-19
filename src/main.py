@@ -26,6 +26,7 @@ app.include_router(routers.api.v1.datasets.router)
 app.include_router(routers.api.v1.collections.router)
 app.include_router(routers.api.v1.samples.router)
 app.include_router(routers.api.v1.templates.router)
+app.include_router(routers.api.v1.files.router)
 app.include_router(routers.schema.router)
 app.include_router(routers.ui.router)
 

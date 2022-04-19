@@ -787,6 +787,87 @@
         </v-card>
 
         <v-card 
+            v-if="tabItems[tab] === 'Files' && hasData && !isError"
+            class="mt-6" 
+            elevation="0">
+            <v-container>
+                <v-row no-gutters v-if="projectFiles">
+                    <v-col cols="12" md="4">
+                        <v-card class="mt-6" :disabled="!isEditable">
+                            <v-treeview
+                                v-model="projectFileTree"
+                                :items="projectFiles"
+                                selectable
+                                selection-type="independent"
+                                selected-color="primary"
+                                item-key="path"
+                                item-text="name"
+                                open-all>
+                                <template v-slot:prepend="{ item, open }">
+                                    <v-icon v-if="item.type === 'folder'">
+                                        {{'{{ open ? "mdi-folder-open" : "mdi-folder" }}'}}
+                                    </v-icon>
+                                    <v-icon v-else>
+                                        mdi-{{'{{ item.type }}'}}
+                                    </v-icon>
+                                </template>
+                            </v-treeview>
+                            <v-card-text style="height: 45px; position: relative; text-align: right">
+                                <v-tooltip left>
+                                    <template v-slot:activator="{ on, attrs }">
+                                        <v-btn 
+                                            fab
+                                            small
+                                            class="mt-2 mr-4"
+                                            @click="getProjectFiles()"
+                                            v-bind="attrs"
+                                            v-on="on">
+                                            <v-icon>mdi-refresh</v-icon>
+                                        </v-btn>
+                                    </template>
+                                    <span>Refresh</span>
+                                </v-tooltip>
+                            </v-card-text>
+                        </v-card>
+                    </v-col>
+                    <v-col cols="12" md="8">
+                        <v-card class="mt-6 ml-md-6">
+                            <v-simple-table>
+                                <template v-slot:default>
+                                    <thead>
+                                        <tr>
+                                            <th class="text-left">
+                                                File path
+                                            </th>
+                                            <th class="text-left">
+                                                File type
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr
+                                            v-for="item in data.files"
+                                            :key="item.path">
+                                            <td><span v-text="item.path"></span></td>
+                                            <td>
+                                                <v-select
+                                                    v-model="item.type"
+                                                    :items="fileTypes"
+                                                    :rules="requiredRule"
+                                                    :disabled="!isEditable"
+                                                    required></v-select>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </template>
+                            </v-simple-table>
+                        </v-card>
+                    </v-col>
+                </v-row>
+            </v-container>
+        </v-card>
+
+        <v-card 
             v-if="tabItems[tab] === 'Images' && hasData && !isError"
             class="mt-6" 
             elevation="0" 
@@ -1066,6 +1147,7 @@
         const queryParameterTemplate = '{{ template }}'
         const templateList = {{ template_list | safe }}
         const units = '{{ units | safe }}'
+        const fileTypes = '{{ file_types | safe }}'
 
         const formOptions =  { 
             "locale": "en-gb", 
@@ -1181,6 +1263,10 @@
 
                 units: units !== '' ? JSON.parse(units) : [],
                 collections: [],
+                fileTypes: fileTypes !== '' ? JSON.parse(fileTypes) : [],
+
+                projectFiles: null,
+                projectFileTree: [],
 
                 alert: false,
                 alertType: "info",
@@ -1221,6 +1307,9 @@
                         } else if (this.tabItems[this.tab] === 'Related samples'
                                 && this.childSamples === null) {
                             this.getChildSamples()
+                        } else if (this.tabItems[this.tab] === 'Files'
+                                && this.projectFiles === null) {
+                            this.getProjectFiles()
                         }
                     }
                 },
@@ -1246,6 +1335,9 @@
                     if (this.selectedRelatedSample !== null)
                         this.getRelatedSample(this.data.samples[this.selectedRelatedSample].sample_id)
                 },
+                projectFileTree() {
+                    this.syncFiles()
+                }
             },
 
             methods: {
@@ -1748,6 +1840,27 @@
                         })
                 },
 
+                getProjectFiles() {
+                    if (this.data.project && this.data.project.project_id) {
+                        let url = '/api/v1/files/project_path/' + this.data.project.project_id
+                        console.log('Get ' + url)
+                        axios.get(url)
+                            .then(response => {
+                                this.projectFiles = response.data
+                                if ('files' in this.data) {
+                                    for (obj of this.data.files) {
+                                        if (!this.projectFileTree.includes(obj.path)) {
+                                            this.projectFileTree.push(obj.path)
+                                        }
+                                    }
+                                }
+                            })
+                            .catch(error => {
+                                this.handleApiErrors(error, "project files")
+                            })
+                    }
+                },
+
                 saveData() {
                     if (this.isValid) {
                         if (this.isNew) {
@@ -1804,6 +1917,25 @@
                         this.showAlert("error", "Error in API request.")
                     } else {
                         this.showAlert("error", "Unknown error")
+                    }
+                },
+
+                syncFiles() {
+                    // remove stored files that are not selected
+                    for (i in this.data.files) {
+                        if (!this.projectFileTree.includes(this.data.files[i].path)) {
+                            this.data.files.splice(i, 1)
+                        }
+                    }
+                    // search and add newly selected files
+                    let storedFiles = this.data.files.map(obj => { return obj.path})
+                    for (path of this.projectFileTree) {
+                        if (!storedFiles.includes(path)) {
+                            this.data.files.push({
+                                path: path,
+                                type: "Other"
+                            })
+                        }
                     }
                 },
             }
