@@ -289,7 +289,7 @@ async def show_dataset_form_new(
     tabs = ['Dataset details', 'Contributors', 'Project', 'Files', 'Samples']
     units = [e.value for e in models.common.Unit]
     # Todo: make file_types dynamic and user-settable
-    file_types = ["Report", "Report [archive version]", "Report [anonymised]", "Administrative document", "Raw data [proprietary format]", "Raw data [open format]", "Processed/derivative data", "Third party data", "Other"]
+    file_types = ["Report", "Report [archive]", "Report [redacted]", "Administrative document", "Raw data [proprietary format]", "Raw data [open format]", "Processed/derivative data", "Third party data", "Other"]
 
     return templates.TemplateResponse("resource_form.html.jinja", {
         "request": request,
@@ -322,7 +322,7 @@ async def show_dataset_form_with_id(
     tabs = ['Dataset details', 'Contributors', 'Project', 'Files', 'Samples']
     units = [e.value for e in models.common.Unit]
     # Todo: make file_types dynamic and user-settable
-    file_types = ["Report", "Report [archive version]", "Report [anonymised]", "Administrative document", "Raw data [proprietary format]", "Raw data [open format]", "Processed/derivative data", "Third party data", "Other"]
+    file_types = ["Report", "Report [archive]", "Report [redacted]", "Administrative document", "Raw data [proprietary format]", "Raw data [open format]", "Processed/derivative data", "Third party data", "Other"]
     
     return templates.TemplateResponse("resource_form.html.jinja", {
         "request": request,

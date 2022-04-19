@@ -849,11 +849,12 @@
                                             v-for="item in data.files"
                                             :key="item.path">
                                             <td><span v-text="item.path"></span></td>
-                                            <td :disabled="!isEditable">
+                                            <td>
                                                 <v-select
                                                     v-model="item.type"
                                                     :items="fileTypes"
                                                     :rules="requiredRule"
+                                                    :disabled="!isEditable"
                                                     required></v-select>
                                             </td>
                                         </tr>
@@ -1846,6 +1847,13 @@
                         axios.get(url)
                             .then(response => {
                                 this.projectFiles = response.data
+                                if ('files' in this.data) {
+                                    for (obj of this.data.files) {
+                                        if (!this.projectFileTree.includes(obj.path)) {
+                                            this.projectFileTree.push(obj.path)
+                                        }
+                                    }
+                                }
                             })
                             .catch(error => {
                                 this.handleApiErrors(error, "project files")
