@@ -852,7 +852,7 @@
                                             <td :disabled="!isEditable">
                                                 <v-select
                                                     v-model="item.type"
-                                                    :items="['Undefined', 'One', 'Two']"
+                                                    :items="fileTypes"
                                                     :rules="requiredRule"
                                                     required></v-select>
                                             </td>
@@ -1146,6 +1146,7 @@
         const queryParameterTemplate = '{{ template }}'
         const templateList = {{ template_list | safe }}
         const units = '{{ units | safe }}'
+        const fileTypes = '{{ file_types | safe }}'
 
         const formOptions =  { 
             "locale": "en-gb", 
@@ -1261,6 +1262,7 @@
 
                 units: units !== '' ? JSON.parse(units) : [],
                 collections: [],
+                fileTypes: fileTypes !== '' ? JSON.parse(fileTypes) : [],
 
                 projectFiles: null,
                 projectFileTree: [],
@@ -1333,22 +1335,7 @@
                         this.getRelatedSample(this.data.samples[this.selectedRelatedSample].sample_id)
                 },
                 projectFileTree() {
-                    // remove stored files that are not selected
-                    for (i in this.data.files) {
-                        if (!this.projectFileTree.includes(this.data.files[i].path)) {
-                            this.data.files.splice(i, 1)
-                        }
-                    }
-                    // search and add newly selected files
-                    let storedFiles = this.data.files.map(obj => { return obj.path})
-                    for (path of this.projectFileTree) {
-                        if (!storedFiles.includes(path)) {
-                            this.data.files.push({
-                                path: path,
-                                type: "Undefined"
-                            })
-                        }
-                    }
+                    this.syncFiles()
                 }
             },
 
@@ -1922,6 +1909,25 @@
                         this.showAlert("error", "Error in API request.")
                     } else {
                         this.showAlert("error", "Unknown error")
+                    }
+                },
+
+                syncFiles() {
+                    // remove stored files that are not selected
+                    for (i in this.data.files) {
+                        if (!this.projectFileTree.includes(this.data.files[i].path)) {
+                            this.data.files.splice(i, 1)
+                        }
+                    }
+                    // search and add newly selected files
+                    let storedFiles = this.data.files.map(obj => { return obj.path})
+                    for (path of this.projectFileTree) {
+                        if (!storedFiles.includes(path)) {
+                            this.data.files.push({
+                                path: path,
+                                type: "Other"
+                            })
+                        }
                     }
                 },
             }

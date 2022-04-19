@@ -288,6 +288,8 @@ async def show_dataset_form_new(
     title_parts = ["dataset_code"]
     tabs = ['Dataset details', 'Contributors', 'Project', 'Files', 'Samples']
     units = [e.value for e in models.common.Unit]
+    # Todo: make file_types dynamic and user-settable
+    file_types = ["Report", "Report [archive version]", "Report [anonymised]", "Administrative document", "Raw data [proprietary format]", "Raw data [open format]", "Processed/derivative data", "Third party data", "Other"]
 
     return templates.TemplateResponse("resource_form.html.jinja", {
         "request": request,
@@ -303,7 +305,8 @@ async def show_dataset_form_new(
         "ui_endpoint": "/datasets",
         "api_endpoint": "/api/v1/datasets",
         "schema_endpoint": "/schema/dataset",
-        "units": json.dumps(units)
+        "units": json.dumps(units),
+        "file_types": json.dumps(file_types)
     })
 
 
@@ -318,6 +321,8 @@ async def show_dataset_form_with_id(
     title_parts = ["dataset_code"]
     tabs = ['Dataset details', 'Contributors', 'Project', 'Files', 'Samples']
     units = [e.value for e in models.common.Unit]
+    # Todo: make file_types dynamic and user-settable
+    file_types = ["Report", "Report [archive version]", "Report [anonymised]", "Administrative document", "Raw data [proprietary format]", "Raw data [open format]", "Processed/derivative data", "Third party data", "Other"]
     
     return templates.TemplateResponse("resource_form.html.jinja", {
         "request": request,
@@ -331,7 +336,8 @@ async def show_dataset_form_with_id(
         "ui_endpoint": "/datasets",
         "api_endpoint": "/api/v1/datasets",
         "schema_endpoint": "/schema/dataset",
-        "units": json.dumps(units)
+        "units": json.dumps(units),
+        "file_types": json.dumps(file_types),
     })
 
 
