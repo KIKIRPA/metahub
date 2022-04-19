@@ -7,7 +7,7 @@ from models.common import IdBaseModel, LoggingBaseModel, QueryParameters, Terms,
 
 class File(BaseModel):
     path: str = Field(..., title='Path', description='Path to a file or a directory')
-    format: Optional[str] = Field(None, title="File format")
+    type: Optional[str] = Field(None, title="File type")
 
 
 class Project(BaseModel):
@@ -34,7 +34,7 @@ class DatasetUpdate(BaseModel):
     contributors: Optional[Set[Contributor]] = Field(None)
     terms: Optional[Terms] = Field(None)
     persistent_identifier: Optional[str] = Field(None, description='Persistent identifier for the dataset')
-    files: Optional[Set[File]] = Field(None)
+    files: Optional[List[File]] = Field(None)
 
 
 class _DatasetShort(DatasetUpdate, IdBaseModel):
